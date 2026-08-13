@@ -117,7 +117,6 @@
             background: linear-gradient(180deg, #4cb84c 0%, #2a7a2a 100%);
         }
 
-        /* 任务栏动态按钮区 (最小化的窗口) */
         #taskbar-items {
             display: flex;
             flex: 1;
@@ -197,7 +196,7 @@
             border: 1px solid #ccc;
         }
 
-        /* ===== XP 窗口 (动态创建) ===== */
+        /* ===== 通用 XP 窗口 (被播放器继承) ===== */
         .xp-window {
             position: fixed;
             min-width: 320px;
@@ -210,7 +209,7 @@
             flex-direction: column;
             z-index: 2000;
             font-family: "Segoe UI", Tahoma, sans-serif;
-            resize: both;
+            resize: none;
             overflow: hidden;
         }
         .xp-window .window-titlebar {
@@ -259,43 +258,264 @@
         .xp-window .window-titlebar .win-btns .min-btn:hover {
             background: #5a7ab5;
         }
+        .xp-window .window-titlebar .win-btns .max-btn:hover {
+            background: #6a8a5a;
+        }
         .xp-window .window-titlebar .win-btns .close-btn:hover {
             background: #c00;
         }
         .xp-window .window-body {
-            padding: 16px 20px;
+            padding: 0;
             flex: 1;
-            overflow: auto;
+            overflow: hidden;
             background: #fff;
             color: #000;
-            line-height: 1.6;
-            min-height: 80px;
+            display: flex;
+            flex-direction: column;
         }
-        .xp-window .window-body input[type="text"],
-        .xp-window .window-body input[type="password"] {
+
+        /* ===== 播放器专用样式 ===== */
+        .player-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(145deg, #f5f0e8, #e8e0d0);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+        .player-views {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        /* 播放视图 */
+        .play-view {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 6px 10px;
-            border: 2px solid #6a6a6a;
-            background: #fff;
-            font-size: 14px;
-            margin: 6px 0 12px 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.3s;
+            background: linear-gradient(135deg, #f0ebe0, #ddd6c8);
         }
-        .xp-window .window-body .login-btn {
-            background: #3a7bd5;
-            color: #fff;
-            border: none;
-            padding: 8px 24px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
+        .play-view.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-view .cover {
+            width: 180px;
+            height: 180px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: #ccc;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            margin-bottom: 12px;
+            border: 2px solid #fff;
+        }
+        .play-view .song-info {
+            text-align: center;
+            margin: 4px 0 8px 0;
+        }
+        .play-view .song-info .title {
+            font-size: 18px;
             font-weight: bold;
+            color: #1a1a1a;
         }
-        .xp-window .window-body .login-btn:hover {
+        .play-view .song-info .artist {
+            font-size: 14px;
+            color: #555;
+        }
+        .play-view .progress-area {
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .play-view .progress-area input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #aaa;
+            border-radius: 2px;
+            outline: none;
+        }
+        .play-view .progress-area input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #1a4a9f;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+        .play-view .progress-area .time {
+            font-size: 12px;
+            color: #444;
+            min-width: 40px;
+        }
+        .play-view .controls {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-top: 12px;
+        }
+        .play-view .controls button {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #333;
+            transition: transform 0.1s, color 0.1s;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .play-view .controls button:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .play-view .controls .play-btn {
+            font-size: 36px;
+            background: #1a4a9f;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(26, 74, 159, 0.4);
+        }
+        .play-view .controls .play-btn:hover {
             background: #245edb;
         }
-        .xp-window .window-body .placeholder-text {
+        .play-view .volume-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            width: 100%;
+            max-width: 200px;
+        }
+        .play-view .volume-row input[type="range"] {
+            flex: 1;
+            height: 3px;
+            -webkit-appearance: none;
+            background: #aaa;
+            border-radius: 2px;
+            outline: none;
+        }
+        .play-view .volume-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #1a4a9f;
+            cursor: pointer;
+            border: 1px solid #fff;
+        }
+
+        /* 列表视图 */
+        .list-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background: #f5f0e8;
+            padding: 10px 0;
+            transition: opacity 0.3s;
+        }
+        .list-view.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .list-view .song-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid #e0d8c8;
+        }
+        .list-view .song-item:hover {
+            background: #e0d8c8;
+        }
+        .list-view .song-item.active {
+            background: #c0d0e0;
+        }
+        .list-view .song-item .item-cover {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background: #ccc;
+            background-size: cover;
+            background-position: center;
+            margin-right: 14px;
+            flex-shrink: 0;
+            border: 1px solid #bbb;
+        }
+        .list-view .song-item .item-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        .list-view .song-item .item-info .item-title {
+            font-weight: bold;
+            color: #1a1a1a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .list-view .song-item .item-info .item-artist {
+            font-size: 12px;
+            color: #666;
+        }
+        .list-view .song-item .item-duration {
+            font-size: 12px;
             color: #888;
-            font-style: italic;
+        }
+
+        /* 底部切换栏 */
+        .player-toolbar {
+            height: 40px;
+            background: #ddd6c8;
+            border-top: 1px solid #c0b8a8;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+        .player-toolbar .tab-btn {
+            background: none;
+            border: none;
+            padding: 4px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 4px;
+            color: #444;
+            font-weight: bold;
+        }
+        .player-toolbar .tab-btn.active {
+            background: #1a4a9f;
+            color: #fff;
+        }
+        .player-toolbar .tab-btn:hover:not(.active) {
+            background: #c0b8a8;
+        }
+        .player-toolbar .song-counter {
+            margin-left: auto;
+            font-size: 12px;
+            color: #666;
         }
 
         /* ===== 返回房间按钮 ===== */
@@ -318,7 +538,6 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* ===== 房间提示 ===== */
         #hint {
             position: fixed;
             bottom: 30px;
@@ -335,15 +554,16 @@
             font-family: sans-serif;
         }
 
-        /* ===== 窗口滚动条 ===== */
-        .xp-window .window-body::-webkit-scrollbar {
-            width: 10px;
-            background: #ece9d8;
+        /* ===== 滚动条样式 ===== */
+        .list-view::-webkit-scrollbar {
+            width: 8px;
         }
-        .xp-window .window-body::-webkit-scrollbar-thumb {
-            background: #c0c0c0;
-            border: 1px solid #aaa;
+        .list-view::-webkit-scrollbar-thumb {
+            background: #c0b8a8;
             border-radius: 4px;
+        }
+        .list-view::-webkit-scrollbar-track {
+            background: #f0ebe0;
         }
     </style>
 </head>
@@ -352,12 +572,10 @@
     <!-- Three.js 容器 -->
     <div id="three-container"></div>
 
-    <!-- 房间提示 -->
     <div id="hint">🖱️ 左右移动鼠标环顾 · 点击电脑屏幕进入桌面</div>
 
     <!-- ===== 桌面覆盖层 ===== -->
     <div id="desktop-overlay">
-        <!-- 桌面图标 -->
         <div class="desktop-icons">
             <div class="desktop-icon" data-window="oc">
                 <span class="icon-img">🧑‍🎤</span>
@@ -367,13 +585,9 @@
                 <span class="icon-img">🖼️</span>
                 <span class="icon-label">图库</span>
             </div>
-            <div class="desktop-icon" data-window="music">
+            <div class="desktop-icon" data-window="player">
                 <span class="icon-img">🎵</span>
                 <span class="icon-label">千千静听</span>
-            </div>
-            <div class="desktop-icon" data-window="login">
-                <span class="icon-img">🔐</span>
-                <span class="icon-label">网易云登录</span>
             </div>
             <div class="desktop-icon" data-window="about">
                 <span class="icon-img">📄</span>
@@ -388,66 +602,39 @@
         <!-- 任务栏 -->
         <div class="taskbar">
             <div class="start-button" id="startBtn">🪟 开始</div>
-            <!-- 任务栏动态按钮区 -->
             <div id="taskbar-items"></div>
             <div class="taskbar-time" id="taskbarTime">12:00</div>
         </div>
 
         <!-- 开始菜单 -->
         <div class="start-menu" id="startMenu">
-            <div class="start-menu-item" data-window="oc">
-                <span class="item-icon">🧑‍🎤</span> 我的 OC
-            </div>
-            <div class="start-menu-item" data-window="gallery">
-                <span class="item-icon">🖼️</span> 图库
-            </div>
-            <div class="start-menu-item" data-window="music">
-                <span class="item-icon">🎵</span> 千千静听
-            </div>
-            <div class="start-menu-item" data-window="login">
-                <span class="item-icon">🔐</span> 网易云登录
-            </div>
-            <div class="start-menu-item" data-window="about">
-                <span class="item-icon">📄</span> 关于
-            </div>
-            <div class="start-menu-item" data-window="trash">
-                <span class="item-icon">🗑️</span> 回收站
-            </div>
+            <div class="start-menu-item" data-window="oc"><span class="item-icon">🧑‍🎤</span> 我的 OC</div>
+            <div class="start-menu-item" data-window="gallery"><span class="item-icon">🖼️</span> 图库</div>
+            <div class="start-menu-item" data-window="player"><span class="item-icon">🎵</span> 千千静听</div>
+            <div class="start-menu-item" data-window="about"><span class="item-icon">📄</span> 关于</div>
+            <div class="start-menu-item" data-window="trash"><span class="item-icon">🗑️</span> 回收站</div>
             <hr />
-            <div class="start-menu-item" id="shutdownItem">
-                <span class="item-icon">⏻</span> 返回房间
-            </div>
+            <div class="start-menu-item" id="shutdownItem"><span class="item-icon">⏻</span> 返回房间</div>
         </div>
     </div>
 
-    <!-- 返回房间按钮 -->
     <button class="back-to-room" id="backBtn">🏠 返回房间</button>
 
-    <!-- ===== 使用 importmap 加载 Three.js ===== -->
+    <!-- ===== Three.js ===== -->
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-            }
-        }
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
     </script>
 
     <script type="module">
         // ============================================================
-        //  1. 导入 Three.js (房间3D引擎)
+        //  1. Three.js 场景（与之前相同，略缩）
         // ============================================================
         import * as THREE from 'three';
-
-        // ============================================================
-        //  2. 场景 / 相机 / 渲染器
-        // ============================================================
         const container = document.getElementById('three-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a0a);
-
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 1.8, 4);
-
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
@@ -456,9 +643,7 @@
         renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
 
-        // ============================================================
-        //  3. 灯光
-        // ============================================================
+        // 灯光
         scene.add(new THREE.AmbientLight(0x404060, 0.8));
         const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
         mainLight.position.set(3, 5, 2);
@@ -473,14 +658,11 @@
         lampLight.position.set(-0.8, 1.6, 0.5);
         scene.add(lampLight);
 
-        // ============================================================
-        //  4. 房间 (墙壁/地板/桌子/显示器/海报)
-        // ============================================================
+        // 房间构建（简写，同前）
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
-
         // 地板
-        function createWoodTexture() {
+        const woodTex = (() => {
             const c = document.createElement('canvas');
             c.width = 256;
             c.height = 256;
@@ -498,8 +680,7 @@
                 ctx.stroke();
             }
             return new THREE.CanvasTexture(c);
-        }
-        const woodTex = createWoodTexture();
+        })();
         woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
         woodTex.repeat.set(4, 4);
         const floorMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.7, metalness: 0.1 });
@@ -510,7 +691,7 @@
         roomGroup.add(floor);
 
         // 墙壁
-        function createWallTexture() {
+        const wallTex = (() => {
             const c = document.createElement('canvas');
             c.width = 256;
             c.height = 256;
@@ -522,12 +703,10 @@
                 ctx.fillRect(i * 13, 0, 6, 256);
             }
             return new THREE.CanvasTexture(c);
-        }
-        const wallTex = createWallTexture();
+        })();
         wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
         wallTex.repeat.set(3, 2);
         const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9, metalness: 0 });
-
         const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         backWall.position.set(0, 1.25, -3);
         roomGroup.add(backWall);
@@ -565,7 +744,7 @@
             roomGroup.add(leg);
         });
 
-        // 大屁股显示器
+        // 显示器
         const monitorGroup = new THREE.Group();
         monitorGroup.position.set(0, 0.9, -0.3);
         roomGroup.add(monitorGroup);
@@ -612,26 +791,26 @@
         const clickTargets = [screen, glass, bezel];
 
         // 海报
-        function createPoster(color, x, y, z, rotY) {
+        const posterColors = [
+            [0x8b3a3a, -1.8, 1.8, -2.9, 0],
+            [0x3a6b8b, 1.8, 2.0, -2.9, 0],
+            [0x6b8b3a, -2.9, 1.5, -0.5, Math.PI / 2],
+            [0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI / 2]
+        ];
+        posterColors.forEach(([color, x, y, z, rotY]) => {
             const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
             const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat);
             poster.position.set(x, y, z);
             poster.rotation.y = rotY || 0;
             roomGroup.add(poster);
-        }
-        createPoster(0x8b3a3a, -1.8, 1.8, -2.9, 0);
-        createPoster(0x3a6b8b, 1.8, 2.0, -2.9, 0);
-        createPoster(0x6b8b3a, -2.9, 1.5, -0.5, Math.PI / 2);
-        createPoster(0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI / 2);
+        });
         const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
         const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8, 12), carpetMat);
         carpet.rotation.x = -Math.PI / 2;
         carpet.position.set(0.3, -0.49, 0.2);
         roomGroup.add(carpet);
 
-        // ============================================================
-        //  5. 鼠标控制房间旋转
-        // ============================================================
+        // 鼠标控制旋转
         let rotationY = 0;
         const maxRotation = 0.35;
         document.addEventListener('mousemove', (e) => {
@@ -648,9 +827,7 @@
             roomGroup.rotation.y = rotationY;
         }, { passive: true });
 
-        // ============================================================
-        //  6. 点击屏幕 → 进入桌面
-        // ============================================================
+        // 点击屏幕进入桌面
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
         let isDesktopActive = false;
@@ -670,9 +847,6 @@
         renderer.domElement.addEventListener('click', onPointerDown);
         renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
 
-        // ============================================================
-        //  7. 进入 / 退出桌面
-        // ============================================================
         function enterDesktop() {
             isDesktopActive = true;
             document.getElementById('desktop-overlay').classList.add('active');
@@ -704,9 +878,7 @@
                 String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         }
 
-        // ============================================================
-        //  8. 开始菜单
-        // ============================================================
+        // 开始菜单
         const startBtn = document.getElementById('startBtn');
         const startMenu = document.getElementById('startMenu');
         startBtn.addEventListener('click', (e) => { e.stopPropagation();
@@ -721,180 +893,225 @@
             });
         });
 
-        // ============================================================
-        //  9. 桌面图标点击 → 创建窗口
-        // ============================================================
         document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
             icon.addEventListener('click', () => createWindow(icon.dataset.window));
         });
 
         // ============================================================
-        //  10. ★★★ 窗口内容定义 (所有文字/图片/音乐ID都在这里改！) ★★★
+        //  2. ★★★ 窗口内容定义 (其他窗口简单留占位) ★★★
         // ============================================================
         const windowContents = {
             oc: {
                 title: '🧑‍🎤 我的 OC',
-                content: `
-                    <h2>角色名称</h2>
-                    <p><strong>名字：</strong>（在这里填你的 OC 名字）</p>
-                    <p><strong>年龄：</strong>（填年龄）</p>
-                    <p><strong>简介：</strong>这是一个充满个性的角色，拥有独特的背景故事。</p>
-                    <p><em>（你可以在这里替换成自己的文字和图片）</em></p>
-                    <div style="background:#f0f0f0; padding:20px; text-align:center; border-radius:8px; margin:10px 0;">
-                        🖼️ 图片占位
-                    </div>
-                    <p>更多内容等你来填充！</p>
-                `
+                content: `<div style="padding:20px;"><h2>角色名称</h2><p>在这里填你的OC信息</p></div>`
             },
             gallery: {
                 title: '🖼️ 图库',
-                content: `
-                    <h2>图库</h2>
-                    <p>这里展示你的 OC 相关图片。</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin:10px 0;">
-                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片1</div>
-                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片2</div>
-                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片3</div>
-                    </div>
-                    <p class="placeholder-text">（将上面的占位替换为你的图片链接）</p>
-                `
-            },
-            music: {
-                title: '🎵 千千静听',
-                content: `
-                    <div style="padding:4px 0; background:#f0f0f0; border-radius:6px; text-align:center;">
-                        <h3 style="margin:4px 0; color:#333;">🎵 千禧复古音律</h3>
-                        <p style="color:#666; font-size:13px; margin:2px 0;">👇 播放你的歌单或单曲</p>
-                        <!-- 
-                            ★★★ 换歌方法 ★★★ 
-                            1. 单曲：type=2&id=歌曲ID
-                            2. 歌单：type=0&id=歌单ID（推荐！把你的公开歌单ID填进来）
-                        -->
-                        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0"
-                            width="100%" height="86"
-                            src="//music.163.com/outchain/player?type=0&id=14273792576&auto=0&height=66"
-                            allow="autoplay"
-                            style="border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        </iframe>
-                        <p style="color:#999; font-size:11px; margin:6px 0 0 0;">
-                            💡 在代码中搜索 <strong>type=0&id=14273792576</strong> 替换ID即可
-                        </p>
-                        <div style="margin-top:10px; padding:10px; background:#e8e0d0; border-radius:6px; border:1px solid #ccc;">
-                            <span style="font-weight:bold;">📢 提示：</span>
-                            如果这是你的公开歌单，把 <strong>id=14273792576</strong> 换成你的歌单ID。
-                            不知道怎么找ID？看文末说明。
-                        </div>
-                    </div>
-                `
-            },
-            login: {
-                title: '🔐 网易云音乐 登录',
-                content: `
-                    <div style="padding:8px 0; max-width:360px; margin:0 auto;">
-                        <div style="background:#f8f4ec; border:2px solid #d0c8b8; border-radius:8px; padding:24px 20px;">
-                            <h3 style="margin:0 0 16px 0; text-align:center; color:#1a2a5a;">🎵 网易云音乐</h3>
-                            <label style="font-size:13px; font-weight:bold;">账号</label>
-                            <input type="text" placeholder="请输入手机号/邮箱" value="vintage_lover@2000" />
-                            <label style="font-size:13px; font-weight:bold;">密码</label>
-                            <input type="password" placeholder="请输入密码" value="········" />
-                            <button class="login-btn" style="width:100%; margin-top:8px;" onclick="alert('🎵 这是复古模拟登录界面！\n\n真正的登录需要后端服务器支持。\n但你可以用上方「千千静听」播放器，\n填入你的公开歌单ID来听歌！')">
-                                🖱️ 登 录 (复古模拟)
-                            </button>
-                            <p style="text-align:center; font-size:11px; color:#888; margin:12px 0 0 0;">
-                                ⚡ 这只是XP风格模拟界面 · 无需输入真实密码
-                            </p>
-                            <hr style="margin:16px 0;" />
-                            <p style="font-size:12px; color:#555; text-align:center;">
-                                💡 真正的账号连接需要后端API，<br />但你可以使用「公开歌单」功能听歌！
-                            </p>
-                        </div>
-                    </div>
-                `
+                content: `<div style="padding:20px;"><p>图片占位</p></div>`
             },
             about: {
                 title: '📄 关于',
-                content: `
-                    <h2>关于这个页面</h2>
-                    <p>这是一个复古风格的个人展示页，灵感来自 2000 年代的 Windows XP 和 CRT 显示器。</p>
-                    <p>所有窗口都可以 <strong>拖动</strong>、<strong>最小化</strong>、<strong>关闭</strong>。</p>
-                    <p style="color:#888; font-size:12px; margin-top:20px;">Made with ❤️ and Three.js</p>
-                `
+                content: `<div style="padding:20px;"><p>复古XP风格页面，使用Three.js</p></div>`
             },
             trash: {
                 title: '🗑️ 回收站',
-                content: `
-                    <h2>回收站</h2>
-                    <p>这里是空的…… 就像你的待办清单一样 😄</p>
-                    <p style="color:#aaa; text-align:center; padding:40px 0;">📭</p>
-                `
+                content: `<div style="padding:20px;"><p>空空如也～</p></div>`
             }
         };
 
         // ============================================================
-        //  11. 窗口管理器 (创建/最小化/关闭/拖拽)
+        //  3. ★★★ 音乐播放器核心 ★★★
         // ============================================================
-        const windowInstances = {};
-        let windowZIndex = 2000;
 
-        function createWindow(id) {
-            if (windowInstances[id] && windowInstances[id].window) {
-                const win = windowInstances[id].window;
-                win.style.display = 'flex';
-                win.style.zIndex = ++windowZIndex;
-                if (windowInstances[id].taskbarBtn) {
-                    windowInstances[id].taskbarBtn.remove();
-                    windowInstances[id].taskbarBtn = null;
+        // ---------- 歌曲数据（全部替换成你的） ----------
+        // 格式：{ title: '歌名', artist: '歌手', cover: '封面图URL', url: '音乐文件URL' }
+        // 封面图和音乐文件可以放在GitHub仓库里，路径写 './xxx.jpg' 或使用网络链接
+        const songList = [{
+            title: '【歌名1】',
+            artist: '【歌手1】',
+            cover: '【封面图URL1】',
+            url: '【音乐文件URL1】'
+        }, {
+            title: '【歌名2】',
+            artist: '【歌手2】',
+            cover: '【封面图URL2】',
+            url: '【音乐文件URL2】'
+        }, {
+            title: '【歌名3】',
+            artist: '【歌手3】',
+            cover: '【封面图URL3】',
+            url: '【音乐文件URL3】'
+        }, {
+            title: '【歌名4】',
+            artist: '【歌手4】',
+            cover: '【封面图URL4】',
+            url: '【音乐文件URL4】'
+        }, {
+            title: '【歌名5】',
+            artist: '【歌手5】',
+            cover: '【封面图URL5】',
+            url: '【音乐文件URL5】'
+        }];
+        // -------------------------------------------------
+
+        // 默认索引
+        let currentIndex = 0;
+        let isPlaying = false;
+        let audio = new Audio();
+        audio.preload = 'metadata';
+        let isPlayerWindowOpen = false; // 防止重复创建播放器窗口
+
+        // 创建播放器窗口（单独的函数，因为需要返回DOM元素以便控制）
+        function createPlayerWindow() {
+            if (isPlayerWindowOpen) {
+                // 如果已存在，则激活
+                const inst = window._windowInstances['player'];
+                if (inst && inst.window) {
+                    inst.window.style.display = 'flex';
+                    inst.window.style.zIndex = ++windowZIndex;
+                    if (inst.taskbarBtn) {
+                        inst.taskbarBtn.remove();
+                        inst.taskbarBtn = null;
+                    }
                 }
                 return;
             }
 
-            const data = windowContents[id];
-            if (!data) return;
+            const id = 'player';
+            const data = {
+                title: '🎵 千千静听',
+                content: '' // 我们手动构建
+            };
 
+            // 创建窗口DOM
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
-            win.style.width = '460px';
-            win.style.left = (120 + Math.random() * 60) + 'px';
-            win.style.top = (80 + Math.random() * 60) + 'px';
+            win.style.width = '520px';
+            win.style.height = '480px';
+            win.style.left = (100 + Math.random() * 80) + 'px';
+            win.style.top = (60 + Math.random() * 80) + 'px';
             win.style.zIndex = ++windowZIndex;
 
+            // 标题栏
             const titlebar = document.createElement('div');
             titlebar.className = 'window-titlebar';
             titlebar.innerHTML = `
-                <span class="title-text">${data.title}</span>
+                <span class="title-text">🎵 千千静听</span>
                 <div class="win-btns">
                     <button class="min-btn" title="最小化">─</button>
+                    <button class="max-btn" title="全屏">☐</button>
                     <button class="close-btn" title="关闭">✕</button>
                 </div>
             `;
             win.appendChild(titlebar);
 
+            // 主体 (播放器容器)
             const body = document.createElement('div');
             body.className = 'window-body';
-            if (id === 'music') body.id = 'musicPlayer';
-            body.innerHTML = data.content;
+            body.innerHTML = `
+                <div class="player-container">
+                    <!-- 视图区域 -->
+                    <div class="player-views">
+                        <!-- 播放视图 -->
+                        <div class="play-view" id="playView">
+                            <div class="cover" id="coverArt" style="background-image: url('${songList[currentIndex].cover || ''}');"></div>
+                            <div class="song-info">
+                                <div class="title" id="songTitle">${songList[currentIndex].title}</div>
+                                <div class="artist" id="songArtist">${songList[currentIndex].artist}</div>
+                            </div>
+                            <div class="progress-area">
+                                <span class="time" id="currentTime">0:00</span>
+                                <input type="range" id="progressBar" value="0" step="0.1" />
+                                <span class="time" id="totalTime">0:00</span>
+                            </div>
+                            <div class="controls">
+                                <button id="prevBtn" title="上一首">⏮</button>
+                                <button class="play-btn" id="playBtn" title="播放/暂停">▶</button>
+                                <button id="nextBtn" title="下一首">⏭</button>
+                            </div>
+                            <div class="volume-row">
+                                <span style="font-size:16px;">🔊</span>
+                                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" />
+                            </div>
+                        </div>
+                        <!-- 列表视图 -->
+                        <div class="list-view hidden" id="listView">
+                            ${songList.map((song, idx) => `
+                                <div class="song-item ${idx === currentIndex ? 'active' : ''}" data-index="${idx}">
+                                    <div class="item-cover" style="background-image: url('${song.cover || ''}');"></div>
+                                    <div class="item-info">
+                                        <div class="item-title">${song.title}</div>
+                                        <div class="item-artist">${song.artist}</div>
+                                    </div>
+                                    <div class="item-duration">--:--</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <!-- 底部工具栏 -->
+                    <div class="player-toolbar">
+                        <button class="tab-btn active" data-view="play">🎵 播放</button>
+                        <button class="tab-btn" data-view="list">📋 列表</button>
+                        <span class="song-counter">${songList.length} 首</span>
+                    </div>
+                </div>
+            `;
             win.appendChild(body);
 
             document.body.appendChild(win);
-            windowInstances[id] = { window: win, taskbarBtn: null };
 
-            // 关闭
-            titlebar.querySelector('.close-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                closeWindow(id);
-            });
+            // 存储实例
+            window._windowInstances = window._windowInstances || {};
+            window._windowInstances[id] = { window: win, taskbarBtn: null };
+            isPlayerWindowOpen = true;
 
+            // ---- 窗口控制 ----
             // 最小化
             titlebar.querySelector('.min-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 minimizeWindow(id);
             });
+            // 全屏 (切换)
+            let isMaximized = false;
+            titlebar.querySelector('.max-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!isMaximized) {
+                    // 保存当前尺寸
+                    win._prevRect = win.getBoundingClientRect();
+                    win.style.left = '0';
+                    win.style.top = '0';
+                    win.style.width = '100%';
+                    win.style.height = '100%';
+                    win.style.borderRadius = '0';
+                    isMaximized = true;
+                    titlebar.querySelector('.max-btn').textContent = '❐';
+                } else {
+                    const rect = win._prevRect || { left: 100, top: 60, width: 520, height: 480 };
+                    win.style.left = rect.left + 'px';
+                    win.style.top = rect.top + 'px';
+                    win.style.width = rect.width + 'px';
+                    win.style.height = rect.height + 'px';
+                    win.style.borderRadius = '';
+                    isMaximized = false;
+                    titlebar.querySelector('.max-btn').textContent = '☐';
+                }
+            });
+            // 关闭
+            titlebar.querySelector('.close-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeWindow(id);
+                isPlayerWindowOpen = false;
+                // 停止播放
+                audio.pause();
+                isPlaying = false;
+            });
 
-            // 拖拽
+            // 拖拽（与之前相同，但绑定到标题栏）
             let dragData = null;
             titlebar.addEventListener('mousedown', (e) => {
                 if (e.target.tagName === 'BUTTON') return;
+                if (isMaximized) return; // 全屏时不能拖
                 const rect = win.getBoundingClientRect();
                 dragData = {
                     offsetX: e.clientX - rect.left,
@@ -926,30 +1143,270 @@
                 win.style.zIndex = ++windowZIndex;
             });
 
-            win.addEventListener('DOMNodeRemoved', () => {
-                if (windowInstances[id]) {
-                    if (windowInstances[id].taskbarBtn) windowInstances[id].taskbarBtn.remove();
-                    delete windowInstances[id];
+            // ---- 播放器逻辑 ----
+            const playBtn = body.querySelector('#playBtn');
+            const prevBtn = body.querySelector('#prevBtn');
+            const nextBtn = body.querySelector('#nextBtn');
+            const progressBar = body.querySelector('#progressBar');
+            const volumeSlider = body.querySelector('#volumeSlider');
+            const currentTimeEl = body.querySelector('#currentTime');
+            const totalTimeEl = body.querySelector('#totalTime');
+            const coverArt = body.querySelector('#coverArt');
+            const songTitle = body.querySelector('#songTitle');
+            const songArtist = body.querySelector('#songArtist');
+            const listView = body.querySelector('#listView');
+            const playView = body.querySelector('#playView');
+            const tabBtns = body.querySelectorAll('.tab-btn');
+            const songItems = body.querySelectorAll('.song-item');
+
+            // 初始化音频
+            loadSong(currentIndex);
+
+            function loadSong(index) {
+                const song = songList[index];
+                if (!song) return;
+                audio.src = song.url;
+                audio.load();
+                // 更新封面和文字
+                coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
+                songTitle.textContent = song.title;
+                songArtist.textContent = song.artist;
+                // 更新列表高亮
+                songItems.forEach((item, i) => {
+                    item.classList.toggle('active', i === index);
+                });
+                // 更新进度条
+                progressBar.value = 0;
+                currentTimeEl.textContent = '0:00';
+                totalTimeEl.textContent = '0:00';
+                // 自动播放
+                if (isPlaying) {
+                    audio.play().catch(() => {});
+                }
+            }
+
+            function playPause() {
+                if (audio.paused) {
+                    audio.play().catch(() => {});
+                    isPlaying = true;
+                    playBtn.textContent = '⏸';
+                } else {
+                    audio.pause();
+                    isPlaying = false;
+                    playBtn.textContent = '▶';
+                }
+            }
+
+            function prevSong() {
+                currentIndex = (currentIndex - 1 + songList.length) % songList.length;
+                loadSong(currentIndex);
+                if (isPlaying) audio.play().catch(() => {});
+            }
+
+            function nextSong() {
+                currentIndex = (currentIndex + 1) % songList.length;
+                loadSong(currentIndex);
+                if (isPlaying) audio.play().catch(() => {});
+            }
+
+            // 事件绑定
+            playBtn.addEventListener('click', playPause);
+            prevBtn.addEventListener('click', prevSong);
+            nextBtn.addEventListener('click', nextSong);
+
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration) {
+                    const percent = (audio.currentTime / audio.duration) * 100;
+                    progressBar.value = percent;
+                    currentTimeEl.textContent = formatTime(audio.currentTime);
+                    totalTimeEl.textContent = formatTime(audio.duration);
                 }
             });
+
+            audio.addEventListener('loadedmetadata', () => {
+                totalTimeEl.textContent = formatTime(audio.duration);
+            });
+
+            audio.addEventListener('ended', () => {
+                nextSong();
+            });
+
+            progressBar.addEventListener('input', () => {
+                if (audio.duration) {
+                    const time = (progressBar.value / 100) * audio.duration;
+                    audio.currentTime = time;
+                }
+            });
+
+            volumeSlider.addEventListener('input', () => {
+                audio.volume = volumeSlider.value;
+            });
+            audio.volume = volumeSlider.value;
+
+            function formatTime(seconds) {
+                if (!seconds || isNaN(seconds)) return '0:00';
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            }
+
+            // 视图切换
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const view = btn.dataset.view;
+                    if (view === 'play') {
+                        playView.classList.remove('hidden');
+                        listView.classList.add('hidden');
+                    } else {
+                        playView.classList.add('hidden');
+                        listView.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // 列表点击
+            songItems.forEach((item) => {
+                item.addEventListener('click', () => {
+                    const idx = parseInt(item.dataset.index);
+                    if (idx !== currentIndex) {
+                        currentIndex = idx;
+                        loadSong(currentIndex);
+                        if (isPlaying) audio.play().catch(() => {});
+                    }
+                    // 切换到播放视图
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelector('.tab-btn[data-view="play"]').classList.add('active');
+                    playView.classList.remove('hidden');
+                    listView.classList.add('hidden');
+                });
+            });
+
+            // 监听窗口关闭清理
+            win.addEventListener('DOMNodeRemoved', () => {
+                if (window._windowInstances && window._windowInstances[id]) {
+                    if (window._windowInstances[id].taskbarBtn) {
+                        window._windowInstances[id].taskbarBtn.remove();
+                    }
+                    delete window._windowInstances[id];
+                }
+                isPlayerWindowOpen = false;
+                audio.pause();
+                isPlaying = false;
+            });
+
+            // 存储当前窗口引用以便最小化恢复
+            window._windowInstances[id].window = win;
         }
 
+        // 覆盖原有的 createWindow 以支持播放器
+        const originalCreateWindow = window.createWindow;
+        window.createWindow = function(id) {
+            if (id === 'player') {
+                createPlayerWindow();
+                return;
+            }
+            // 其他窗口使用通用逻辑
+            if (window._windowInstances && window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
+                win.style.display = 'flex';
+                win.style.zIndex = ++windowZIndex;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
+                }
+                return;
+            }
+            const data = windowContents[id];
+            if (!data) return;
+            const win = document.createElement('div');
+            win.className = 'xp-window';
+            win.dataset.windowId = id;
+            win.style.width = '460px';
+            win.style.left = (120 + Math.random() * 60) + 'px';
+            win.style.top = (80 + Math.random() * 60) + 'px';
+            win.style.zIndex = ++windowZIndex;
+            const titlebar = document.createElement('div');
+            titlebar.className = 'window-titlebar';
+            titlebar.innerHTML = `
+                <span class="title-text">${data.title}</span>
+                <div class="win-btns">
+                    <button class="min-btn" title="最小化">─</button>
+                    <button class="close-btn" title="关闭">✕</button>
+                </div>
+            `;
+            win.appendChild(titlebar);
+            const body = document.createElement('div');
+            body.className = 'window-body';
+            body.style.padding = '16px 20px';
+            body.innerHTML = data.content;
+            win.appendChild(body);
+            document.body.appendChild(win);
+            window._windowInstances = window._windowInstances || {};
+            window._windowInstances[id] = { window: win, taskbarBtn: null };
+            // 关闭
+            titlebar.querySelector('.close-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeWindow(id);
+            });
+            titlebar.querySelector('.min-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                minimizeWindow(id);
+            });
+            // 拖拽
+            let dragData = null;
+            titlebar.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                const rect = win.getBoundingClientRect();
+                dragData = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+                win.style.left = rect.left + 'px';
+                win.style.top = rect.top + 'px';
+                win.style.width = rect.width + 'px';
+                win.style.height = rect.height + 'px';
+                win.style.transform = 'none';
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+                win.style.zIndex = ++windowZIndex;
+            });
+
+            function onDrag(e) {
+                if (!dragData) return;
+                win.style.left = (e.clientX - dragData.offsetX) + 'px';
+                win.style.top = (e.clientY - dragData.offsetY) + 'px';
+            }
+
+            function stopDrag() {
+                dragData = null;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+            win.addEventListener('mousedown', () => { win.style.zIndex = ++windowZIndex; });
+            win.addEventListener('DOMNodeRemoved', () => {
+                if (window._windowInstances && window._windowInstances[id]) {
+                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                    delete window._windowInstances[id];
+                }
+            });
+        };
+
+        // 最小化和关闭函数（通用）
         function closeWindow(id) {
-            if (windowInstances[id]) {
-                const win = windowInstances[id].window;
+            if (window._windowInstances && window._windowInstances[id]) {
+                const win = window._windowInstances[id].window;
                 if (win) win.remove();
-                if (windowInstances[id].taskbarBtn) windowInstances[id].taskbarBtn.remove();
-                delete windowInstances[id];
+                if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                delete window._windowInstances[id];
+                if (id === 'player') isPlayerWindowOpen = false;
             }
         }
 
         function minimizeWindow(id) {
-            const inst = windowInstances[id];
+            const inst = window._windowInstances && window._windowInstances[id];
             if (!inst) return;
             const win = inst.window;
             if (!win) return;
             win.style.display = 'none';
-
             const taskbarItems = document.getElementById('taskbar-items');
             const btn = document.createElement('div');
             btn.className = 'taskbar-item';
@@ -966,11 +1423,11 @@
             inst.taskbarBtn = btn;
         }
 
-        window._windowInstances = windowInstances;
+        // 暴露全局变量以便在播放器中引用
+        window._windowInstances = window._windowInstances || {};
+        let windowZIndex = 2000;
 
-        // ============================================================
-        //  12. 响应式 & 动画
-        // ============================================================
+        // 响应式
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -987,21 +1444,9 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 复古房间已加载！点击显示器进入XP桌面。');
-        console.log('✏️ 所有窗口内容在 windowContents 对象中修改。');
-        console.log('🎵 音乐播放器歌单ID在 windowContents.music.content 中替换 id= 后的数字。');
-
-        // ============================================================
-        //  13. ★★★ 如何添加新的"软件"（窗口） ★★★
-        // ============================================================
-        // 如果你想加一个"日记本"软件：
-        // 1. 在 windowContents 里添加:  
-        //    diary: { title: '📖 日记本', content: '<p>写你的内容</p>' }
-        // 2. 在桌面图标区加一行:  
-        //    <div class="desktop-icon" data-window="diary"><span class="icon-img">📖</span><span class="icon-label">日记本</span></div>
-        // 3. 在开始菜单加一行:  
-        //    <div class="start-menu-item" data-window="diary"><span class="item-icon">📖</span> 日记本</div>
-        // 搞定！新窗口自动支持关闭/最小化/拖动。
+        console.log('🖥️ 复古房间加载成功！点击显示器进入桌面。');
+        console.log('🎵 音乐播放器已集成，修改 songList 数组即可替换歌曲。');
+        console.log('📝 替换方法：找到代码中 songList = [...]，填写你的歌曲信息。');
     </script>
 </body>
 </html>
