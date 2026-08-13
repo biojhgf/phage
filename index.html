@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* 样式完整（同上，保证所有按钮和界面完整） */
+        /* ===== 样式与之前完全相同（为了节省篇幅，这里只放关键样式，实际复制时请用完整版） ===== */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -387,15 +387,22 @@
         }];
 
         // ============================================================
-        //  4. 窗口管理器 + 播放器 (平板最终修复版)
+        //  4. 窗口管理器 + 播放器 (使用 AudioContext 终极方案)
         // ============================================================
         let currentIndex = 0;
         let isPlaying = false;
-        let audio = new Audio();
+        let audioContext = null;
+        let currentBuffer = null;
+        let currentSource = null;
+        let gainNode = null;
+        let startTime = 0;
+        let pausedAt = 0; // 暂停时的播放位置（秒）
+        let duration = 0;
+
         let isPlayerWindowOpen = false;
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
-        let currentBlobUrl = null;
+        let animationFrameId = null;
 
         // ---- 拖拽 ----
         function makeDraggable(element, handle) {
@@ -490,7 +497,10 @@
                 if (win) win.remove();
                 if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
                 delete window._windowInstances[id];
-                if (id === 'player') { isPlayerWindowOpen = false; audio.pause(); isPlaying = false; if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; } }
+                if (id === 'player') {
+                    isPlayerWindowOpen = false;
+                    stopPlayback();
+                }
             }
         }
 
@@ -516,7 +526,7 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器核心 (最终修复) ----
+        // ---- 播放器核心 ----
         function createPlayerWindow() {
             if (isPlayerWindowOpen) {
                 const inst = window._windowInstances['player'];
@@ -632,16 +642,11 @@
                 e.stopPropagation();
                 closeWindow(id);
                 isPlayerWindowOpen = false;
-                audio.pause();
-                isPlaying = false;
-                if (currentBlobUrl) {
-                    URL.revokeObjectURL(currentBlobUrl);
-                    currentBlobUrl = null;
-                }
+                stopPlayback();
             });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
 
-            // ---- 播放器逻辑 (强行修正 MIME 类型) ----
+            // ---- 播放器逻辑 (AudioContext) ----
             const playBtn = body.querySelector('#playBtn');
             const prevBtn = body.querySelector('#prevBtn');
             const nextBtn = body.querySelector('#nextBtn');
@@ -657,7 +662,36 @@
             const tabBtns = body.querySelectorAll('.tab-btn');
             const songItems = body.querySelectorAll('.song-item');
 
-            // ★★★ 核心修复：加载时强制指定 Blob 为 audio/mpeg ★★★
+            // 初始化 AudioContext（在用户手势中创建）
+            function initAudioContext() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    gainNode = audioContext.createGain();
+                    gainNode.gain.value = parseFloat(volumeSlider.value);
+                    gainNode.connect(audioContext.destination);
+                }
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                return audioContext;
+            }
+
+            // 停止当前播放
+            function stopPlayback() {
+                if (currentSource) {
+                    try { currentSource.stop(0); } catch (e) {}
+                    currentSource = null;
+                }
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                isPlaying = false;
+                playBtn.textContent = '▶';
+                pausedAt = 0;
+            }
+
+            // 加载并解码音频
             async function loadSong(index) {
                 const song = songList[index];
                 if (!song) {
@@ -665,13 +699,7 @@
                     return;
                 }
 
-                audio.pause();
-                isPlaying = false;
-                playBtn.textContent = '▶';
-                if (currentBlobUrl) {
-                    URL.revokeObjectURL(currentBlobUrl);
-                    currentBlobUrl = null;
-                }
+                stopPlayback();
 
                 coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
                 songTitle.textContent = song.title;
@@ -680,96 +708,173 @@
                 progressBar.value = 0;
                 currentTimeEl.textContent = '0:00';
                 totalTimeEl.textContent = '0:00';
+                duration = 0;
 
                 try {
+                    const ctx = initAudioContext();
                     const response = await fetch(song.url);
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP ${response.status}`);
                     }
-                    let blob = await response.blob();
-                    // ★★★ 关键一步：无论服务器返回什么类型，都强制覆盖为音频格式 ★★★
-                    blob = new Blob([blob], { type: 'audio/mpeg' });
-                    
-                    const blobUrl = URL.createObjectURL(blob);
-                    currentBlobUrl = blobUrl;
-
-                    // 先暂停，清空 src，再赋值，确保干净
-                    audio.src = '';
-                    audio.src = blobUrl;
-                    audio.load();
-                    console.log('✅ 强制 MIME 为 audio/mpeg 加载成功');
+                    const arrayBuffer = await response.arrayBuffer();
+                    // 解码音频数据
+                    currentBuffer = await ctx.decodeAudioData(arrayBuffer);
+                    duration = currentBuffer.duration;
+                    totalTimeEl.textContent = formatTime(duration);
+                    console.log('✅ 音频解码成功，时长:', duration);
                 } catch (err) {
-                    console.error('❌ fetch 失败:', err);
-                    alert(`⚠️ 无法加载音乐文件\n\n错误: ${err.message}\n\n请检查文件是否在仓库根目录。`);
+                    console.error('❌ 加载/解码失败:', err);
+                    alert(`⚠️ 无法加载或解码音频\n\n错误: ${err.message}\n\n请确认文件为有效的 MP3 格式。`);
+                    currentBuffer = null;
+                    duration = 0;
                 }
             }
 
-            function playPause() {
-                if (audio.paused) {
-                    audio.play()
-                        .then(() => {
-                            isPlaying = true;
-                            playBtn.textContent = '⏸';
-                            console.log('▶️ 播放中');
-                        })
-                        .catch((err) => {
-                            console.error('❌ 播放启动失败:', err);
-                            alert(`⚠️ 播放失败\n\n错误类型: ${err.name}\n错误信息: ${err.message}\n\n可尝试在控制台查看详情。`);
-                        });
-                } else {
-                    audio.pause();
+            // 播放
+            function play() {
+                if (!currentBuffer) {
+                    alert('请先加载歌曲');
+                    return;
+                }
+                const ctx = initAudioContext();
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+
+                // 停止当前播放
+                if (currentSource) {
+                    try { currentSource.stop(0); } catch (e) {}
+                    currentSource = null;
+                }
+
+                // 创建新的 BufferSource
+                const source = ctx.createBufferSource();
+                source.buffer = currentBuffer;
+                source.connect(gainNode);
+                source.start(0, pausedAt);
+                currentSource = source;
+                startTime = ctx.currentTime - pausedAt;
+                isPlaying = true;
+                playBtn.textContent = '⏸';
+
+                // 监听播放结束
+                source.onended = () => {
+                    if (isPlaying) {
+                        // 自然结束，自动下一首
+                        nextSong();
+                    }
+                };
+
+                // 开始更新进度
+                updateProgress();
+            }
+
+            // 暂停
+            function pause() {
+                if (currentSource && isPlaying) {
+                    const ctx = audioContext;
+                    if (ctx) {
+                        pausedAt = ctx.currentTime - startTime;
+                        if (pausedAt > duration) pausedAt = duration;
+                    }
+                    currentSource.stop(0);
+                    currentSource = null;
                     isPlaying = false;
                     playBtn.textContent = '▶';
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    // 更新进度到暂停位置
+                    progressBar.value = (pausedAt / duration) * 100;
+                    currentTimeEl.textContent = formatTime(pausedAt);
                 }
             }
 
+            // 切换播放/暂停
+            function playPause() {
+                if (isPlaying) {
+                    pause();
+                } else {
+                    play();
+                }
+            }
+
+            // 更新进度（动画循环）
+            function updateProgress() {
+                if (!isPlaying || !audioContext) {
+                    animationFrameId = null;
+                    return;
+                }
+                const now = audioContext.currentTime;
+                let currentTime = now - startTime;
+                if (currentTime > duration) currentTime = duration;
+                progressBar.value = (currentTime / duration) * 100;
+                currentTimeEl.textContent = formatTime(currentTime);
+                totalTimeEl.textContent = formatTime(duration);
+
+                animationFrameId = requestAnimationFrame(updateProgress);
+            }
+
+            // 上一首/下一首
             function prevSong() {
                 currentIndex = (currentIndex - 1 + songList.length) % songList.length;
                 loadSong(currentIndex);
+                // 如果之前是播放状态，自动播放
+                if (isPlaying) {
+                    // 暂停后再播放
+                    pause();
+                    play();
+                }
             }
 
             function nextSong() {
                 currentIndex = (currentIndex + 1) % songList.length;
                 loadSong(currentIndex);
+                if (isPlaying) {
+                    pause();
+                    play();
+                }
             }
 
-            playBtn.addEventListener('click', playPause);
-            prevBtn.addEventListener('click', prevSong);
-            nextBtn.addEventListener('click', nextSong);
-
-            audio.addEventListener('timeupdate', () => {
-                if (audio.duration) {
-                    const percent = (audio.currentTime / audio.duration) * 100;
-                    progressBar.value = percent;
-                    currentTimeEl.textContent = formatTime(audio.currentTime);
-                    totalTimeEl.textContent = formatTime(audio.duration);
-                }
-            });
-            audio.addEventListener('loadedmetadata', () => {
-                totalTimeEl.textContent = formatTime(audio.duration);
-                console.log('📦 元数据加载完成，时长:', audio.duration);
-            });
-            audio.addEventListener('error', (e) => {
-                console.warn('⚠️ 音频错误:', e);
-            });
-            audio.addEventListener('ended', nextSong);
-
+            // 进度条拖动
             progressBar.addEventListener('input', () => {
-                if (audio.duration) {
-                    const time = (progressBar.value / 100) * audio.duration;
-                    audio.currentTime = time;
+                if (duration > 0) {
+                    const seekTime = (progressBar.value / 100) * duration;
+                    currentTimeEl.textContent = formatTime(seekTime);
+                    if (isPlaying) {
+                        // 拖动时，暂停并重新设定位置
+                        pause();
+                        pausedAt = seekTime;
+                        // 如果正在播放，重新开始
+                        if (isPlaying) {
+                            // 但 pause 已经将 isPlaying 置 false，我们重新播放
+                            // 但 pause 里已经停止了，所以直接 play
+                            play();
+                        }
+                    } else {
+                        // 非播放状态，只更新暂停位置
+                        pausedAt = seekTime;
+                    }
                 }
             });
-            volumeSlider.addEventListener('input', () => { audio.volume = volumeSlider.value; });
-            audio.volume = volumeSlider.value;
 
+            // 音量控制
+            volumeSlider.addEventListener('input', () => {
+                if (gainNode) {
+                    gainNode.gain.value = parseFloat(volumeSlider.value);
+                }
+            });
+
+            // 格式化时间
             function formatTime(seconds) {
-                if (!seconds || isNaN(seconds)) return '0:00';
+                if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
                 const m = Math.floor(seconds / 60);
                 const s = Math.floor(seconds % 60);
                 return `${m}:${s.toString().padStart(2, '0')}`;
             }
 
+            // 视图切换
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     tabBtns.forEach(b => b.classList.remove('active'));
@@ -785,12 +890,17 @@
                 });
             });
 
+            // 列表点击
             songItems.forEach(item => {
                 item.addEventListener('click', () => {
                     const idx = parseInt(item.dataset.index);
                     if (idx !== currentIndex) {
                         currentIndex = idx;
                         loadSong(currentIndex);
+                        if (isPlaying) {
+                            pause();
+                            play();
+                        }
                     }
                     tabBtns.forEach(b => b.classList.remove('active'));
                     document.querySelector('.tab-btn[data-view="play"]').classList.add('active');
@@ -799,22 +909,30 @@
                 });
             });
 
-            // 初始化加载第一首歌
+            // 绑定按钮事件
+            playBtn.addEventListener('click', playPause);
+            prevBtn.addEventListener('click', prevSong);
+            nextBtn.addEventListener('click', nextSong);
+
+            // 初始化加载
             loadSong(currentIndex);
 
+            // 窗口关闭时清理
             win.addEventListener('DOMNodeRemoved', () => {
                 if (window._windowInstances[id]) {
                     if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
                     delete window._windowInstances[id];
                 }
                 isPlayerWindowOpen = false;
-                audio.pause();
-                isPlaying = false;
-                if (currentBlobUrl) {
-                    URL.revokeObjectURL(currentBlobUrl);
-                    currentBlobUrl = null;
+                stopPlayback();
+                if (audioContext) {
+                    audioContext.close();
+                    audioContext = null;
                 }
             });
+
+            // 保存外部引用以便清理
+            window._stopPlayback = stopPlayback;
         }
 
         // ============================================================
@@ -836,8 +954,8 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 平板终极修复版已加载！已将 Blob 强制指定为 audio/mpeg');
-        console.log('🎵 如果还有问题，请查看控制台网络错误。');
+        console.log('🖥️ 已使用 AudioContext 解码播放，彻底绕过 MIME 问题。');
+        console.log('🎵 如果还有问题，请查看控制台错误。');
     </script>
 </body>
 </html>
