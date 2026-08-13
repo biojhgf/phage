@@ -7,119 +7,787 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
         /* ===== 全局像素风格 ===== */
-        * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; overflow: hidden; font-family: 'Press Start 2P', 'Courier New', monospace; background-color: #1a1a1a; }
-        #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background-color: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); font-size: 14px; transition: background 0.3s; }
-        #desktop-overlay.active { display: flex; }
-        #desktop-pets { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
-        #desktop-pets .pet { position: absolute; pointer-events: auto; cursor: grab; user-select: none; animation: petBounce 2s infinite alternate ease-in-out; }
-        #desktop-pets .pet:active { cursor: grabbing; animation: none; }
-        #desktop-pets .pet img { max-width: 100px; max-height: 100px; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; }
-        #desktop-pets .pet .bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: pre-wrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 200px; overflow: hidden; font-family: 'Press Start 2P', monospace; line-height: 1.4; }
-        #desktop-pets .pet .bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ece9d8; }
-        @keyframes petBounce { 0% { transform: translate(-50%, -50%) translateY(0px); } 100% { transform: translate(-50%, -50%) translateY(-8px); } }
-        .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
-        .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; }
-        .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
-        .desktop-icon .icon-img { font-size: 48px; line-height: 1.2; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-        .desktop-icon .icon-label { font-size: 9px; word-break: break-all; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 2px; }
-        .taskbar { height: 50px; background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%); display: flex; align-items: center; padding: 0 8px; box-shadow: 0 -2px 6px rgba(0,0,0,0.3); border-top: 2px solid #3a7bd5; flex-shrink: 0; position: relative; z-index: 5000; }
-        .start-button { background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%); color: #fff; padding: 4px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 0 #0a3a0a; border: 1px solid #4cb84c; flex-shrink: 0; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
-        #taskbar-items { display: flex; flex: 1; gap: 4px; overflow-x: auto; margin: 0 10px; padding: 2px 0; }
-        .taskbar-item { background: rgba(255,255,255,0.15); color: #fff; padding: 2px 16px; border-radius: 2px; cursor: pointer; font-size: 12px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 6px; height: 32px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
-        .taskbar-item:hover { background: rgba(255,255,255,0.3); }
-        .taskbar-time { margin-left: auto; color: #fff; font-size: 12px; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 2px; border: 1px solid #3a7bd5; flex-shrink: 0; font-family: 'Press Start 2P', monospace; }
-        .start-menu { display: none; position: absolute; bottom: 52px; left: 8px; width: 280px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; padding: 12px 0; box-shadow: 6px 6px 0 rgba(0,0,0,0.2); z-index: 6000; }
-        .start-menu.show { display: block; }
-        .start-menu-item { padding: 6px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 12px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
-        .start-menu-item:hover { background: #3a7bd5; color: #fff; }
-        .start-menu-item .item-icon { font-size: 20px; }
-        .start-menu hr { margin: 6px 12px; border: 1px solid #999; }
-        .xp-window { position: fixed; min-width: 300px; min-height: 140px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; box-shadow: 8px 8px 0 rgba(0,0,0,0.2); display: flex; flex-direction: column; z-index: 2000; font-family: 'Press Start 2P', monospace; overflow: hidden; touch-action: none; }
-        .xp-window .window-titlebar { background: linear-gradient(90deg, #0a246a, #3a7bd5); color: #fff; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-radius: 4px 4px 0 0; font-weight: bold; font-size: 12px; height: 36px; touch-action: none; pointer-events: auto; }
-        .xp-window .window-titlebar .title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Press Start 2P', monospace; }
-        .xp-window .window-titlebar .win-btns { display: flex; gap: 6px; flex-shrink: 0; }
-        .xp-window .window-titlebar .win-btns button { width: 30px; height: 30px; border: none; border-radius: 2px; font-weight: bold; font-size: 16px; cursor: pointer; line-height: 26px; text-align: center; background: rgba(255,255,255,0.15); color: #fff; touch-action: manipulation; font-family: 'Press Start 2P', monospace; pointer-events: auto; }
-        .xp-window .window-titlebar .win-btns button:hover { background: rgba(255,255,255,0.3); }
-        .xp-window .window-titlebar .win-btns .min-btn:hover { background: #5a7ab5; }
-        .xp-window .window-titlebar .win-btns .max-btn:hover { background: #6a8a5a; }
-        .xp-window .window-titlebar .win-btns .close-btn:hover { background: #c00; }
-        .xp-window .window-body { padding: 0; flex: 1; overflow: auto; background: #ece9d8; color: #1a1a1a; display: flex; flex-direction: column; touch-action: auto; }
-        .app-container { padding: 16px; flex: 1; background: #ece9d8; overflow: auto; font-family: 'Press Start 2P', monospace; }
-        .app-container h2 { margin-top: 0; border-bottom: 2px solid #999; padding-bottom: 4px; font-size: 16px; }
-        .app-container button { background: #ddd; border: 2px outset #fff; padding: 4px 12px; cursor: pointer; font-family: 'Press Start 2P', monospace; touch-action: manipulation; font-size: 11px; }
-        .app-container button:active { border-style: inset; }
-        .app-container input, .app-container textarea, .app-container select { background: #fff; border: 2px inset #ccc; padding: 4px; font-family: 'Press Start 2P', monospace; font-size: 11px; }
-        .app-container textarea { width: 100%; resize: vertical; }
-        .app-container .item-list { list-style: none; padding: 0; margin: 8px 0; }
-        .app-container .item-list li { padding: 4px 8px; border-bottom: 1px solid #ccc; cursor: pointer; font-size: 12px; }
-        .app-container .item-list li:hover { background: #d0d0d0; }
-        .app-container .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
-        .editable-content { outline: none; min-height: 60px; padding: 8px; background: #ece9d8; border: 1px dashed #999; }
-        .editable-content:focus { border-color: #3a6ea5; background: #f5f0e8; }
-        .gallery-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
-        .gallery-grid .img-item { position: relative; width: 120px; height: 120px; border: 2px solid #999; border-radius: 2px; overflow: hidden; background: #eee; }
-        .gallery-grid .img-item img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
-        .gallery-grid .img-item .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(200,0,0,0.8); color: #fff; border: none; border-radius: 2px; cursor: pointer; padding: 2px 6px; font-size: 12px; }
-        #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 12px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 4px; pointer-events: none; transition: opacity 1s; font-family: 'Press Start 2P', monospace; }
-        .xp-modal-overlay { position: fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(2px); }
-        .xp-modal { background:#ece9d8; border:2px solid #3a6ea5; border-radius:4px; padding:20px 24px; min-width:320px; max-width:90%; box-shadow:8px 8px 0 rgba(0,0,0,0.2); font-family:'Press Start 2P', monospace; }
-        .xp-modal h3 { margin:0 0 12px 0; color:#0a246a; font-size:16px; }
-        .xp-modal label { display:block; margin:8px 0 4px 0; font-weight:bold; font-size:12px; }
-        .xp-modal input[type="text"], .xp-modal input[type="color"] { width:100%; padding:4px; border:2px inset #ccc; background:#fff; font-family:'Press Start 2P', monospace; }
-        .xp-modal .modal-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
-        .xp-modal .modal-btns button { background:#ddd; border:2px outset #fff; padding:4px 16px; cursor:pointer; font-family:'Press Start 2P', monospace; }
-        .xp-modal .modal-btns button:active { border-style:inset; }
-        .xp-modal .modal-btns .primary { background:#3a7bd5; color:#fff; border-color:#1a4a9f; }
-        .wallpaper-preview { width: 100%; height: 80px; border: 2px inset #ccc; background-size: cover; background-position: center; margin: 8px 0; transition: background 0.3s; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            background-color: #1a1a1a;
+        }
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        #desktop-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            background-color: #3a6ea5;
+            background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a);
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        #desktop-overlay.active {
+            display: flex;
+        }
+        #desktop-pets {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 500;
+        }
+        #desktop-pets .pet {
+            position: absolute;
+            pointer-events: auto;
+            cursor: grab;
+            user-select: none;
+            animation: petBounce 2s infinite alternate ease-in-out;
+        }
+        #desktop-pets .pet:active {
+            cursor: grabbing;
+            animation: none;
+        }
+        #desktop-pets .pet img {
+            max-width: 100px;
+            max-height: 100px;
+            display: block;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            image-rendering: pixelated;
+        }
+        #desktop-pets .pet .bubble {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ece9d8;
+            border: 2px solid #3a6ea5;
+            padding: 4px 10px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+            display: none;
+            pointer-events: none;
+            max-width: 200px;
+            overflow: hidden;
+            font-family: 'Press Start 2P', monospace;
+            line-height: 1.4;
+        }
+        #desktop-pets .pet .bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #ece9d8;
+        }
+        @keyframes petBounce {
+            0% {
+                transform: translate(-50%, -50%) translateY(0px);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateY(-8px);
+            }
+        }
+        .desktop-icons {
+            flex: 1;
+            padding: 20px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 30px 40px;
+        }
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            cursor: pointer;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            padding: 4px;
+            touch-action: manipulation;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+        }
+        .desktop-icon:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        .desktop-icon .icon-img {
+            font-size: 48px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+        .desktop-icon .icon-label {
+            font-size: 9px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+        .taskbar {
+            height: 50px;
+            background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+            border-top: 2px solid #3a7bd5;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5000;
+        }
+        .start-button {
+            background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 0 #0a3a0a;
+            border: 1px solid #4cb84c;
+            flex-shrink: 0;
+            touch-action: manipulation;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #taskbar-items {
+            display: flex;
+            flex: 1;
+            gap: 4px;
+            overflow-x: auto;
+            margin: 0 10px;
+            padding: 2px 0;
+        }
+        .taskbar-item {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 2px 16px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            touch-action: manipulation;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .taskbar-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .taskbar-time {
+            margin-left: auto;
+            color: #fff;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 12px;
+            border-radius: 2px;
+            border: 1px solid #3a7bd5;
+            flex-shrink: 0;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .start-menu {
+            display: none;
+            position: absolute;
+            bottom: 52px;
+            left: 8px;
+            width: 280px;
+            background: #ece9d8;
+            border: 2px solid #3a6ea5;
+            border-radius: 4px;
+            padding: 12px 0;
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+            z-index: 6000;
+        }
+        .start-menu.show {
+            display: block;
+        }
+        .start-menu-item {
+            padding: 6px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            touch-action: manipulation;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .start-menu-item:hover {
+            background: #3a7bd5;
+            color: #fff;
+        }
+        .start-menu-item .item-icon {
+            font-size: 20px;
+        }
+        .start-menu hr {
+            margin: 6px 12px;
+            border: 1px solid #999;
+        }
+        .xp-window {
+            position: fixed;
+            min-width: 300px;
+            min-height: 140px;
+            background: #ece9d8;
+            border: 2px solid #3a6ea5;
+            border-radius: 4px;
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 2000;
+            font-family: 'Press Start 2P', monospace;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .xp-window .window-titlebar {
+            background: linear-gradient(90deg, #0a246a, #3a7bd5);
+            color: #fff;
+            padding: 4px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            border-radius: 4px 4px 0 0;
+            font-weight: bold;
+            font-size: 12px;
+            height: 36px;
+            touch-action: none;
+            pointer-events: auto;
+        }
+        .xp-window .window-titlebar .title-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .xp-window .window-titlebar .win-btns {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .xp-window .window-titlebar .win-btns button {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 2px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            line-height: 26px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            touch-action: manipulation;
+            font-family: 'Press Start 2P', monospace;
+            pointer-events: auto;
+        }
+        .xp-window .window-titlebar .win-btns button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .xp-window .window-titlebar .win-btns .min-btn:hover {
+            background: #5a7ab5;
+        }
+        .xp-window .window-titlebar .win-btns .max-btn:hover {
+            background: #6a8a5a;
+        }
+        .xp-window .window-titlebar .win-btns .close-btn:hover {
+            background: #c00;
+        }
+        .xp-window .window-body {
+            padding: 0;
+            flex: 1;
+            overflow: auto;
+            background: #ece9d8;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            touch-action: auto;
+        }
+        .app-container {
+            padding: 16px;
+            flex: 1;
+            background: #ece9d8;
+            overflow: auto;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .app-container h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #999;
+            padding-bottom: 4px;
+            font-size: 16px;
+        }
+        .app-container button {
+            background: #ddd;
+            border: 2px outset #fff;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', monospace;
+            touch-action: manipulation;
+            font-size: 11px;
+        }
+        .app-container button:active {
+            border-style: inset;
+        }
+        .app-container input,
+        .app-container textarea,
+        .app-container select {
+            background: #fff;
+            border: 2px inset #ccc;
+            padding: 4px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+        }
+        .app-container textarea {
+            width: 100%;
+            resize: vertical;
+        }
+        .app-container .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0;
+        }
+        .app-container .item-list li {
+            padding: 4px 8px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .app-container .item-list li:hover {
+            background: #d0d0d0;
+        }
+        .app-container .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+        .editable-content {
+            outline: none;
+            min-height: 60px;
+            padding: 8px;
+            background: #ece9d8;
+            border: 1px dashed #999;
+        }
+        .editable-content:focus {
+            border-color: #3a6ea5;
+            background: #f5f0e8;
+        }
+        .gallery-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .gallery-grid .img-item {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border: 2px solid #999;
+            border-radius: 2px;
+            overflow: hidden;
+            background: #eee;
+        }
+        .gallery-grid .img-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+        .gallery-grid .img-item .del-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(200, 0, 0, 0.8);
+            color: #fff;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+        #hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 18px;
+            border-radius: 4px;
+            pointer-events: none;
+            transition: opacity 1s;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .xp-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+        .xp-modal {
+            background: #ece9d8;
+            border: 2px solid #3a6ea5;
+            border-radius: 4px;
+            padding: 20px 24px;
+            min-width: 320px;
+            max-width: 90%;
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+            font-family: 'Press Start 2P', monospace;
+        }
+        .xp-modal h3 {
+            margin: 0 0 12px 0;
+            color: #0a246a;
+            font-size: 16px;
+        }
+        .xp-modal label {
+            display: block;
+            margin: 8px 0 4px 0;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .xp-modal input[type="text"],
+        .xp-modal input[type="color"] {
+            width: 100%;
+            padding: 4px;
+            border: 2px inset #ccc;
+            background: #fff;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .xp-modal .modal-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        .xp-modal .modal-btns button {
+            background: #ddd;
+            border: 2px outset #fff;
+            padding: 4px 16px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .xp-modal .modal-btns button:active {
+            border-style: inset;
+        }
+        .xp-modal .modal-btns .primary {
+            background: #3a7bd5;
+            color: #fff;
+            border-color: #1a4a9f;
+        }
+        .wallpaper-preview {
+            width: 100%;
+            height: 80px;
+            border: 2px inset #ccc;
+            background-size: cover;
+            background-position: center;
+            margin: 8px 0;
+            transition: background 0.3s;
+        }
 
         /* 磁带播放器（像素风） */
-        .tape-player { background: #2a2a2a; border: 2px solid #444; border-radius: 4px; padding: 16px; box-shadow: 4px 4px 0 rgba(0,0,0,0.3); color: #eee; font-family: 'Press Start 2P', monospace; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; }
-        .tape-player .tape-window { background: #0a0a0a; border: 2px solid #444; padding: 8px; display: flex; align-items: center; justify-content: space-between; }
-        .tape-player .tape-window .reel { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #555, #222); border: 2px solid #444; position: relative; }
-        .tape-player .tape-window .reel::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #111; border-radius: 50%; }
-        .tape-player .tape-window .reel.spinning { animation: spin 1.5s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .tape-player .tape-window .tape-info { flex:1; text-align:center; color:#aaa; font-size:10px; padding:0 8px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-        .tape-player .tape-window .tape-info .song-title { color:#eee; font-weight:bold; font-size:12px; }
-        .tape-player .controls { display:flex; gap:8px; justify-content:center; }
-        .tape-player .controls button { background:#2a2a2a; border:none; color:#eee; font-size:20px; cursor:pointer; padding:4px 12px; border-radius:2px; box-shadow:0 2px 0 #111; border:1px solid #444; font-family:'Press Start 2P', monospace; }
-        .tape-player .controls button:active { transform:translateY(2px); box-shadow:none; }
-        .tape-player .controls .play-btn { background:#4a6a3a; border-color:#6a8a5a; }
-        .tape-player .progress-bar { display:flex; align-items:center; gap:6px; }
-        .tape-player .progress-bar input[type="range"] { flex:1; height:4px; -webkit-appearance:none; background:#444; border-radius:2px; outline:none; }
-        .tape-player .progress-bar input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#6a8a5a; cursor:pointer; border:2px solid #eee; }
-        .tape-player .progress-bar .time { font-size:10px; color:#aaa; min-width:36px; }
-        .tape-player .volume-control { display:flex; align-items:center; gap:6px; justify-content:center; }
-        .tape-player .volume-control input[type="range"] { width:80px; height:3px; -webkit-appearance:none; background:#444; border-radius:2px; outline:none; }
-        .tape-player .volume-control input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px; border-radius:50%; background:#6a8a5a; cursor:pointer; border:1px solid #eee; }
-        .tape-player .list-toggle { text-align:center; font-size:10px; color:#888; cursor:pointer; border-top:1px solid #444; padding-top:6px; }
-        .tape-player .playlist { display:none; background:#1a1a1a; border:1px solid #444; padding:4px; max-height:100px; overflow-y:auto; }
-        .tape-player .playlist .pl-item { padding:4px 8px; cursor:pointer; border-bottom:1px solid #333; font-size:10px; color:#aaa; }
-        .tape-player .playlist .pl-item:hover { background:#2a2a2a; color:#fff; }
-        .tape-player .playlist .pl-item.active { color:#6a8a5a; font-weight:bold; }
-        .tape-player .playlist.show { display:block; }
+        .tape-player {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            border-radius: 4px;
+            padding: 16px;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            color: #eee;
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .tape-player .tape-window {
+            background: #0a0a0a;
+            border: 2px solid #444;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .tape-player .tape-window .reel {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #555, #222);
+            border: 2px solid #444;
+            position: relative;
+        }
+        .tape-player .tape-window .reel::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #111;
+            border-radius: 50%;
+        }
+        .tape-player .tape-window .reel.spinning {
+            animation: spin 1.5s linear infinite;
+        }
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .tape-player .tape-window .tape-info {
+            flex: 1;
+            text-align: center;
+            color: #aaa;
+            font-size: 10px;
+            padding: 0 8px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .tape-player .tape-window .tape-info .song-title {
+            color: #eee;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .tape-player .controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .tape-player .controls button {
+            background: #2a2a2a;
+            border: none;
+            color: #eee;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 2px;
+            box-shadow: 0 2px 0 #111;
+            border: 1px solid #444;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .tape-player .controls button:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+        .tape-player .controls .play-btn {
+            background: #4a6a3a;
+            border-color: #6a8a5a;
+        }
+        .tape-player .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tape-player .progress-bar input[type="range"] {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #444;
+            border-radius: 2px;
+            outline: none;
+        }
+        .tape-player .progress-bar input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6a8a5a;
+            cursor: pointer;
+            border: 2px solid #eee;
+        }
+        .tape-player .progress-bar .time {
+            font-size: 10px;
+            color: #aaa;
+            min-width: 36px;
+        }
+        .tape-player .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+        .tape-player .volume-control input[type="range"] {
+            width: 80px;
+            height: 3px;
+            -webkit-appearance: none;
+            background: #444;
+            border-radius: 2px;
+            outline: none;
+        }
+        .tape-player .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #6a8a5a;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+        .tape-player .list-toggle {
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+            cursor: pointer;
+            border-top: 1px solid #444;
+            padding-top: 6px;
+        }
+        .tape-player .playlist {
+            display: none;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 4px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .tape-player .playlist .pl-item {
+            padding: 4px 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            font-size: 10px;
+            color: #aaa;
+        }
+        .tape-player .playlist .pl-item:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+        .tape-player .playlist .pl-item.active {
+            color: #6a8a5a;
+            font-weight: bold;
+        }
+        .tape-player .playlist.show {
+            display: block;
+        }
 
-        ::-webkit-scrollbar { width: 12px; background: #ece9d8; }
-        ::-webkit-scrollbar-thumb { background: #3a6ea5; border: 2px solid #0a246a; }
-        ::-webkit-scrollbar-track { background: #ece9d8; }
+        ::-webkit-scrollbar {
+            width: 12px;
+            background: #ece9d8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a6ea5;
+            border: 2px solid #0a246a;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ece9d8;
+        }
 
         /* Notion 风格OC */
-        .notion-editor { display: flex; flex-direction: column; gap: 6px; }
-        .notion-block { display: flex; align-items: flex-start; gap: 6px; padding: 2px 0; }
-        .notion-block .block-type { font-size: 12px; color: #888; min-width: 60px; }
-        .notion-block .block-content { flex: 1; }
-        .notion-block .block-content input, .notion-block .block-content textarea { width: 100%; background: #fff; border: 1px solid #ccc; padding: 2px 4px; font-family: 'Press Start 2P', monospace; font-size: 11px; }
-        .notion-block .block-del { cursor: pointer; color: #c00; font-size: 12px; }
-        .paint-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; align-items: center; }
-        .paint-toolbar button, .paint-toolbar input { font-family: 'Press Start 2P', monospace; font-size: 10px; }
-        .paint-canvas-container { position: relative; border: 2px solid #999; background: #fff; touch-action: none; }
-        .paint-canvas-container canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; touch-action: none; }
-        .comic-viewer { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .comic-viewer .comic-page { max-width: 100%; border: 2px solid #999; }
-        .comic-viewer .comic-page img { width: 100%; height: auto; image-rendering: pixelated; }
-        .comic-viewer .comic-nav { display: flex; gap: 12px; align-items: center; }
+        .notion-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .notion-block {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 2px 0;
+        }
+        .notion-block .block-type {
+            font-size: 12px;
+            color: #888;
+            min-width: 60px;
+        }
+        .notion-block .block-content {
+            flex: 1;
+        }
+        .notion-block .block-content input,
+        .notion-block .block-content textarea {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 2px 4px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+        }
+        .notion-block .block-del {
+            cursor: pointer;
+            color: #c00;
+            font-size: 12px;
+        }
+        .paint-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .paint-toolbar button,
+        .paint-toolbar input {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+        }
+        .paint-canvas-container {
+            position: relative;
+            border: 2px solid #999;
+            background: #fff;
+            touch-action: none;
+        }
+        .paint-canvas-container canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            touch-action: none;
+        }
+        .comic-viewer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .comic-viewer .comic-page {
+            max-width: 100%;
+            border: 2px solid #999;
+        }
+        .comic-viewer .comic-page img {
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+        }
+        .comic-viewer .comic-nav {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +835,11 @@
     </div>
 
     <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
     </script>
 
     <script type="module">
@@ -208,17 +880,19 @@
         // 地板
         const woodTex = (() => {
             const c = document.createElement('canvas');
-            c.width = 256; c.height = 256;
+            c.width = 256;
+            c.height = 256;
             const ctx = c.getContext('2d');
             ctx.fillStyle = '#4a3728';
             ctx.fillRect(0, 0, 256, 256);
             for (let i = 0; i < 200; i++) {
-                ctx.strokeStyle = `rgba(90,70,50,${0.1+Math.random()*0.3})`;
+                ctx.strokeStyle = `rgba(90,70,50,${0.1 + Math.random() * 0.3})`;
                 ctx.lineWidth = 2 + Math.random() * 4;
                 ctx.beginPath();
-                const x = Math.random() * 256, y = Math.random() * 256;
+                const x = Math.random() * 256,
+                    y = Math.random() * 256;
                 ctx.moveTo(x, y);
-                ctx.lineTo(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*40);
+                ctx.lineTo(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 40);
                 ctx.stroke();
             }
             return new THREE.CanvasTexture(c);
@@ -257,9 +931,14 @@
         tableTop.receiveShadow = true;
         roomGroup.add(tableTop);
         const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
-        [[-0.6,-0.3],[0.6,-0.3],[-0.6,0.3],[0.6,0.3]].forEach(([x,z]) => {
+        [
+            [-0.6, -0.3],
+            [0.6, -0.3],
+            [-0.6, 0.3],
+            [0.6, 0.3]
+        ].forEach(([x, z]) => {
             const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), legMat);
-            leg.position.set(x, 0.25, -0.6+z);
+            leg.position.set(x, 0.25, -0.6 + z);
             leg.castShadow = true;
             roomGroup.add(leg);
         });
@@ -318,8 +997,8 @@
         }
         createPoster(0x8b3a3a, -1.8, 1.8, -2.9, 0);
         createPoster(0x3a6b8b, 1.8, 2.0, -2.9, 0);
-        createPoster(0x6b8b3a, -2.9, 1.5, -0.5, Math.PI/2);
-        createPoster(0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI/2);
+        createPoster(0x6b8b3a, -2.9, 1.5, -0.5, Math.PI / 2);
+        createPoster(0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI / 2);
         const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
         const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8, 12), carpetMat);
         carpet.rotation.x = -Math.PI / 2;
@@ -346,7 +1025,9 @@
         const pointer = new THREE.Vector2();
         let isDesktopActive = false;
 
-        // ---------- 全局美化加载（立即执行） ----------
+        // ============================================================
+        //  全局工具：壁纸 / CSS / 宠物（提前定义，解决初始化顺序）
+        // ============================================================
         function loadWallpaper() {
             try {
                 const data = localStorage.getItem('wallpaper');
@@ -363,7 +1044,7 @@
                         overlay.style.backgroundColor = parsed.color;
                     }
                 }
-            } catch(e) { /* 静默失败 */ }
+            } catch (e) { /* 静默失败 */ }
         }
 
         function loadGlobalCss() {
@@ -377,117 +1058,220 @@
                 })();
                 if (saved) styleTag.textContent = saved;
                 else styleTag.textContent = '';
-            } catch(e) { /* 静默失败 */ }
+            } catch (e) { /* 静默失败 */ }
         }
 
-        // 页面加载时立即应用美化
-        loadWallpaper();
-        loadGlobalCss();
-
-        // 进入桌面
-        function enterDesktop() {
-            isDesktopActive = true;
-            document.getElementById('desktop-overlay').classList.add('active');
-            document.getElementById('hint').style.opacity = '0';
-            updateTime();
-            setInterval(updateTime, 10000);
-            loadWallpaper();
-            loadGlobalCss();
-            loadPets();
+        // ---- 宠物系统（全局） ----
+        function getPets() {
+            try { return JSON.parse(localStorage.getItem('pets') || '[]'); } catch (e) { return []; }
         }
 
-        function exitDesktop() {
-            isDesktopActive = false;
-            document.getElementById('desktop-overlay').classList.remove('active');
-            document.getElementById('hint').style.opacity = '1';
-            document.querySelectorAll('.xp-window').forEach(w => w.remove());
-            document.querySelectorAll('.taskbar-item').forEach(b => b.remove());
-            window._windowInstances = {};
+        function savePets(pets) {
+            localStorage.setItem('pets', JSON.stringify(pets));
+            // 重新加载桌面宠物
+            if (typeof loadPets === 'function') loadPets();
+            // 如果设置窗口已打开，刷新列表
+            const petList = document.getElementById('petList');
+            if (petList && typeof renderPetList === 'function') renderPetList();
         }
 
-        // 点击屏幕进入桌面
-        function onPointerDown(event) {
-            if (isDesktopActive) return;
-            const rect = renderer.domElement.getBoundingClientRect();
-            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
-            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
-            if (clientX === undefined) return;
-            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-            pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-            raycaster.setFromCamera(pointer, camera);
-            const intersects = raycaster.intersectObjects(clickTargets);
-            if (intersects.length > 0) {
-                enterDesktop();
+        // 渲染设置面板中的宠物列表
+        function renderPetList() {
+            const list = document.getElementById('petList');
+            if (!list) return;
+            const pets = getPets();
+            list.innerHTML = '';
+            if (pets.length === 0) {
+                list.innerHTML = '<p style="color:#888;">暂无宠物</p>';
+                return;
             }
-        }
-        renderer.domElement.addEventListener('click', onPointerDown);
-        renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isDesktopActive) exitDesktop();
-        });
-        document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
-
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('taskbarTime').textContent =
-                String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-        }
-
-        // 开始菜单
-        const startBtn = document.getElementById('startBtn');
-        const startMenu = document.getElementById('startMenu');
-        startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('show'); });
-        document.addEventListener('click', () => startMenu.classList.remove('show'));
-        startMenu.addEventListener('click', (e) => e.stopPropagation());
-        document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
-            item.addEventListener('click', () => {
-                createWindow(item.dataset.window);
-                startMenu.classList.remove('show');
+            pets.forEach((pet, idx) => {
+                const div = document.createElement('div');
+                div.style.borderBottom = '1px solid #ddd';
+                div.style.padding = '6px 0';
+                div.innerHTML = `
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <img src="${pet.img}" style="width:40px; height:40px; object-fit:cover; border:1px solid #999; image-rendering:pixelated;" />
+                        <span style="font-weight:bold;">${pet.name}</span>
+                        <button onclick="window.editPetName(${idx})">✏️ 名称</button>
+                        <button onclick="window.editPetImage(${idx})">🖼️ 换图</button>
+                        <button onclick="window.editPetDialogs(${idx})">💬 对话</button>
+                        <button onclick="window.deletePet(${idx})" style="color:red;">✕</button>
+                    </div>
+                    <div style="font-size:10px; color:#666; margin-top:2px; white-space:pre-wrap;">
+                        对话: ${pet.dialogs && pet.dialogs.length ? pet.dialogs.join(' | ') : '(未设置)'}
+                    </div>
+                `;
+                list.appendChild(div);
             });
-        });
-        document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
-            icon.addEventListener('click', () => createWindow(icon.dataset.window));
-        });
+        }
+
+        // 加载宠物到桌面
+        function loadPets() {
+            const container = document.getElementById('desktop-pets');
+            if (!container) return;
+            container.innerHTML = '';
+            const pets = getPets();
+            if (pets.length === 0) return;
+            pets.forEach((pet, idx) => {
+                const el = document.createElement('div');
+                el.className = 'pet';
+                el.style.left = (pet.x ?? 20 + Math.random() * 60) + '%';
+                el.style.top = (pet.y ?? 20 + Math.random() * 60) + '%';
+                el.style.transform = 'translate(-50%, -50%)';
+                el.dataset.idx = idx;
+                const bubbleText = pet.dialogs && pet.dialogs.length ? pet.dialogs.join('\n') : '你好！';
+                el.innerHTML = `
+                    <img src="${pet.img}" alt="${pet.name}" />
+                    <div class="bubble">${bubbleText}</div>
+                `;
+                const bubble = el.querySelector('.bubble');
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (pet.dialogs && pet.dialogs.length) {
+                        const randomIdx = Math.floor(Math.random() * pet.dialogs.length);
+                        bubble.textContent = pet.dialogs[randomIdx];
+                    } else {
+                        bubble.textContent = '你好！';
+                    }
+                    bubble.style.display = 'block';
+                    setTimeout(() => { bubble.style.display = 'none'; }, 3000);
+                });
+                // 拖拽
+                let dragging = false,
+                    startX, startY, origX, origY;
+                const onPointerDown = (e) => {
+                    if (e.target.tagName === 'IMG') {
+                        dragging = true;
+                        const rect = container.getBoundingClientRect();
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        origX = parseFloat(el.style.left);
+                        origY = parseFloat(el.style.top);
+                        el.style.cursor = 'grabbing';
+                        el.setPointerCapture(e.pointerId);
+                        e.preventDefault();
+                        bubble.style.display = 'none';
+                    }
+                };
+                const onPointerMove = (e) => {
+                    if (!dragging) return;
+                    const dx = (e.clientX - startX) / container.offsetWidth * 100;
+                    const dy = (e.clientY - startY) / container.offsetHeight * 100;
+                    let newX = Math.min(95, Math.max(5, origX + dx));
+                    let newY = Math.min(95, Math.max(5, origY + dy));
+                    el.style.left = newX + '%';
+                    el.style.top = newY + '%';
+                    const petsData = getPets();
+                    const idx2 = parseInt(el.dataset.idx);
+                    if (petsData[idx2]) { petsData[idx2].x = newX;
+                        petsData[idx2].y = newY;
+                        localStorage.setItem('pets', JSON.stringify(petsData)); }
+                };
+                const onPointerUp = (e) => {
+                    if (dragging) { dragging = false;
+                        el.style.cursor = 'grab';
+                        el.releasePointerCapture(e.pointerId); }
+                };
+                el.addEventListener('pointerdown', onPointerDown);
+                el.addEventListener('pointermove', onPointerMove);
+                el.addEventListener('pointerup', onPointerUp);
+                el.addEventListener('pointercancel', onPointerUp);
+                container.appendChild(el);
+            });
+        }
+
+        // 暴露宠物操作到全局
+        window.getPets = getPets;
+        window.savePets = savePets;
+        window.loadPets = loadPets;
+        window.renderPetList = renderPetList;
+
+        window.editPetName = async (idx) => {
+            const pets = getPets();
+            const pet = pets[idx];
+            if (!pet) return;
+            const newName = await xpPrompt('编辑名称', '新名称：', '', pet.name);
+            if (newName !== null) { pet.name = newName;
+                savePets(pets); }
+        };
+        window.editPetImage = async (idx) => {
+            const pets = getPets();
+            const pet = pets[idx];
+            if (!pet) return;
+            const newImg = await xpPrompt('图片URL', 'URL：', '', pet.img);
+            if (newImg !== null) { pet.img = newImg;
+                savePets(pets); }
+        };
+        window.editPetDialogs = async (idx) => {
+            const pets = getPets();
+            const pet = pets[idx];
+            if (!pet) return;
+            const current = pet.dialogs ? pet.dialogs.join('\n') : '';
+            const result = await showXpModal({
+                title: '编辑对话（每行一句）',
+                fields: [{ id: 'dialogs', label: '对话内容（每行一句，换行分隔）', type: 'text', value: current,
+                    placeholder: '你好呀！\n今天天气真好\n...' }],
+                confirmText: '保存',
+                cancelText: '取消'
+            });
+            if (result) {
+                const lines = result.dialogs.split('\n').map(s => s.trim()).filter(s => s);
+                pet.dialogs = lines.length ? lines : ['你好！'];
+                savePets(pets);
+            }
+        };
+        window.deletePet = async (idx) => {
+            const confirm = await showXpModal({ title: '确认删除', message: '确定删除此宠物？', confirmText: '删除', cancelText: '取消' });
+            if (!confirm) return;
+            const pets = getPets();
+            pets.splice(idx, 1);
+            savePets(pets);
+        };
 
         // ============================================================
-        //  2. 窗口管理（使用事件委托，彻底修复按钮）
+        //  2. 窗口管理
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
 
         function makeDraggable(element, handle) {
             let startX, startY, origLeft, origTop, isDragging = false;
+
             function onPointerDown(e) {
                 if (e.target.closest('button')) return;
+                // 兼容触摸和鼠标
                 if (e.button !== undefined && e.button !== 0 && e.pointerType !== 'touch') return;
                 const rect = element.getBoundingClientRect();
-                startX = e.clientX; startY = e.clientY;
-                origLeft = rect.left; origTop = rect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+                origLeft = rect.left;
+                origTop = rect.top;
                 isDragging = true;
                 element.style.left = origLeft + 'px';
                 element.style.top = origTop + 'px';
                 element.style.transform = 'none';
                 element.style.zIndex = ++windowZIndex;
-                element.setPointerCapture(e.pointerId);
+                try { element.setPointerCapture(e.pointerId); } catch (_) { /* 某些设备可能不支持 */ }
                 e.preventDefault();
                 document.addEventListener('pointermove', onPointerMove);
                 document.addEventListener('pointerup', onPointerUp);
                 document.addEventListener('pointercancel', onPointerUp);
             }
+
             function onPointerMove(e) {
                 if (!isDragging) return;
                 let newLeft = origLeft + e.clientX - startX;
                 let newTop = origTop + e.clientY - startY;
-                const titlebarHeight = 36;
                 const maxX = window.innerWidth - 20;
                 const maxY = window.innerHeight - 20;
                 newLeft = Math.max(-element.offsetWidth + 60, Math.min(newLeft, maxX));
-                newTop = Math.max(-element.offsetHeight + titlebarHeight + 10, Math.min(newTop, maxY));
+                newTop = Math.max(-element.offsetHeight + 36 + 10, Math.min(newTop, maxY));
                 element.style.left = newLeft + 'px';
                 element.style.top = newTop + 'px';
                 e.preventDefault();
             }
+
             function onPointerUp(e) {
                 if (isDragging) {
                     isDragging = false;
@@ -500,24 +1284,29 @@
         }
 
         function closeWindow(id) {
-            if (window._windowInstances[id]) {
-                const win = window._windowInstances[id].window;
-                if (win) {
-                    win.style.display = 'none';
-                    setTimeout(() => { if (win.parentNode) win.remove(); }, 50);
-                    if (window._windowInstances[id].taskbarBtn) {
-                        window._windowInstances[id].taskbarBtn.remove();
-                    }
-                }
-                delete window._windowInstances[id];
+            const inst = window._windowInstances[id];
+            if (!inst) return;
+            const win = inst.window;
+            if (win && win.parentNode) {
+                win.remove();
             }
+            if (inst.taskbarBtn && inst.taskbarBtn.parentNode) {
+                inst.taskbarBtn.remove();
+            }
+            delete window._windowInstances[id];
         }
+
         function minimizeWindow(id) {
             const inst = window._windowInstances[id];
             if (!inst) return;
             const win = inst.window;
             if (!win) return;
             win.style.display = 'none';
+            // 如果已经有任务栏按钮则移除旧的
+            if (inst.taskbarBtn && inst.taskbarBtn.parentNode) {
+                inst.taskbarBtn.remove();
+                inst.taskbarBtn = null;
+            }
             const taskbarItems = document.getElementById('taskbar-items');
             const btn = document.createElement('div');
             btn.className = 'taskbar-item';
@@ -534,19 +1323,26 @@
             taskbarItems.appendChild(btn);
             inst.taskbarBtn = btn;
         }
+
         function toggleMaximize(win) {
             if (!win._isMaximized) {
-                win._prevRect = win.getBoundingClientRect();
-                win.style.left = '0'; win.style.top = '0';
-                win.style.width = '100%'; win.style.height = '100%';
+                // 保存当前尺寸
+                const rect = win.getBoundingClientRect();
+                win._prevRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+                win.style.left = '0';
+                win.style.top = '0';
+                win.style.width = '100%';
+                win.style.height = '100%';
                 win.style.borderRadius = '0';
                 win._isMaximized = true;
                 const maxBtn = win.querySelector('.max-btn');
                 if (maxBtn) maxBtn.textContent = '❐';
             } else {
                 const rect = win._prevRect || { left: 100, top: 60, width: 460, height: 300 };
-                win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
+                win.style.left = rect.left + 'px';
+                win.style.top = rect.top + 'px';
+                win.style.width = rect.width + 'px';
+                win.style.height = rect.height + 'px';
                 win.style.borderRadius = '';
                 win._isMaximized = false;
                 const maxBtn = win.querySelector('.max-btn');
@@ -554,10 +1350,10 @@
             }
         }
 
-        // ★ 使用事件委托：在标题栏上监听点击，检查目标是否是按钮
         function bindWindowControls(win, id) {
             const titlebar = win.querySelector('.window-titlebar');
             if (!titlebar) return;
+            // 移除旧监听避免重复
             if (titlebar._controlHandler) {
                 titlebar.removeEventListener('click', titlebar._controlHandler);
             }
@@ -576,10 +1372,14 @@
             };
             titlebar.addEventListener('click', handler);
             titlebar._controlHandler = handler;
+
+            // 点击窗口主体时提升层级
             win.addEventListener('pointerdown', (e) => {
                 if (e.target.closest('.win-btns')) return;
                 win.style.zIndex = ++windowZIndex;
             });
+
+            // 窗口被移除时清理
             win.addEventListener('DOMNodeRemoved', () => {
                 if (window._windowInstances[id]) {
                     if (window._windowInstances[id].taskbarBtn) {
@@ -591,6 +1391,7 @@
         }
 
         function createWindowEngine(id, title, contentHtml) {
+            // 如果窗口已存在，直接显示并提升
             if (window._windowInstances[id] && window._windowInstances[id].window) {
                 const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
@@ -601,13 +1402,14 @@
                 }
                 return;
             }
+
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
             win.style.width = '500px';
             win.style.height = '400px';
-            win.style.left = (100 + Math.random() * 80) + 'px';
-            win.style.top = (60 + Math.random() * 80) + 'px';
+            win.style.left = (80 + Math.random() * 80) + 'px';
+            win.style.top = (50 + Math.random() * 80) + 'px';
             win.style.zIndex = ++windowZIndex;
 
             const titlebar = document.createElement('div');
@@ -642,12 +1444,18 @@
                 overlay.className = 'xp-modal-overlay';
                 const modal = document.createElement('div');
                 modal.className = 'xp-modal';
-                modal.innerHTML = `
-                    <h3>${options.title || '提示'}</h3>
-                    ${options.fields ? options.fields.map(f => `
+                let fieldsHtml = '';
+                if (options.fields) {
+                    fieldsHtml = options.fields.map(f =>
+                        `
                         <label>${f.label}</label>
                         <input type="${f.type || 'text'}" id="modal_${f.id}" value="${f.value || ''}" placeholder="${f.placeholder || ''}" />
-                    `).join('') : `<p>${options.message || ''}</p>`}
+                    `
+                    ).join('');
+                }
+                modal.innerHTML = `
+                    <h3>${options.title || '提示'}</h3>
+                    ${fieldsHtml || `<p>${options.message || ''}</p>`}
                     <div class="modal-btns">
                         ${options.cancelText ? `<button id="modalCancel">${options.cancelText}</button>` : ''}
                         <button class="primary" id="modalConfirm">${options.confirmText || '确定'}</button>
@@ -658,7 +1466,9 @@
 
                 const confirmBtn = modal.querySelector('#modalConfirm');
                 const cancelBtn = modal.querySelector('#modalCancel');
-                function cleanup(result) { overlay.remove(); resolve(result); }
+
+                function cleanup(result) { overlay.remove();
+                    resolve(result); }
                 confirmBtn.addEventListener('click', () => {
                     if (options.fields) {
                         const results = {};
@@ -677,11 +1487,13 @@
         async function xpPrompt(title, label, placeholder, defaultValue) {
             try {
                 const result = await showXpModal({
-                    title, fields: [{ id: 'input', label, placeholder, value: defaultValue || '' }],
-                    confirmText: '确定', cancelText: '取消'
+                    title,
+                    fields: [{ id: 'input', label, placeholder, value: defaultValue || '' }],
+                    confirmText: '确定',
+                    cancelText: '取消'
                 });
                 return result ? result.input : null;
-            } catch(e) { return null; }
+            } catch (e) { return null; }
         }
 
         async function xpAlert(message) {
@@ -689,20 +1501,47 @@
         }
 
         // ============================================================
-        //  4. ★★★ 写作工坊（完整功能）★★★
+        //  4. 进入 / 退出 桌面
         // ============================================================
+        function enterDesktop() {
+            isDesktopActive = true;
+            document.getElementById('desktop-overlay').classList.add('active');
+            document.getElementById('hint').style.opacity = '0';
+            updateTime();
+            setInterval(updateTime, 10000);
+            loadWallpaper();
+            loadGlobalCss();
+            // 安全加载宠物
+            if (typeof loadPets === 'function') loadPets();
+        }
+
+        function exitDesktop() {
+            isDesktopActive = false;
+            document.getElementById('desktop-overlay').classList.remove('active');
+            document.getElementById('hint').style.opacity = '1';
+            // 关闭所有窗口
+            Object.keys(window._windowInstances).forEach(id => closeWindow(id));
+            // 清理任务栏
+            document.querySelectorAll('#taskbar-items .taskbar-item').forEach(b => b.remove());
+        }
+
+        // ============================================================
+        //  5. 应用创建函数（各应用完整实现）
+        // ============================================================
+
+        // ---- 写作工坊 ----
         function createWritingWindow() {
-            if (window._windowInstances['writing'] && window._windowInstances['writing'].window) {
-                const win = window._windowInstances['writing'].window;
+            const id = 'writing';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['writing'].taskbarBtn) {
-                    window._windowInstances['writing'].taskbarBtn.remove();
-                    window._windowInstances['writing'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'writing';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -727,21 +1566,19 @@
             const body = document.createElement('div');
             body.className = 'window-body';
             body.innerHTML = `
-                <div class="app-container" id="writingApp">
-                    <div style="display:flex; gap:16px; height:100%;">
-                        <div style="flex:1; border-right:2px solid #999; padding-right:12px; overflow-y:auto;">
-                            <h3>📚 作品</h3>
-                            <button id="writingAddProjectBtn">+ 新建作品</button>
-                            <ul class="item-list" id="projectList"></ul>
-                            <hr />
-                            <h3>📌 备忘录</h3>
-                            <button id="writingAddNoteBtn">+ 新建备忘</button>
-                            <ul class="item-list" id="noteList"></ul>
-                        </div>
-                        <div style="flex:2; display:flex; flex-direction:column;">
-                            <div id="writingEditor" style="flex:1; overflow-y:auto;">
-                                <p style="color:#888;">选择作品或备忘开始编辑</p>
-                            </div>
+                <div class="app-container" id="writingApp" style="display:flex; gap:16px; height:100%;">
+                    <div style="flex:1; border-right:2px solid #999; padding-right:12px; overflow-y:auto;">
+                        <h3>📚 作品</h3>
+                        <button id="writingAddProjectBtn">+ 新建作品</button>
+                        <ul class="item-list" id="projectList"></ul>
+                        <hr />
+                        <h3>📌 备忘录</h3>
+                        <button id="writingAddNoteBtn">+ 新建备忘</button>
+                        <ul class="item-list" id="noteList"></ul>
+                    </div>
+                    <div style="flex:2; display:flex; flex-direction:column;">
+                        <div id="writingEditor" style="flex:1; overflow-y:auto;">
+                            <p style="color:#888;">选择作品或备忘开始编辑</p>
                         </div>
                     </div>
                 </div>
@@ -752,7 +1589,7 @@
             makeDraggable(win, titlebar);
             bindWindowControls(win, id);
 
-            // ---- 写作逻辑 ----
+            // 写作逻辑
             function getWritingData() {
                 try {
                     let data = localStorage.getItem('writingData');
@@ -762,13 +1599,13 @@
                         return defaultData;
                     }
                     return JSON.parse(data);
-                } catch(e) {
-                    return { projects: [], notes: [] };
-                }
+                } catch (e) { return { projects: [], notes: [] }; }
             }
+
             function saveWritingData(data) {
                 localStorage.setItem('writingData', JSON.stringify(data));
             }
+
             function renderProjects() {
                 const data = getWritingData();
                 const list = document.getElementById('projectList');
@@ -780,6 +1617,7 @@
                     list.appendChild(li);
                 });
             }
+
             function renderNotes() {
                 const data = getWritingData();
                 const list = document.getElementById('noteList');
@@ -791,6 +1629,7 @@
                     list.appendChild(li);
                 });
             }
+
             function openProject(idx) {
                 const data = getWritingData();
                 const proj = data.projects[idx];
@@ -816,42 +1655,44 @@
                 document.getElementById('addChapterBtn').onclick = async () => {
                     const title = await xpPrompt('添加章节', '章节标题：', '输入标题');
                     if (title === null) return;
-                    const data = getWritingData();
-                    const proj = data.projects[idx];
-                    if (!proj) return;
-                    proj.chapters.push({ title: title || '无标题', content: '' });
-                    saveWritingData(data);
+                    const data2 = getWritingData();
+                    const proj2 = data2.projects[idx];
+                    if (!proj2) return;
+                    proj2.chapters.push({ title: title || '无标题', content: '' });
+                    saveWritingData(data2);
                     openProject(idx);
                 };
                 document.getElementById('saveChapterBtn').onclick = () => {
-                    const data = getWritingData();
-                    const proj = data.projects[idx];
-                    if (!proj) return;
+                    const data2 = getWritingData();
+                    const proj2 = data2.projects[idx];
+                    if (!proj2) return;
                     const state = window._writingState;
                     if (!state || state.chapterIdx === undefined || state.chapterIdx < 0) {
                         xpAlert('请先打开一个章节');
                         return;
                     }
-                    const ch = proj.chapters[state.chapterIdx];
+                    const ch = proj2.chapters[state.chapterIdx];
                     if (!ch) return;
                     const titleInput = document.getElementById('chTitle');
                     const contentInput = document.getElementById('chContent');
                     if (titleInput) ch.title = titleInput.value;
                     if (contentInput) ch.content = contentInput.value;
-                    saveWritingData(data);
+                    saveWritingData(data2);
                     xpAlert('章节已保存！');
                     openProject(idx);
                 };
                 document.getElementById('deleteProjectBtn').onclick = async () => {
-                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除此作品及其所有章节？', confirmText: '删除', cancelText: '取消' });
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除此作品及其所有章节？',
+                        confirmText: '删除', cancelText: '取消' });
                     if (!confirm) return;
-                    const data = getWritingData();
-                    data.projects.splice(idx, 1);
-                    saveWritingData(data);
+                    const data2 = getWritingData();
+                    data2.projects.splice(idx, 1);
+                    saveWritingData(data2);
                     renderProjects();
                     document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
                 };
             }
+
             window.openChapter = function(projIdx, chIdx) {
                 const data = getWritingData();
                 const proj = data.projects[projIdx];
@@ -865,6 +1706,7 @@
                 `;
                 window._writingState = { projectIdx: projIdx, chapterIdx: chIdx };
             };
+
             document.getElementById('writingAddProjectBtn').onclick = async () => {
                 const title = await xpPrompt('新建作品', '作品名称：', '输入作品名');
                 if (title === null) return;
@@ -873,6 +1715,7 @@
                 saveWritingData(data);
                 renderProjects();
             };
+
             document.getElementById('writingAddNoteBtn').onclick = async () => {
                 const title = await xpPrompt('新建备忘', '备忘标题：', '输入标题');
                 if (title === null) return;
@@ -883,6 +1726,7 @@
                 const newIdx = data.notes.length - 1;
                 openNote(newIdx);
             };
+
             function openNote(idx) {
                 const data = getWritingData();
                 const note = data.notes[idx];
@@ -899,23 +1743,24 @@
                 document.getElementById('saveNoteBtn').onclick = () => {
                     const newTitle = document.getElementById('noteEditTitle').value;
                     const newContent = document.getElementById('noteEditContent').value;
-                    const data = getWritingData();
-                    const note = data.notes[idx];
-                    if (note) {
-                        note.title = newTitle || '备忘';
-                        note.content = newContent;
-                        saveWritingData(data);
+                    const data2 = getWritingData();
+                    const note2 = data2.notes[idx];
+                    if (note2) {
+                        note2.title = newTitle || '备忘';
+                        note2.content = newContent;
+                        saveWritingData(data2);
                         renderNotes();
                         xpAlert('备忘已保存！');
                         openNote(idx);
                     }
                 };
                 document.getElementById('deleteNoteBtn').onclick = async () => {
-                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除此备忘？', confirmText: '删除', cancelText: '取消' });
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除此备忘？', confirmText: '删除',
+                        cancelText: '取消' });
                     if (!confirm) return;
-                    const data = getWritingData();
-                    data.notes.splice(idx, 1);
-                    saveWritingData(data);
+                    const data2 = getWritingData();
+                    data2.notes.splice(idx, 1);
+                    saveWritingData(data2);
                     renderNotes();
                     document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
                 };
@@ -924,21 +1769,19 @@
             renderNotes();
         }
 
-        // ============================================================
-        //  5. ★★★ 聊天室（完整功能）★★★
-        // ============================================================
+        // ---- 聊天室 ----
         function createChatWindow() {
-            if (window._windowInstances['chat'] && window._windowInstances['chat'].window) {
-                const win = window._windowInstances['chat'].window;
+            const id = 'chat';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['chat'].taskbarBtn) {
-                    window._windowInstances['chat'].taskbarBtn.remove();
-                    window._windowInstances['chat'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'chat';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -991,7 +1834,8 @@
             makeDraggable(win, titlebar);
             bindWindowControls(win, id);
 
-            // ---- 聊天逻辑 ----
+            let currentRoomIdx = -1;
+
             function getChatData() {
                 try {
                     let data = localStorage.getItem('chatData');
@@ -1001,14 +1845,13 @@
                         return defaultData;
                     }
                     return JSON.parse(data);
-                } catch(e) {
-                    return { rooms: [], characters: [] };
-                }
+                } catch (e) { return { rooms: [], characters: [] }; }
             }
+
             function saveChatData(data) {
                 localStorage.setItem('chatData', JSON.stringify(data));
             }
-            let currentRoomIdx = -1;
+
             function renderRooms() {
                 const data = getChatData();
                 const list = document.getElementById('roomList');
@@ -1020,6 +1863,7 @@
                     list.appendChild(li);
                 });
             }
+
             function renderCharacters() {
                 const data = getChatData();
                 const list = document.getElementById('charList');
@@ -1041,6 +1885,7 @@
                     });
                 }
             }
+
             document.getElementById('chatAddRoomBtn').onclick = async () => {
                 const name = await xpPrompt('新建聊天室', '聊天室名称：', '输入名称');
                 if (name === null) return;
@@ -1049,6 +1894,7 @@
                 saveChatData(data);
                 renderRooms();
             };
+
             document.getElementById('chatAddCharBtn').onclick = async () => {
                 const name = await xpPrompt('新建角色', '角色名称：', '输入名称');
                 if (name === null) return;
@@ -1059,6 +1905,7 @@
                 saveChatData(data);
                 renderCharacters();
             };
+
             function editCharacter(idx) {
                 (async () => {
                     const data = getChatData();
@@ -1074,6 +1921,7 @@
                     renderCharacters();
                 })();
             }
+
             function openRoom(idx) {
                 currentRoomIdx = idx;
                 const data = getChatData();
@@ -1089,6 +1937,7 @@
                 view.scrollTop = view.scrollHeight;
                 renderCharacters();
             }
+
             document.getElementById('chatSendBtn').onclick = () => {
                 const input = document.getElementById('chatInput');
                 const text = input.value.trim();
@@ -1106,30 +1955,30 @@
                 input.value = '';
                 openRoom(currentRoomIdx);
             };
+
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && document.activeElement === document.getElementById('chatInput')) {
                     document.getElementById('chatSendBtn').click();
                 }
             });
+
             renderRooms();
             renderCharacters();
         }
 
-        // ============================================================
-        //  6. ★★★ 个人博客（完整功能）★★★
-        // ============================================================
+        // ---- 个人博客 ----
         function createBlogWindow() {
-            if (window._windowInstances['blog'] && window._windowInstances['blog'].window) {
-                const win = window._windowInstances['blog'].window;
+            const id = 'blog';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['blog'].taskbarBtn) {
-                    window._windowInstances['blog'].taskbarBtn.remove();
-                    window._windowInstances['blog'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'blog';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -1184,7 +2033,7 @@
                         `;
                         container.appendChild(div);
                     });
-                } catch(e) {}
+                } catch (e) {}
             }
             window.renderPosts = renderPosts;
             renderPosts();
@@ -1203,21 +2052,19 @@
             };
         }
 
-        // ============================================================
-        //  7. ★★★ 图库应用（完整功能）★★★
-        // ============================================================
+        // ---- 图库 ----
         function createGalleryWindow() {
-            if (window._windowInstances['gallery'] && window._windowInstances['gallery'].window) {
-                const win = window._windowInstances['gallery'].window;
+            const id = 'gallery';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['gallery'].taskbarBtn) {
-                    window._windowInstances['gallery'].taskbarBtn.remove();
-                    window._windowInstances['gallery'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'gallery';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -1257,7 +2104,6 @@
             makeDraggable(win, titlebar);
             bindWindowControls(win, id);
 
-            // ---- 图库逻辑 ----
             function getGalleryData() {
                 try {
                     let data = localStorage.getItem('galleryData');
@@ -1267,10 +2113,9 @@
                         return defaultData;
                     }
                     return JSON.parse(data);
-                } catch(e) {
-                    return { images: [] };
-                }
+                } catch (e) { return { images: [] }; }
             }
+
             function saveGalleryData(data) {
                 localStorage.setItem('galleryData', JSON.stringify(data));
             }
@@ -1296,7 +2141,8 @@
 
             function deleteImage(idx) {
                 (async () => {
-                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除这张图片？', confirmText: '删除', cancelText: '取消' });
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除这张图片？', confirmText: '删除',
+                        cancelText: '取消' });
                     if (!confirm) return;
                     const data = getGalleryData();
                     data.images.splice(idx, 1);
@@ -1330,7 +2176,8 @@
             });
 
             document.getElementById('galleryClearBtn').onclick = async () => {
-                const confirm = await showXpModal({ title: '确认清空', message: '确定清空所有图片？此操作不可撤销。', confirmText: '清空', cancelText: '取消' });
+                const confirm = await showXpModal({ title: '确认清空', message: '确定清空所有图片？此操作不可撤销。',
+                    confirmText: '清空', cancelText: '取消' });
                 if (!confirm) return;
                 const data = getGalleryData();
                 data.images = [];
@@ -1342,21 +2189,19 @@
             renderGallery();
         }
 
-        // ============================================================
-        //  8. ★★★ 画图应用（完整功能）★★★
-        // ============================================================
+        // ---- 画图 ----
         function createPaintWindow() {
-            if (window._windowInstances['paint'] && window._windowInstances['paint'].window) {
-                const win = window._windowInstances['paint'].window;
+            const id = 'paint';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['paint'].taskbarBtn) {
-                    window._windowInstances['paint'].taskbarBtn.remove();
-                    window._windowInstances['paint'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'paint';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -1411,7 +2256,6 @@
             makeDraggable(win, titlebar);
             bindWindowControls(win, id);
 
-            // ---- 画图逻辑 ----
             const canvas = document.getElementById('paintCanvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 500;
@@ -1521,7 +2365,8 @@
             });
 
             document.getElementById('paintClearBtn').onclick = async () => {
-                const confirm = await showXpModal({ title: '确认清空', message: '清空当前图层？', confirmText: '清空', cancelText: '取消' });
+                const confirm = await showXpModal({ title: '确认清空', message: '清空当前图层？', confirmText: '清空',
+                    cancelText: '取消' });
                 if (!confirm) return;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#ffffff';
@@ -1555,21 +2400,19 @@
             }
         }
 
-        // ============================================================
-        //  9. ★★★ 漫画应用（完整功能）★★★
-        // ============================================================
+        // ---- 漫画 ----
         function createComicWindow() {
-            if (window._windowInstances['comic'] && window._windowInstances['comic'].window) {
-                const win = window._windowInstances['comic'].window;
+            const id = 'comic';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['comic'].taskbarBtn) {
-                    window._windowInstances['comic'].taskbarBtn.remove();
-                    window._windowInstances['comic'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'comic';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -1623,7 +2466,6 @@
             makeDraggable(win, titlebar);
             bindWindowControls(win, id);
 
-            // ---- 漫画逻辑 ----
             function getComicData() {
                 try {
                     let data = localStorage.getItem('comicData');
@@ -1633,15 +2475,12 @@
                         return defaultData;
                     }
                     return JSON.parse(data);
-                } catch(e) {
-                    return { pages: [], currentIndex: 0 };
-                }
+                } catch (e) { return { pages: [], currentIndex: 0 }; }
             }
+
             function saveComicData(data) {
                 localStorage.setItem('comicData', JSON.stringify(data));
             }
-
-            let comicData = getComicData();
 
             function renderComic() {
                 const data = getComicData();
@@ -1660,7 +2499,6 @@
                     descInput.value = '';
                     return;
                 }
-
                 const page = pages[idx];
                 if (!page) return;
                 display.innerHTML = `<img src="${page.img}" alt="漫画页${idx+1}" />`;
@@ -1701,7 +2539,8 @@
             };
 
             document.getElementById('comicClearBtn').onclick = async () => {
-                const confirm = await showXpModal({ title: '确认清空', message: '确定清除所有漫画页面？', confirmText: '清除', cancelText: '取消' });
+                const confirm = await showXpModal({ title: '确认清空', message: '确定清除所有漫画页面？', confirmText: '清除',
+                    cancelText: '取消' });
                 if (!confirm) return;
                 const data = getComicData();
                 data.pages = [];
@@ -1730,21 +2569,19 @@
             renderComic();
         }
 
-        // ============================================================
-        //  10. ★★★ OC应用（Notion风格）★★★
-        // ============================================================
+        // ---- OC（Notion风格） ----
         function createOCWindow() {
-            if (window._windowInstances['oc'] && window._windowInstances['oc'].window) {
-                const win = window._windowInstances['oc'].window;
+            const id = 'oc';
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['oc'].taskbarBtn) {
-                    window._windowInstances['oc'].taskbarBtn.remove();
-                    window._windowInstances['oc'].taskbarBtn = null;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
                 }
                 return;
             }
-            const id = 'oc';
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -1769,23 +2606,21 @@
             const body = document.createElement('div');
             body.className = 'window-body';
             body.innerHTML = `
-                <div class="app-container" id="ocApp">
-                    <div style="display:flex; gap:12px; height:100%;">
-                        <div style="flex:1; border-right:2px solid #999; padding-right:12px; overflow-y:auto;">
-                            <h3>📁 页面</h3>
-                            <button id="ocAddPageBtn">+ 新建页面</button>
-                            <ul class="item-list" id="ocPageList"></ul>
+                <div class="app-container" id="ocApp" style="display:flex; gap:12px; height:100%;">
+                    <div style="flex:1; border-right:2px solid #999; padding-right:12px; overflow-y:auto;">
+                        <h3>📁 页面</h3>
+                        <button id="ocAddPageBtn">+ 新建页面</button>
+                        <ul class="item-list" id="ocPageList"></ul>
+                    </div>
+                    <div style="flex:2; display:flex; flex-direction:column;">
+                        <div id="ocEditor" style="flex:1; overflow-y:auto; background:#f5f0e8; padding:8px; border:1px solid #ccc;">
+                            <p style="color:#888;">选择或新建页面开始编辑</p>
                         </div>
-                        <div style="flex:2; display:flex; flex-direction:column;">
-                            <div id="ocEditor" style="flex:1; overflow-y:auto; background:#f5f0e8; padding:8px; border:1px solid #ccc;">
-                                <p style="color:#888;">选择或新建页面开始编辑</p>
-                            </div>
-                            <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
-                                <button id="ocAddTextBtn">➕ 文本</button>
-                                <button id="ocAddLinkBtn">🔗 超链接</button>
-                                <button id="ocAddImageBtn">🖼️ 图片</button>
-                                <button id="ocAddDividerBtn">➖ 分割线</button>
-                            </div>
+                        <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+                            <button id="ocAddTextBtn">➕ 文本</button>
+                            <button id="ocAddLinkBtn">🔗 超链接</button>
+                            <button id="ocAddImageBtn">🖼️ 图片</button>
+                            <button id="ocAddDividerBtn">➖ 分割线</button>
                         </div>
                     </div>
                 </div>
@@ -1796,7 +2631,8 @@
             makeDraggable(win, titlebar);
             bindWindowControls(win, id);
 
-            // ---- OC 逻辑 ----
+            let currentPageIdx = -1;
+
             function getOCData() {
                 try {
                     let data = localStorage.getItem('ocData');
@@ -1806,15 +2642,12 @@
                         return defaultData;
                     }
                     return JSON.parse(data);
-                } catch(e) {
-                    return { pages: [] };
-                }
+                } catch (e) { return { pages: [] }; }
             }
+
             function saveOCData(data) {
                 localStorage.setItem('ocData', JSON.stringify(data));
             }
-
-            let currentPageIdx = -1;
 
             function renderPageList() {
                 const data = getOCData();
@@ -1837,654 +2670,8 @@
                 let html = `<h3 style="margin-top:0;">${page.title}</h3>`;
                 page.blocks.forEach((block, bi) => {
                     if (block.type === 'text') {
-                        html += `<div class="notion-block"><span class="block-type">📝</span><div class="block-content"><input type="text" value="${block.content}" data-idx="${bi}" class="oc-text-input" style="width:100%;" /></div><span class="block-del" data-idx="${bi}">✕</span></div>`;
+                        html +=
+                            `<div class="notion-block"><span class="block-type">📝</span><div class="block-content"><input type="text" value="${block.content}" data-idx="${bi}" class="oc-text-input" style="width:100%;" /></div><span class="block-del" data-idx="${bi}">✕</span></div>`;
                     } else if (block.type === 'link') {
-                        html += `<div class="notion-block"><span class="block-type">🔗</span><div class="block-content"><input type="text" value="${block.content}" data-idx="${bi}" class="oc-link-input" placeholder="URL" style="width:100%;" /></div><span class="block-del" data-idx="${bi}">✕</span></div>`;
-                    } else if (block.type === 'image') {
-                        html += `<div class="notion-block"><span class="block-type">🖼️</span><div class="block-content"><input type="text" value="${block.content}" data-idx="${bi}" class="oc-image-input" placeholder="图片URL" style="width:100%;" /><br /><img src="${block.content}" style="max-width:100%; max-height:100px; image-rendering:pixelated;" /></div><span class="block-del" data-idx="${bi}">✕</span></div>`;
-                    } else if (block.type === 'divider') {
-                        html += `<div class="notion-block"><span class="block-type">➖</span><div class="block-content"><hr /></div><span class="block-del" data-idx="${bi}">✕</span></div>`;
-                    }
-                });
-                html += `<div style="margin-top:8px; color:#888; font-size:11px;">点击模块内容编辑，点击 ✕ 删除</div>`;
-                editor.innerHTML = html;
-
-                editor.querySelectorAll('.oc-text-input, .oc-link-input, .oc-image-input').forEach(input => {
-                    input.addEventListener('input', (e) => {
-                        const idx = parseInt(e.target.dataset.idx);
-                        const data = getOCData();
-                        const page = data.pages[currentPageIdx];
-                        if (page && page.blocks[idx]) {
-                            page.blocks[idx].content = e.target.value;
-                            saveOCData(data);
-                        }
-                    });
-                });
-                editor.querySelectorAll('.block-del').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const idx = parseInt(e.target.dataset.idx);
-                        const data = getOCData();
-                        const page = data.pages[currentPageIdx];
-                        if (page) {
-                            page.blocks.splice(idx, 1);
-                            saveOCData(data);
-                            openPage(currentPageIdx);
-                        }
-                    });
-                });
-            }
-
-            document.getElementById('ocAddPageBtn').onclick = async () => {
-                const title = await xpPrompt('新建页面', '页面名称：', '新页面');
-                if (title === null) return;
-                const data = getOCData();
-                data.pages.push({ title: title || '新页面', blocks: [] });
-                saveOCData(data);
-                renderPageList();
-                openPage(data.pages.length - 1);
-            };
-
-            function addBlock(type) {
-                if (currentPageIdx < 0) { xpAlert('请先选择或新建页面'); return; }
-                const data = getOCData();
-                const page = data.pages[currentPageIdx];
-                if (!page) return;
-                let content = '';
-                if (type === 'text') content = '文本内容';
-                else if (type === 'link') content = 'https://example.com';
-                else if (type === 'image') content = 'https://via.placeholder.com/100?text=image';
-                page.blocks.push({ type, content });
-                saveOCData(data);
-                openPage(currentPageIdx);
-            }
-
-            document.getElementById('ocAddTextBtn').onclick = () => addBlock('text');
-            document.getElementById('ocAddLinkBtn').onclick = () => addBlock('link');
-            document.getElementById('ocAddImageBtn').onclick = () => addBlock('image');
-            document.getElementById('ocAddDividerBtn').onclick = () => addBlock('divider');
-
-            renderPageList();
-            if (getOCData().pages.length > 0) openPage(0);
-        }
-
-        // ============================================================
-        //  11. ★★★ 播放器（磁带机）★★★
-        // ============================================================
-        function createPlayerWindow() {
-            if (window._windowInstances['player'] && window._windowInstances['player'].window) {
-                const win = window._windowInstances['player'].window;
-                win.style.display = 'flex';
-                win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['player'].taskbarBtn) {
-                    window._windowInstances['player'].taskbarBtn.remove();
-                    window._windowInstances['player'].taskbarBtn = null;
-                }
-                return;
-            }
-            const id = 'player';
-            const win = document.createElement('div');
-            win.className = 'xp-window';
-            win.dataset.windowId = id;
-            win.style.width = '480px';
-            win.style.height = '380px';
-            win.style.left = (100 + Math.random() * 80) + 'px';
-            win.style.top = (60 + Math.random() * 80) + 'px';
-            win.style.zIndex = ++windowZIndex;
-
-            const titlebar = document.createElement('div');
-            titlebar.className = 'window-titlebar';
-            titlebar.innerHTML = `
-                <span class="title-text">🎵 千千静听</span>
-                <div class="win-btns">
-                    <button class="min-btn">─</button>
-                    <button class="max-btn">☐</button>
-                    <button class="close-btn">✕</button>
-                </div>
-            `;
-            win.appendChild(titlebar);
-
-            const body = document.createElement('div');
-            body.className = 'window-body';
-            body.style.background = '#2a2a2a';
-            body.style.display = 'flex';
-            body.style.justifyContent = 'center';
-            body.style.alignItems = 'center';
-            body.style.padding = '16px';
-            body.innerHTML = `
-                <div class="tape-player">
-                    <div class="tape-window">
-                        <div class="reel left" id="reelLeft"></div>
-                        <div class="tape-info">
-                            <div class="song-title" id="tapeSongTitle">等待播放</div>
-                            <div class="song-artist" id="tapeSongArtist">-</div>
-                        </div>
-                        <div class="reel right" id="reelRight"></div>
-                    </div>
-                    <div class="controls">
-                        <button id="tapePrevBtn">⏮</button>
-                        <button class="play-btn" id="tapePlayBtn">▶</button>
-                        <button id="tapeNextBtn">⏭</button>
-                    </div>
-                    <div class="progress-bar">
-                        <span class="time" id="tapeCurrentTime">0:00</span>
-                        <input type="range" id="tapeProgress" value="0" step="0.1" />
-                        <span class="time" id="tapeTotalTime">0:00</span>
-                    </div>
-                    <div class="volume-control">
-                        <span class="vol-icon">🔊</span>
-                        <input type="range" id="tapeVolume" min="0" max="1" step="0.01" value="0.8" />
-                    </div>
-                    <div class="list-toggle" id="tapeListToggle">📋 播放列表 ▼</div>
-                    <div class="playlist" id="tapePlaylist"></div>
-                </div>
-            `;
-            win.appendChild(body);
-            document.body.appendChild(win);
-            window._windowInstances[id] = { window: win, taskbarBtn: null };
-            makeDraggable(win, titlebar);
-            bindWindowControls(win, id);
-
-            // ---- 播放器逻辑 ----
-            const songs = [
-                { title: 'Science Fiction/Double Feature', artist: 'Richard O\'Brien', url: 'https://file.garden/alBxX7nuWEQGozco/Richard%20O%27Brien%20-%20Science%20FictionDouble%20Feature.mp3' },
-                { title: 'Evening Wear', artist: 'Mindless Self Indulgence', url: 'https://file.garden/alBxX7nuWEQGozco/Mindless%20Self%20Indulgence%20-%20Evening%20Wear.mp3' },
-                { title: 'Helena', artist: 'My Chemical Romance', url: 'https://file.garden/alBxX7nuWEQGozco/My%20Chemical%20Romance%20-%20Helena.mp3' }
-            ];
-            let currentIndex = 0;
-            let isPlaying = false;
-            const audio = new Audio();
-            audio.preload = 'metadata';
-            audio.crossOrigin = 'anonymous';
-
-            const playBtn = document.getElementById('tapePlayBtn');
-            const prevBtn = document.getElementById('tapePrevBtn');
-            const nextBtn = document.getElementById('tapeNextBtn');
-            const progress = document.getElementById('tapeProgress');
-            const currentTimeEl = document.getElementById('tapeCurrentTime');
-            const totalTimeEl = document.getElementById('tapeTotalTime');
-            const volumeSlider = document.getElementById('tapeVolume');
-            const songTitleEl = document.getElementById('tapeSongTitle');
-            const songArtistEl = document.getElementById('tapeSongArtist');
-            const playlistEl = document.getElementById('tapePlaylist');
-            const listToggle = document.getElementById('tapeListToggle');
-            const reelLeft = document.getElementById('reelLeft');
-            const reelRight = document.getElementById('reelRight');
-
-            function renderPlaylist() {
-                playlistEl.innerHTML = '';
-                songs.forEach((song, idx) => {
-                    const div = document.createElement('div');
-                    div.className = 'pl-item' + (idx === currentIndex ? ' active' : '');
-                    div.textContent = `${song.title} - ${song.artist}`;
-                    div.addEventListener('click', () => {
-                        currentIndex = idx;
-                        loadSong(idx);
-                        if (isPlaying) audio.play().catch(()=>{});
-                    });
-                    playlistEl.appendChild(div);
-                });
-            }
-            renderPlaylist();
-
-            function loadSong(index) {
-                const song = songs[index];
-                if (!song) return;
-                audio.src = song.url;
-                audio.load();
-                songTitleEl.textContent = song.title;
-                songArtistEl.textContent = song.artist;
-                progress.value = 0;
-                currentTimeEl.textContent = '0:00';
-                totalTimeEl.textContent = '0:00';
-                document.querySelectorAll('.pl-item').forEach((el, i) => el.classList.toggle('active', i === index));
-                reelLeft.classList.remove('spinning');
-                reelRight.classList.remove('spinning');
-            }
-
-            function togglePlay() {
-                if (audio.paused) {
-                    audio.play().catch(() => alert('播放失败，请检查网络'));
-                    isPlaying = true;
-                    playBtn.textContent = '⏸';
-                    reelLeft.classList.add('spinning');
-                    reelRight.classList.add('spinning');
-                } else {
-                    audio.pause();
-                    isPlaying = false;
-                    playBtn.textContent = '▶';
-                    reelLeft.classList.remove('spinning');
-                    reelRight.classList.remove('spinning');
-                }
-            }
-
-            function prevSong() {
-                currentIndex = (currentIndex - 1 + songs.length) % songs.length;
-                loadSong(currentIndex);
-                if (isPlaying) audio.play().catch(()=>{});
-            }
-            function nextSong() {
-                currentIndex = (currentIndex + 1) % songs.length;
-                loadSong(currentIndex);
-                if (isPlaying) audio.play().catch(()=>{});
-            }
-
-            playBtn.addEventListener('click', togglePlay);
-            prevBtn.addEventListener('click', prevSong);
-            nextBtn.addEventListener('click', nextSong);
-
-            audio.addEventListener('timeupdate', () => {
-                if (audio.duration) {
-                    const percent = (audio.currentTime / audio.duration) * 100;
-                    progress.value = percent;
-                    currentTimeEl.textContent = formatTime(audio.currentTime);
-                    totalTimeEl.textContent = formatTime(audio.duration);
-                }
-            });
-            audio.addEventListener('loadedmetadata', () => { totalTimeEl.textContent = formatTime(audio.duration); });
-            audio.addEventListener('ended', () => { nextSong(); if (isPlaying) setTimeout(() => audio.play().catch(()=>{}), 100); });
-            audio.addEventListener('error', (e) => { console.warn('音频加载错误:', e); });
-
-            progress.addEventListener('input', () => {
-                if (audio.duration) {
-                    const time = (progress.value / 100) * audio.duration;
-                    audio.currentTime = time;
-                }
-            });
-            volumeSlider.addEventListener('input', () => { audio.volume = volumeSlider.value; });
-            audio.volume = volumeSlider.value;
-
-            function formatTime(seconds) {
-                if (!seconds || isNaN(seconds)) return '0:00';
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
-                return `${m}:${s.toString().padStart(2, '0')}`;
-            }
-
-            listToggle.addEventListener('click', () => {
-                playlistEl.classList.toggle('show');
-                listToggle.textContent = playlistEl.classList.contains('show') ? '📋 播放列表 ▲' : '📋 播放列表 ▼';
-            });
-            loadSong(0);
-        }
-
-        // ============================================================
-        //  12. ★★★ 设置应用（含桌宠）★★★
-        // ============================================================
-        function createSettingsWindow() {
-            if (window._windowInstances['settings'] && window._windowInstances['settings'].window) {
-                const win = window._windowInstances['settings'].window;
-                win.style.display = 'flex';
-                win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances['settings'].taskbarBtn) {
-                    window._windowInstances['settings'].taskbarBtn.remove();
-                    window._windowInstances['settings'].taskbarBtn = null;
-                }
-                return;
-            }
-            const id = 'settings';
-            const win = document.createElement('div');
-            win.className = 'xp-window';
-            win.dataset.windowId = id;
-            win.style.width = '750px';
-            win.style.height = '650px';
-            win.style.left = (40 + Math.random() * 60) + 'px';
-            win.style.top = (20 + Math.random() * 60) + 'px';
-            win.style.zIndex = ++windowZIndex;
-
-            const titlebar = document.createElement('div');
-            titlebar.className = 'window-titlebar';
-            titlebar.innerHTML = `
-                <span class="title-text">⚙️ 设置</span>
-                <div class="win-btns">
-                    <button class="min-btn">─</button>
-                    <button class="max-btn">☐</button>
-                    <button class="close-btn">✕</button>
-                </div>
-            `;
-            win.appendChild(titlebar);
-
-            const body = document.createElement('div');
-            body.className = 'window-body';
-            body.innerHTML = `
-                <div class="app-container">
-                    <h2>⚙️ 设置</h2>
-                    <div style="margin-bottom:12px;">
-                        <h3>🖼️ 壁纸</h3>
-                        <button id="uploadWallpaperBtn">上传图片</button>
-                        <button id="resetWallpaperBtn">重置默认</button>
-                        <input type="color" id="wallpaperColor" value="#3a6ea5" />
-                        <button id="applyWallpaperColorBtn">应用颜色</button>
-                        <div class="wallpaper-preview" id="wallpaperPreview" style="background-color:#3a6ea5;"></div>
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <h3>🎨 全局CSS</h3>
-                        <textarea id="globalCssEditor" rows="6" style="width:100%; font-family:'Courier New',monospace;"></textarea>
-                        <button id="applyGlobalCssBtn">应用</button>
-                        <button id="resetGlobalCssBtn">重置</button>
-                    </div>
-                    <div>
-                        <h3>🐾 桌面宠物（点击随机对话）</h3>
-                        <button id="addPetBtn">➕ 添加宠物</button>
-                        <button id="clearPetsBtn">🗑️ 清除所有</button>
-                        <div id="petList" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:8px; margin-top:8px;"></div>
-                    </div>
-                </div>
-            `;
-            win.appendChild(body);
-            document.body.appendChild(win);
-            window._windowInstances[id] = { window: win, taskbarBtn: null };
-            makeDraggable(win, titlebar);
-            bindWindowControls(win, id);
-
-            // ---- 设置逻辑 ----
-            const cssEditor = document.getElementById('globalCssEditor');
-            const styleTag = document.getElementById('global-custom-style') || (() => {
-                const s = document.createElement('style');
-                s.id = 'global-custom-style';
-                document.head.appendChild(s);
-                return s;
-            })();
-            function loadGlobalCss() {
-                try {
-                    const saved = localStorage.getItem('globalCss');
-                    if (saved) { cssEditor.value = saved; styleTag.textContent = saved; }
-                } catch(e) {}
-            }
-            loadGlobalCss();
-            document.getElementById('applyGlobalCssBtn').onclick = () => {
-                const css = cssEditor.value;
-                styleTag.textContent = css;
-                localStorage.setItem('globalCss', css);
-                xpAlert('已应用');
-            };
-            document.getElementById('resetGlobalCssBtn').onclick = () => {
-                cssEditor.value = '';
-                styleTag.textContent = '';
-                localStorage.setItem('globalCss', '');
-                xpAlert('已重置');
-            };
-
-            const wallpaperPreview = document.getElementById('wallpaperPreview');
-            function loadWallpaper() {
-                try {
-                    const data = localStorage.getItem('wallpaper');
-                    if (data) {
-                        const parsed = JSON.parse(data);
-                        if (parsed.type === 'image' && parsed.data) {
-                            wallpaperPreview.style.backgroundImage = `url(${parsed.data})`;
-                            wallpaperPreview.style.backgroundColor = '';
-                            document.getElementById('desktop-overlay').style.backgroundImage = `url(${parsed.data})`;
-                            document.getElementById('desktop-overlay').style.backgroundSize = 'cover';
-                            document.getElementById('desktop-overlay').style.backgroundColor = '';
-                        } else if (parsed.type === 'color' && parsed.color) {
-                            wallpaperPreview.style.backgroundImage = '';
-                            wallpaperPreview.style.backgroundColor = parsed.color;
-                            document.getElementById('desktop-overlay').style.backgroundImage = '';
-                            document.getElementById('desktop-overlay').style.backgroundColor = parsed.color;
-                        }
-                    }
-                } catch(e) {}
-            }
-            loadWallpaper();
-            document.getElementById('uploadWallpaperBtn').onclick = () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        const dataUrl = ev.target.result;
-                        localStorage.setItem('wallpaper', JSON.stringify({ type: 'image', data: dataUrl }));
-                        loadWallpaper();
-                        xpAlert('壁纸已更新');
-                    };
-                    reader.readAsDataURL(file);
-                };
-                input.click();
-            };
-            document.getElementById('resetWallpaperBtn').onclick = () => {
-                localStorage.removeItem('wallpaper');
-                document.getElementById('desktop-overlay').style.backgroundImage = '';
-                document.getElementById('desktop-overlay').style.backgroundColor = '#3a6ea5';
-                wallpaperPreview.style.backgroundImage = '';
-                wallpaperPreview.style.backgroundColor = '#3a6ea5';
-                xpAlert('已重置');
-            };
-            document.getElementById('applyWallpaperColorBtn').onclick = () => {
-                const color = document.getElementById('wallpaperColor').value;
-                localStorage.setItem('wallpaper', JSON.stringify({ type: 'color', data: color }));
-                loadWallpaper();
-                xpAlert('颜色已应用');
-            };
-
-            // ---- 宠物系统 ----
-            function getPets() {
-                try { return JSON.parse(localStorage.getItem('pets') || '[]'); } catch(e) { return []; }
-            }
-            function savePets(pets) {
-                localStorage.setItem('pets', JSON.stringify(pets));
-                renderPetList();
-                loadPets();
-            }
-
-            function renderPetList() {
-                const pets = getPets();
-                const list = document.getElementById('petList');
-                list.innerHTML = '';
-                if (pets.length === 0) {
-                    list.innerHTML = '<p style="color:#888;">暂无宠物</p>';
-                    return;
-                }
-                pets.forEach((pet, idx) => {
-                    const div = document.createElement('div');
-                    div.style.borderBottom = '1px solid #ddd';
-                    div.style.padding = '6px 0';
-                    div.innerHTML = `
-                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                            <img src="${pet.img}" style="width:40px; height:40px; object-fit:cover; border:1px solid #999; image-rendering:pixelated;" />
-                            <span style="font-weight:bold;">${pet.name}</span>
-                            <button onclick="editPetName(${idx})">✏️ 名称</button>
-                            <button onclick="editPetImage(${idx})">🖼️ 换图</button>
-                            <button onclick="editPetDialogs(${idx})">💬 对话</button>
-                            <button onclick="deletePet(${idx})" style="color:red;">✕</button>
-                        </div>
-                        <div style="font-size:10px; color:#666; margin-top:2px; white-space:pre-wrap;">
-                            对话: ${pet.dialogs && pet.dialogs.length ? pet.dialogs.join(' | ') : '(未设置)'}
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            }
-
-            window.editPetName = async (idx) => {
-                const pets = getPets();
-                const pet = pets[idx];
-                if (!pet) return;
-                const newName = await xpPrompt('编辑名称', '新名称：', '', pet.name);
-                if (newName !== null) { pet.name = newName; savePets(pets); }
-            };
-            window.editPetImage = async (idx) => {
-                const pets = getPets();
-                const pet = pets[idx];
-                if (!pet) return;
-                const newImg = await xpPrompt('图片URL', 'URL：', '', pet.img);
-                if (newImg !== null) { pet.img = newImg; savePets(pets); }
-            };
-            window.editPetDialogs = async (idx) => {
-                const pets = getPets();
-                const pet = pets[idx];
-                if (!pet) return;
-                const current = pet.dialogs ? pet.dialogs.join('\n') : '';
-                const result = await showXpModal({
-                    title: '编辑对话（每行一句）',
-                    fields: [{ id: 'dialogs', label: '对话内容（每行一句，换行分隔）', type: 'text', value: current, placeholder: '你好呀！\n今天天气真好\n...' }],
-                    confirmText: '保存', cancelText: '取消'
-                });
-                if (result) {
-                    const lines = result.dialogs.split('\n').map(s => s.trim()).filter(s => s);
-                    pet.dialogs = lines.length ? lines : ['你好！'];
-                    savePets(pets);
-                }
-            };
-            window.deletePet = async (idx) => {
-                const confirm = await showXpModal({ title: '确认删除', message: '确定删除此宠物？', confirmText: '删除', cancelText: '取消' });
-                if (!confirm) return;
-                const pets = getPets();
-                pets.splice(idx, 1);
-                savePets(pets);
-            };
-
-            document.getElementById('addPetBtn').onclick = async () => {
-                const name = await xpPrompt('添加宠物', '名称：', '小可爱');
-                if (name === null) return;
-                const img = await xpPrompt('图片URL', 'URL', 'https://via.placeholder.com/100?text=Pet');
-                if (img === null) return;
-                const defaultDialogs = ['你好！', '今天开心吗？', '一起玩吧！'];
-                const dialogsResult = await showXpModal({
-                    title: '设置对话（每行一句）',
-                    fields: [{ id: 'dialogs', label: '对话内容（换行分隔）', type: 'text', value: defaultDialogs.join('\n'), placeholder: '每行一句' }],
-                    confirmText: '确定', cancelText: '取消'
-                });
-                let dialogs = defaultDialogs;
-                if (dialogsResult) {
-                    const lines = dialogsResult.dialogs.split('\n').map(s => s.trim()).filter(s => s);
-                    if (lines.length) dialogs = lines;
-                }
-                const pets = getPets();
-                pets.push({
-                    name,
-                    img,
-                    dialogs,
-                    x: Math.random() * 70 + 10,
-                    y: Math.random() * 60 + 20
-                });
-                savePets(pets);
-                xpAlert('宠物已添加！');
-            };
-
-            document.getElementById('clearPetsBtn').onclick = async () => {
-                const confirm = await showXpModal({ title: '确认清除', message: '清除所有宠物？', confirmText: '清除', cancelText: '取消' });
-                if (!confirm) return;
-                savePets([]);
-                xpAlert('已清除');
-            };
-
-            // 加载宠物到桌面（全局可用）
-            function loadPets() {
-                const container = document.getElementById('desktop-pets');
-                container.innerHTML = '';
-                const pets = getPets();
-                if (pets.length === 0) return;
-                pets.forEach((pet, idx) => {
-                    const el = document.createElement('div');
-                    el.className = 'pet';
-                    el.style.left = pet.x + '%';
-                    el.style.top = pet.y + '%';
-                    el.style.transform = 'translate(-50%, -50%)';
-                    el.dataset.idx = idx;
-                    const bubbleText = pet.dialogs && pet.dialogs.length ? pet.dialogs.join('\n') : '你好！';
-                    el.innerHTML = `
-                        <img src="${pet.img}" alt="${pet.name}" />
-                        <div class="bubble">${bubbleText}</div>
-                    `;
-                    const bubble = el.querySelector('.bubble');
-                    el.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (pet.dialogs && pet.dialogs.length) {
-                            const randomIdx = Math.floor(Math.random() * pet.dialogs.length);
-                            bubble.textContent = pet.dialogs[randomIdx];
-                        } else {
-                            bubble.textContent = '你好！';
-                        }
-                        bubble.style.display = 'block';
-                        setTimeout(() => { bubble.style.display = 'none'; }, 3000);
-                    });
-                    // 拖拽
-                    let dragging = false, startX, startY, origX, origY;
-                    el.addEventListener('pointerdown', (e) => {
-                        if (e.target.tagName === 'IMG') {
-                            dragging = true;
-                            const rect = container.getBoundingClientRect();
-                            startX = e.clientX; startY = e.clientY;
-                            origX = parseFloat(el.style.left); origY = parseFloat(el.style.top);
-                            el.style.cursor = 'grabbing';
-                            el.setPointerCapture(e.pointerId);
-                            e.preventDefault();
-                            bubble.style.display = 'none';
-                        }
-                    });
-                    el.addEventListener('pointermove', (e) => {
-                        if (!dragging) return;
-                        const dx = (e.clientX - startX) / container.offsetWidth * 100;
-                        const dy = (e.clientY - startY) / container.offsetHeight * 100;
-                        let newX = Math.min(95, Math.max(5, origX + dx));
-                        let newY = Math.min(95, Math.max(5, origY + dy));
-                        el.style.left = newX + '%';
-                        el.style.top = newY + '%';
-                        const pets = getPets();
-                        const idx = parseInt(el.dataset.idx);
-                        if (pets[idx]) { pets[idx].x = newX; pets[idx].y = newY; localStorage.setItem('pets', JSON.stringify(pets)); }
-                    });
-                    el.addEventListener('pointerup', (e) => {
-                        if (dragging) { dragging = false; el.style.cursor = 'grab'; el.releasePointerCapture(e.pointerId); }
-                    });
-                    el.addEventListener('pointercancel', (e) => {
-                        if (dragging) { dragging = false; el.style.cursor = 'grab'; }
-                    });
-                    container.appendChild(el);
-                });
-            }
-
-            renderPetList();
-            loadPets();
-            window.loadPets = loadPets;
-        }
-
-        // ============================================================
-        //  13. 创建窗口入口
-        // ============================================================
-        function createWindow(id) {
-            switch(id) {
-                case 'oc': createOCWindow(); break;
-                case 'gallery': createGalleryWindow(); break;
-                case 'paint': createPaintWindow(); break;
-                case 'comic': createComicWindow(); break;
-                case 'player': createPlayerWindow(); break;
-                case 'writing': createWritingWindow(); break;
-                case 'chat': createChatWindow(); break;
-                case 'blog': createBlogWindow(); break;
-                case 'settings': createSettingsWindow(); break;
-                case 'about': createWindowEngine('about', '📄 关于', `<div class="app-container"><div class="editable-content"><h2>关于</h2><p>复古像素风桌面</p></div></div>`); break;
-                case 'trash': createWindowEngine('trash', '🗑️ 回收站', `<div class="app-container"><div class="editable-content"><p>回收站是空的。</p></div></div>`); break;
-                default: createWindowEngine(id, '窗口', '<div class="app-container"><p>内容</p></div>'); break;
-            }
-        }
-
-        // ============================================================
-        //  14. 响应式 & 动画
-        // ============================================================
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // 暴露全局
-        window.createWindow = createWindow;
-        window.xpPrompt = xpPrompt;
-        window.xpAlert = xpAlert;
-        window.showXpModal = showXpModal;
-        window.loadPets = loadPets;
-
-        console.log('✅ 复古桌面已加载，所有应用完整，按钮有效。');
-    </script>
-</body>
-</html>
+                        html +=
+                            `<div class="notion-block"><span class="block
