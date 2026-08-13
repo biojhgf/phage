@@ -1,1 +1,827 @@
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>复古房间 · 大屁股电脑</title>
+    <style>
+        /* 全局重置 */
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+        }
+
+        /* Three.js 渲染器 */
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* 桌面覆盖层 (模拟 XP) */
+        #desktop-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            background-color: #3a6ea5; /* XP 经典蓝色 */
+            background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a);
+            user-select: none;
+            font-size: 14px;
+        }
+        #desktop-overlay.active {
+            display: flex;
+        }
+
+        /* 桌面图标区 */
+        .desktop-icons {
+            flex: 1;
+            padding: 20px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 30px 40px;
+        }
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            cursor: pointer;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+            text-align: center;
+            transition: transform 0.1s;
+        }
+        .desktop-icon:hover {
+            transform: scale(1.05);
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+        }
+        .desktop-icon .icon-img {
+            font-size: 48px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .desktop-icon .icon-label {
+            font-size: 13px;
+            word-break: break-all;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* 任务栏 (底部) */
+        .taskbar {
+            height: 50px;
+            background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
+            border-top: 2px solid #3a7bd5;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .start-button {
+            background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 0 #0a3a0a;
+            border: 1px solid #4cb84c;
+            margin-right: 20px;
+        }
+        .start-button:hover {
+            background: linear-gradient(180deg, #4cb84c 0%, #2a7a2a 100%);
+        }
+        .taskbar-time {
+            margin-left: auto;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid #3a7bd5;
+        }
+
+        /* 开始菜单弹出 */
+        .start-menu {
+            display: none;
+            position: absolute;
+            bottom: 52px;
+            left: 12px;
+            width: 280px;
+            background: #f0f0f0;
+            border: 2px solid #3a7bd5;
+            border-radius: 8px 8px 0 0;
+            padding: 12px 0;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            z-index: 1000;
+        }
+        .start-menu.show {
+            display: block;
+        }
+        .start-menu-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .start-menu-item:hover {
+            background: #3a7bd5;
+            color: #fff;
+        }
+        .start-menu-item .item-icon {
+            font-size: 22px;
+        }
+
+        /* XP 风格窗口 */
+        .xp-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            max-width: 90vw;
+            max-height: 80vh;
+            background: #ece9d8;
+            border: 3px solid #3a6ea5;
+            border-radius: 8px 8px 6px 6px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            display: none;
+            flex-direction: column;
+            z-index: 2000;
+            overflow: auto;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+        .xp-window.active {
+            display: flex;
+        }
+        .window-titlebar {
+            background: linear-gradient(90deg, #0a246a, #3a7bd5);
+            color: #fff;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: default;
+            flex-shrink: 0;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+        }
+        .window-titlebar .close-btn {
+            background: #c00;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            line-height: 20px;
+            text-align: center;
+        }
+        .window-titlebar .close-btn:hover {
+            background: #e00;
+        }
+        .window-body {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            background: #fff;
+            color: #000;
+            line-height: 1.6;
+        }
+        .window-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+        }
+        .window-body .placeholder-text {
+            color: #888;
+            font-style: italic;
+        }
+
+        /* 返回房间按钮 (桌面右上角) */
+        .back-to-room {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: 2px solid #aaa;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(4px);
+            display: none;
+        }
+        .back-to-room:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* 提示 (房间中) */
+        #hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 18px;
+            border-radius: 20px;
+            pointer-events: none;
+            transition: opacity 1s;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Three.js 渲染容器 -->
+    <div id="three-container"></div>
+
+    <!-- 房间提示 -->
+    <div id="hint">🖱️ 左右移动鼠标环顾 · 点击电脑屏幕进入桌面</div>
+
+    <!-- 桌面覆盖层 -->
+    <div id="desktop-overlay">
+        <!-- 桌面图标 -->
+        <div class="desktop-icons">
+            <!-- 图标 1: 我的 OC -->
+            <div class="desktop-icon" data-window="oc">
+                <span class="icon-img">🧑‍🎤</span>
+                <span class="icon-label">我的 OC</span>
+            </div>
+            <!-- 图标 2: 图库 -->
+            <div class="desktop-icon" data-window="gallery">
+                <span class="icon-img">🖼️</span>
+                <span class="icon-label">图库</span>
+            </div>
+            <!-- 图标 3: 关于 -->
+            <div class="desktop-icon" data-window="about">
+                <span class="icon-img">📄</span>
+                <span class="icon-label">关于</span>
+            </div>
+            <!-- 图标 4: 回收站 (占位) -->
+            <div class="desktop-icon" data-window="trash">
+                <span class="icon-img">🗑️</span>
+                <span class="icon-label">回收站</span>
+            </div>
+        </div>
+
+        <!-- 任务栏 -->
+        <div class="taskbar">
+            <div class="start-button" id="startBtn">🪟 开始</div>
+            <!-- 开始菜单 -->
+            <div class="start-menu" id="startMenu">
+                <div class="start-menu-item" data-window="oc">
+                    <span class="item-icon">🧑‍🎤</span> 我的 OC
+                </div>
+                <div class="start-menu-item" data-window="gallery">
+                    <span class="item-icon">🖼️</span> 图库
+                </div>
+                <div class="start-menu-item" data-window="about">
+                    <span class="item-icon">📄</span> 关于
+                </div>
+                <div class="start-menu-item" data-window="trash">
+                    <span class="item-icon">🗑️</span> 回收站
+                </div>
+                <hr style="margin: 6px 12px; border:1px solid #ccc;" />
+                <div class="start-menu-item" id="shutdownItem">
+                    <span class="item-icon">⏻</span> 返回房间
+                </div>
+            </div>
+            <div class="taskbar-time" id="taskbarTime">12:00</div>
+        </div>
+    </div>
+
+    <!-- 返回房间按钮 (桌面时显示) -->
+    <button class="back-to-room" id="backBtn">🏠 返回房间</button>
+
+    <!-- XP 窗口 (多个复用同一个) -->
+    <div class="xp-window" id="xpWindow">
+        <div class="window-titlebar">
+            <span id="windowTitle">窗口</span>
+            <button class="close-btn" id="windowClose">✕</button>
+        </div>
+        <div class="window-body" id="windowBody">
+            <!-- 内容由 JS 动态填充 -->
+        </div>
+    </div>
+
+    <!-- 使用 importmap 加载 Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ----- 导入 Three.js -----
+        import * as THREE from 'three';
+
+        // ----- 1. 基本场景、相机、渲染器 -----
+        const container = document.getElementById('three-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0a); // 深色背景
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.8, 4); // 坐在房间中央偏后
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        // ----- 2. 灯光 -----
+        // 环境光（低亮）
+        const ambient = new THREE.AmbientLight(0x404060, 0.8);
+        scene.add(ambient);
+
+        // 主光源 - 从左上角来的暖光
+        const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
+        mainLight.position.set(3, 5, 2);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        scene.add(mainLight);
+
+        // 补光 - 从屏幕发出的蓝光
+        const screenLight = new THREE.PointLight(0x4488ff, 0.8);
+        screenLight.position.set(0, 1.2, 1.8);
+        scene.add(screenLight);
+
+        // 台灯效果 (暖黄)
+        const lampLight = new THREE.PointLight(0xffaa55, 0.5);
+        lampLight.position.set(-0.8, 1.6, 0.5);
+        scene.add(lampLight);
+
+        // ----- 3. 构建房间 (内部) -----
+        const roomGroup = new THREE.Group();
+        scene.add(roomGroup);
+
+        // 地板 - 深色木纹 (用Canvas生成)
+        function createWoodTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#4a3728';
+            ctx.fillRect(0, 0, 256, 256);
+            for (let i = 0; i < 200; i++) {
+                ctx.strokeStyle = `rgba(90, 70, 50, ${0.1 + Math.random()*0.3})`;
+                ctx.lineWidth = 2 + Math.random() * 4;
+                ctx.beginPath();
+                const x = Math.random() * 256;
+                const y = Math.random() * 256;
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*40);
+                ctx.stroke();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+        const woodTex = createWoodTexture();
+        woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
+        woodTex.repeat.set(4, 4);
+
+        const floorMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.7, metalness: 0.1 });
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -0.5;
+        floor.receiveShadow = true;
+        roomGroup.add(floor);
+
+        // 墙壁 - 深色壁纸 (暗色条纹)
+        function createWallTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#2a1f1a';
+            ctx.fillRect(0, 0, 256, 256);
+            for (let i = 0; i < 20; i++) {
+                ctx.fillStyle = `rgba(60, 45, 35, ${0.2 + Math.random()*0.3})`;
+                ctx.fillRect(i*13, 0, 6, 256);
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+        const wallTex = createWallTexture();
+        wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
+        wallTex.repeat.set(3, 2);
+
+        const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9, metalness: 0 });
+
+        // 后墙 (z负方向)
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+        backWall.position.set(0, 1.25, -3);
+        roomGroup.add(backWall);
+
+        // 左墙 (x负)
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.position.set(-3, 1.25, 0);
+        roomGroup.add(leftWall);
+
+        // 右墙 (x正)
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.set(3, 1.25, 0);
+        roomGroup.add(rightWall);
+
+        // 天花板 - 深色
+        const ceilMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.9 });
+        const ceil = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), ceilMat);
+        ceil.rotation.x = Math.PI / 2;
+        ceil.position.y = 3;
+        roomGroup.add(ceil);
+
+        // ----- 4. 家具 -----
+        // 桌子 - 深色木桌
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0x5a3d2b, roughness: 0.7, metalness: 0.1 });
+        const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.8), tableMat);
+        tableTop.position.set(0, 0.5, -0.6);
+        tableTop.castShadow = true;
+        tableTop.receiveShadow = true;
+        roomGroup.add(tableTop);
+
+        // 桌腿 (四个)
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
+        const legPositions = [[-0.6, -0.3], [0.6, -0.3], [-0.6, 0.3], [0.6, 0.3]];
+        legPositions.forEach(([x, z]) => {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), legMat);
+            leg.position.set(x, 0.25, -0.6 + z);
+            leg.castShadow = true;
+            roomGroup.add(leg);
+        });
+
+        // ----- 5. 大屁股 CRT 显示器 -----
+        const monitorGroup = new THREE.Group();
+        monitorGroup.position.set(0, 0.9, -0.3);
+        roomGroup.add(monitorGroup);
+
+        // 底座 (圆台)
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.3 });
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 0.15, 16), baseMat);
+        base.position.y = -0.08;
+        base.castShadow = true;
+        monitorGroup.add(base);
+
+        // 显示器外壳 (主体) - 大屁股形状：后面凸起
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.2 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.5), shellMat);
+        body.position.set(0, 0.3, 0);
+        body.castShadow = true;
+        monitorGroup.add(body);
+
+        // 后部凸起 (用球体)
+        const backMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.3 });
+        const backBump = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), backMat);
+        backBump.position.set(0, 0.3, -0.28);
+        backBump.scale.set(1, 0.85, 0.7);
+        backBump.castShadow = true;
+        monitorGroup.add(backBump);
+
+        // 屏幕边框 (前面)
+        const bezelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.1 });
+        const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, 0.06), bezelMat);
+        bezel.position.set(0, 0.3, 0.28);
+        monitorGroup.add(bezel);
+
+        // 屏幕 (发光)
+        const screenMat = new THREE.MeshStandardMaterial({
+            color: 0x4488ff,
+            emissive: 0x224488,
+            emissiveIntensity: 0.6,
+            roughness: 0.1,
+            metalness: 0.0,
+        });
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.45), screenMat);
+        screen.position.set(0, 0.3, 0.31);
+        monitorGroup.add(screen);
+
+        // 屏幕玻璃反光 (略微凸起)
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0x88aaff,
+            transparent: true,
+            opacity: 0.08,
+            roughness: 0.0,
+            metalness: 0.9,
+        });
+        const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.42), glassMat);
+        glass.position.set(0, 0.3, 0.32);
+        monitorGroup.add(glass);
+
+        // 存储屏幕物体以便点击检测
+        const clickTargets = [screen, glass, bezel];
+
+        // 加一些复古贴纸 (纯装饰)
+        const stickerMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200, emissiveIntensity: 0.2 });
+        const sticker = new THREE.Mesh(new THREE.CircleGeometry(0.06, 8), stickerMat);
+        sticker.position.set(0.2, 0.52, 0.31);
+        monitorGroup.add(sticker);
+
+        // ----- 6. 装饰：墙上海报 (占位) -----
+        function createPoster(color, x, y, z, rotY) {
+            const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
+            const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat);
+            poster.position.set(x, y, z);
+            poster.rotation.y = rotY || 0;
+            roomGroup.add(poster);
+            return poster;
+        }
+        createPoster(0x8b3a3a, -1.8, 1.8, -2.9, 0);   // 红色海报
+        createPoster(0x3a6b8b, 1.8, 2.0, -2.9, 0);    // 蓝色海报
+        createPoster(0x6b8b3a, -2.9, 1.5, -0.5, Math.PI/2);
+        createPoster(0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI/2);
+
+        // 地毯 (圆)
+        const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
+        const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8, 12), carpetMat);
+        carpet.rotation.x = -Math.PI / 2;
+        carpet.position.set(0.3, -0.49, 0.2);
+        roomGroup.add(carpet);
+
+        // ----- 7. 鼠标控制旋转 -----
+        let rotationY = 0;
+        const maxRotation = 0.35; // 约 ±20°
+
+        document.addEventListener('mousemove', (e) => {
+            if (document.getElementById('desktop-overlay').classList.contains('active')) return;
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            rotationY = x * maxRotation;
+            roomGroup.rotation.y = rotationY;
+        });
+
+        // 触摸支持
+        document.addEventListener('touchmove', (e) => {
+            if (document.getElementById('desktop-overlay').classList.contains('active')) return;
+            const touch = e.touches[0];
+            const x = (touch.clientX / window.innerWidth) * 2 - 1;
+            rotationY = x * maxRotation;
+            roomGroup.rotation.y = rotationY;
+        }, { passive: true });
+
+        // ----- 8. 点击检测 (进入桌面) -----
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+        let isDesktopActive = false;
+
+        function onPointerDown(event) {
+            if (isDesktopActive) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+            if (clientX === undefined) return;
+            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(clickTargets);
+            if (intersects.length > 0) {
+                enterDesktop();
+            }
+        }
+
+        renderer.domElement.addEventListener('click', onPointerDown);
+        renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
+
+        // ----- 9. 进入 / 退出桌面 -----
+        function enterDesktop() {
+            isDesktopActive = true;
+            document.getElementById('desktop-overlay').classList.add('active');
+            document.getElementById('backBtn').style.display = 'block';
+            document.getElementById('hint').style.opacity = '0';
+            // 更新任务栏时间
+            updateTime();
+            setInterval(updateTime, 10000);
+        }
+
+        function exitDesktop() {
+            isDesktopActive = false;
+            document.getElementById('desktop-overlay').classList.remove('active');
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('hint').style.opacity = '1';
+            // 关闭所有打开的窗口
+            document.getElementById('xpWindow').classList.remove('active');
+        }
+
+        document.getElementById('backBtn').addEventListener('click', exitDesktop);
+        document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
+
+        // ESC 键退出
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDesktopActive) {
+                exitDesktop();
+            }
+        });
+
+        // 更新任务栏时间
+        function updateTime() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('taskbarTime').textContent = `${h}:${m}`;
+        }
+
+        // ----- 10. 桌面功能：开始菜单 -----
+        const startBtn = document.getElementById('startBtn');
+        const startMenu = document.getElementById('startMenu');
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startMenu.classList.toggle('show');
+        });
+        document.addEventListener('click', () => {
+            startMenu.classList.remove('show');
+        });
+        startMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // 开始菜单项点击打开窗口
+        document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
+            item.addEventListener('click', () => {
+                const win = item.dataset.window;
+                openWindow(win);
+                startMenu.classList.remove('show');
+            });
+        });
+
+        // ----- 11. 桌面图标点击 -----
+        document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const win = icon.dataset.window;
+                openWindow(win);
+            });
+        });
+
+        // ----- 12. 窗口管理 -----
+        const xpWindow = document.getElementById('xpWindow');
+        const windowTitle = document.getElementById('windowTitle');
+        const windowBody = document.getElementById('windowBody');
+        const windowClose = document.getElementById('windowClose');
+
+        // 窗口内容数据 (占位，用户可修改)
+        const windowContents = {
+            oc: {
+                title: '🧑‍🎤 我的 OC',
+                content: `
+                    <h2>角色名称</h2>
+                    <p><strong>名字：</strong>（在这里填你的 OC 名字）</p>
+                    <p><strong>年龄：</strong>（填年龄）</p>
+                    <p><strong>简介：</strong>这是一个充满个性的角色，拥有独特的背景故事。</p>
+                    <p><em>（你可以在这里替换成自己的文字和图片）</em></p>
+                    <div style="background:#f0f0f0; padding:20px; text-align:center; border-radius:8px; margin:10px 0;">
+                        🖼️ 图片占位
+                    </div>
+                    <p>更多内容等你来填充！</p>
+                `
+            },
+            gallery: {
+                title: '🖼️ 图库',
+                content: `
+                    <h2>图库</h2>
+                    <p>这里展示你的 OC 相关图片。</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin:10px 0;">
+                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片1</div>
+                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片2</div>
+                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片3</div>
+                    </div>
+                    <p class="placeholder-text">（将上面的占位替换为你的图片链接）</p>
+                `
+            },
+            about: {
+                title: '📄 关于',
+                content: `
+                    <h2>关于这个页面</h2>
+                    <p>这是一个复古风格的个人展示页，灵感来自 2000 年代的 Windows XP 和 CRT 显示器。</p>
+                    <p>你可以自由编辑此窗口的内容，添加自己的 OC 信息。</p>
+                    <p>所有代码都在一个 HTML 文件中，方便管理。</p>
+                    <p style="color:#888; font-size:12px; margin-top:20px;">Made with ❤️ and Three.js</p>
+                `
+            },
+            trash: {
+                title: '🗑️ 回收站',
+                content: `
+                    <h2>回收站</h2>
+                    <p>这里是空的…… 就像你的待办清单一样 😄</p>
+                    <p style="color:#aaa; text-align:center; padding:40px 0;">📭</p>
+                `
+            }
+        };
+
+        function openWindow(id) {
+            const data = windowContents[id];
+            if (!data) return;
+            windowTitle.textContent = data.title;
+            windowBody.innerHTML = data.content;
+            xpWindow.classList.add('active');
+            // 置顶窗口
+            xpWindow.style.zIndex = 2000;
+        }
+
+        windowClose.addEventListener('click', () => {
+            xpWindow.classList.remove('active');
+        });
+
+        // 点击窗口外部不关闭 (仅点击关闭按钮)
+
+        // 调整窗口位置 - 简单居中
+        function centerWindow() {
+            // 已通过CSS transform居中
+        }
+
+        // ----- 13. 窗口拖拽 (简易) -----
+        let dragData = null;
+        const titlebar = xpWindow.querySelector('.window-titlebar');
+        titlebar.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            const rect = xpWindow.getBoundingClientRect();
+            dragData = {
+                offsetX: e.clientX - rect.left,
+                offsetY: e.clientY - rect.top,
+            };
+            xpWindow.style.transform = 'none';
+            xpWindow.style.left = rect.left + 'px';
+            xpWindow.style.top = rect.top + 'px';
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        });
+
+        function onDrag(e) {
+            if (!dragData) return;
+            xpWindow.style.left = (e.clientX - dragData.offsetX) + 'px';
+            xpWindow.style.top = (e.clientY - dragData.offsetY) + 'px';
+        }
+        function stopDrag() {
+            dragData = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // ----- 14. 窗口大小自适应 (响应式) -----
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onResize);
+
+        // ----- 15. 动画循环 -----
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 初始化提示
+        console.log('🖥️ 复古房间已加载！点击显示器屏幕进入XP桌面。');
+
+        // 额外: 点击桌面空白处关闭开始菜单
+        document.getElementById('desktop-overlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('desktop-overlay') || e.target.classList.contains('desktop-icons')) {
+                startMenu.classList.remove('show');
+            }
+        });
+
+        // 防止默认拖拽图片
+        document.querySelectorAll('.desktop-icon, .start-menu-item').forEach(el => {
+            el.addEventListener('dragstart', (e) => e.preventDefault());
+        });
+
+        // 最后，如果用户想换图片或文字，所有占位都在 windowContents 对象中，见上面。
+        console.log('✏️ 你可以修改 windowContents 对象中的 content 字段来替换文字和图片。');
+    </script>
+</body>
+</html>
