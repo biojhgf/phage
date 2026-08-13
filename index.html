@@ -832,35 +832,27 @@
         };
 
         // ============================================================
-        //  3. ★★★ 歌曲数据（已填图片URL） ★★★
+        //  3. ★★★ 歌曲数据（已按顺序填入图片URL，音乐使用相对路径）★★★
         // ============================================================
-        // ★★★ 重要：把下面的 MP3 文件放到 GitHub 仓库根目录 ★★★
-        // 然后用 Raw 链接替换下面的 url 字段
-        // Raw 链接格式：https://raw.githubusercontent.com/biojhgf/phage/main/文件名.mp3
-        // 注意：文件名中的空格和特殊字符需要 URL 编码，或者直接重命名文件（去掉空格和特殊字符）
-        //
-        // 推荐：把文件重命名为简单名字，比如 song1.mp3, song2.mp3, song3.mp3
-        // 然后修改下面的 url 为对应的 Raw 链接
-
         const songList = [{
             title: 'Science Fiction/Double Feature',
             artist: 'Richard O\'Brien',
             cover: 'https://zora404.dpdns.org/file/1786612897827_IMG_5678.jpeg',
-            url: 'https://raw.githubusercontent.com/biojhgf/phage/main/Richard%20O%27Brien%20-%20Science%20FictionDouble%20Feature.mp3'
+            url: './1.mp3'
         }, {
             title: 'Evening Wear',
             artist: 'Mindless Self Indulgence',
             cover: 'https://zora404.dpdns.org/file/1786612899785_IMG_5679.jpeg',
-            url: 'https://raw.githubusercontent.com/biojhgf/phage/main/Mindless%20Self%20Indulgence%20-%20Evening%20Wear.mp3'
+            url: './2.mp3'
         }, {
             title: 'Helena',
             artist: 'My Chemical Romance',
             cover: 'https://zora404.dpdns.org/file/1786612894857_IMG_5680.jpeg',
-            url: 'https://raw.githubusercontent.com/biojhgf/phage/main/My%20Chemical%20Romance%20-%20Helena.mp3'
+            url: './3.mp3'
         }];
 
         // ============================================================
-        //  4. 窗口管理器（修好触摸按钮）
+        //  4. 窗口管理器
         // ============================================================
         let currentIndex = 0;
         let isPlaying = false;
@@ -870,14 +862,11 @@
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
 
-        // ---- 拖拽函数（修好按钮判断） ----
         function makeDraggable(element, handle) {
             let startX, startY, origLeft, origTop, isDragging = false;
 
             function onStart(e) {
-                // 只响应左键或触摸
                 if (e.button !== undefined && e.button !== 0) return;
-                // ★★★ 关键修复：检查点击的是否是按钮或其子元素 ★★★
                 if (e.target.closest('button')) return;
                 const rect = element.getBoundingClientRect();
                 const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -923,7 +912,6 @@
             handle.addEventListener('touchstart', onStart, { passive: false });
         }
 
-        // ---- 窗口创建 ----
         function createWindow(id) {
             if (id === 'player') {
                 createPlayerWindow();
@@ -1018,7 +1006,6 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器窗口 ----
         function createPlayerWindow() {
             if (isPlayerWindowOpen) {
                 const inst = window._windowInstances['player'];
@@ -1170,7 +1157,6 @@
                     console.warn('歌曲不存在:', index);
                     return;
                 }
-                // 使用完整的 Raw 链接
                 audio.src = song.url;
                 audio.load();
                 coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
@@ -1180,7 +1166,6 @@
                 progressBar.value = 0;
                 currentTimeEl.textContent = '0:00';
                 totalTimeEl.textContent = '0:00';
-                // 如果当前是播放状态，自动播放
                 if (isPlaying) {
                     audio.play().catch((err) => {
                         console.warn('自动播放失败，请点击播放按钮:', err);
@@ -1192,7 +1177,7 @@
                 if (audio.paused) {
                     audio.play().catch((err) => {
                         console.warn('播放失败，请检查文件路径:', err);
-                        alert('⚠️ 音乐加载失败，请检查：\n1. 文件是否在仓库根目录\n2. Raw链接是否正确\n3. 文件名是否包含特殊字符');
+                        alert('⚠️ 音乐加载失败，请检查：\n1. 文件是否在仓库根目录\n2. 文件名是否与代码一致（1.mp3, 2.mp3, 3.mp3）');
                     });
                     isPlaying = true;
                     playBtn.textContent = '⏸';
@@ -1318,8 +1303,8 @@
         });
 
         console.log('🖥️ 复古房间已加载！');
-        console.log('📝 如果音乐无法播放，请检查歌曲的 Raw 链接是否正确。');
-        console.log('💡 提示：把 MP3 文件重命名为简单名字（如 1.mp3）可避免编码问题。');
+        console.log('🎵 音乐文件使用相对路径：./1.mp3, ./2.mp3, ./3.mp3');
+        console.log('📝 确保这三个文件与 index.html 在同一目录。');
     </script>
 </body>
 </html>
