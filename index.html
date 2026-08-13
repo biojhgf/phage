@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* ===== 全局样式（保持不变） ===== */
+        /* ===== 全局基础样式 ===== */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -48,6 +48,8 @@
         .app-container .item-list li { padding: 4px 8px; border-bottom: 1px solid #ccc; cursor: pointer; }
         .app-container .item-list li:hover { background: #d0d0d0; }
         .app-container .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+        .editable-content { outline: none; min-height: 60px; padding: 8px; background: #fff; border: 1px dashed #ccc; }
+        .editable-content:focus { border-color: #3a6ea5; background: #fafaff; }
         .gallery-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
         .gallery-grid .img-item { position: relative; width: 120px; height: 120px; border: 2px solid #999; border-radius: 4px; overflow: hidden; background: #eee; }
         .gallery-grid .img-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -88,6 +90,9 @@
         }
         .xp-modal .modal-btns button:active { border-style: inset; }
         .xp-modal .modal-btns .primary { background: #3a7bd5; color: #fff; border-color: #1a4a9f; }
+
+        /* ===== 全局自定义样式将动态插入 ===== */
+        #global-custom-style { display: none; }
     </style>
 </head>
 <body>
@@ -103,6 +108,7 @@
             <div class="desktop-icon" data-window="writing"><span class="icon-img">📝</span><span class="icon-label">写作工坊</span></div>
             <div class="desktop-icon" data-window="chat"><span class="icon-img">💬</span><span class="icon-label">聊天室</span></div>
             <div class="desktop-icon" data-window="blog"><span class="icon-img">📖</span><span class="icon-label">个人博客</span></div>
+            <div class="desktop-icon" data-window="settings"><span class="icon-img">⚙️</span><span class="icon-label">设置</span></div>
             <div class="desktop-icon" data-window="about"><span class="icon-img">📄</span><span class="icon-label">关于</span></div>
             <div class="desktop-icon" data-window="trash"><span class="icon-img">🗑️</span><span class="icon-label">回收站</span></div>
         </div>
@@ -120,6 +126,7 @@
             <div class="start-menu-item" data-window="writing"><span class="item-icon">📝</span> 写作工坊</div>
             <div class="start-menu-item" data-window="chat"><span class="item-icon">💬</span> 聊天室</div>
             <div class="start-menu-item" data-window="blog"><span class="item-icon">📖</span> 个人博客</div>
+            <div class="start-menu-item" data-window="settings"><span class="item-icon">⚙️</span> 设置</div>
             <div class="start-menu-item" data-window="about"><span class="item-icon">📄</span> 关于</div>
             <div class="start-menu-item" data-window="trash"><span class="item-icon">🗑️</span> 回收站</div>
             <hr />
@@ -133,7 +140,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景（完整构建，与之前相同）
+        //  1. Three.js 场景（完整）
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -394,7 +401,7 @@
         });
 
         // ============================================================
-        //  2. 窗口管理（所有窗口支持最大化，事件委托确保按钮永远可用）
+        //  2. 窗口管理（支持最大化、边界限制、事件委托）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
@@ -414,29 +421,37 @@
                 element.style.zIndex = ++windowZIndex;
                 element.setPointerCapture(e.pointerId);
                 e.preventDefault();
-                element.addEventListener('pointermove', onPointerMove);
-                element.addEventListener('pointerup', onPointerUp);
-                element.addEventListener('pointercancel', onPointerUp);
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
+                document.addEventListener('pointercancel', onPointerUp);
             }
             function onPointerMove(e) {
                 if (!isDragging) return;
-                element.style.left = (origLeft + e.clientX - startX) + 'px';
-                element.style.top = (origTop + e.clientY - startY) + 'px';
+                let newLeft = origLeft + e.clientX - startX;
+                let newTop = origTop + e.clientY - startY;
+                // 边界限制
+                const titlebarHeight = 32;
+                const maxX = window.innerWidth - 20;
+                const maxY = window.innerHeight - 20;
+                newLeft = Math.max(-element.offsetWidth + 60, Math.min(newLeft, maxX));
+                newTop = Math.max(-element.offsetHeight + titlebarHeight + 10, Math.min(newTop, maxY));
+                element.style.left = newLeft + 'px';
+                element.style.top = newTop + 'px';
                 e.preventDefault();
             }
             function onPointerUp(e) {
                 if (isDragging) {
                     isDragging = false;
-                    element.removeEventListener('pointermove', onPointerMove);
-                    element.removeEventListener('pointerup', onPointerUp);
-                    element.removeEventListener('pointercancel', onPointerUp);
+                    document.removeEventListener('pointermove', onPointerMove);
+                    document.removeEventListener('pointerup', onPointerUp);
+                    document.removeEventListener('pointercancel', onPointerUp);
                 }
             }
             handle.addEventListener('pointerdown', onPointerDown);
         }
 
-        // 通用窗口（带最大化）
-        function createGenericWindow(id, customTitle) {
+        // 通用窗口创建（可编辑内容自动保存）
+        function createGenericWindow(id, customTitle, contentHtml) {
             if (window._windowInstances[id] && window._windowInstances[id].window) {
                 const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
@@ -445,11 +460,14 @@
                     window._windowInstances[id].taskbarBtn.remove();
                     window._windowInstances[id].taskbarBtn = null;
                 }
+                const editable = win.querySelector('.editable-content');
+                if (editable) editable.focus();
                 return;
             }
             const data = windowContents[id];
-            if (!data) return;
+            if (!data && !contentHtml) return;
             const title = customTitle || data.title;
+            const content = contentHtml || data.content;
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -470,13 +488,33 @@
             win.appendChild(titlebar);
             const body = document.createElement('div');
             body.className = 'window-body';
-            body.style.padding = '16px 20px';
-            body.innerHTML = data.content;
+            if (id === 'oc' || id === 'about' || id === 'trash') {
+                body.innerHTML = `<div class="app-container"><div class="editable-content" contenteditable="true" data-savekey="${id}_content">${content}</div></div>`;
+                const saved = localStorage.getItem(`editable_${id}`);
+                if (saved) {
+                    const editable = body.querySelector('.editable-content');
+                    if (editable) editable.innerHTML = saved;
+                }
+                body.addEventListener('input', (e) => {
+                    const editable = e.target.closest('.editable-content');
+                    if (editable) {
+                        localStorage.setItem(`editable_${id}`, editable.innerHTML);
+                    }
+                });
+                body.addEventListener('blur', (e) => {
+                    const editable = e.target.closest('.editable-content');
+                    if (editable) {
+                        localStorage.setItem(`editable_${id}`, editable.innerHTML);
+                    }
+                }, true);
+            } else {
+                body.innerHTML = content;
+            }
             win.appendChild(body);
             document.body.appendChild(win);
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
-            // 事件委托
+
             titlebar.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -489,6 +527,7 @@
                     closeWindow(id);
                 }
             });
+
             function toggleMaximize(win) {
                 if (!win._isMaximized) {
                     win._prevRect = win.getBoundingClientRect();
@@ -548,12 +587,11 @@
             inst.taskbarBtn = btn;
         }
 
-        // 窗口内容定义
+        // 窗口内容定义（用于可编辑窗口的初始内容）
         const windowContents = {
-            oc: { title: '🧑‍🎤 OC', content: `<div style="padding:20px;"><h2>OC 设定</h2><p>在这里填写你的角色设定信息。</p></div>` },
-            gallery: { title: '🖼️ 图库', content: `<div style="padding:20px;"><p>图片上传功能已独立实现，请点击桌面「图库」打开专用窗口。</p></div>` },
-            about: { title: '📄 关于', content: `<div style="padding:20px;"><h2>关于</h2><p>复古XP风格桌面，包含写作、聊天、博客、图库等应用。</p><p>所有数据保存在浏览器本地。</p></div>` },
-            trash: { title: '🗑️ 回收站', content: `<div style="padding:20px;"><p>回收站是空的。</p></div>` }
+            oc: { title: '🧑‍🎤 OC', content: `<h2>OC 设定</h2><p>在这里填写你的角色设定信息。</p><p>你可以直接点击编辑这段文字，内容会自动保存。</p>` },
+            about: { title: '📄 关于', content: `<h2>关于</h2><p>复古XP风格桌面，包含写作、聊天、博客、图库等应用。</p><p>所有数据保存在浏览器本地。</p>` },
+            trash: { title: '🗑️ 回收站', content: `<p>回收站是空的。</p>` }
         };
 
         // 创建窗口入口
@@ -564,12 +602,15 @@
                 case 'chat': createChatWindow(); break;
                 case 'blog': createBlogWindow(); break;
                 case 'gallery': createGalleryWindow(); break;
-                case 'oc': createGenericWindow('oc', '🧑‍🎤 OC'); break;
+                case 'settings': createSettingsWindow(); break;
+                case 'oc': createGenericWindow('oc', '🧑‍🎤 OC', windowContents.oc.content); break;
+                case 'about': createGenericWindow('about', '📄 关于', windowContents.about.content); break;
+                case 'trash': createGenericWindow('trash', '🗑️ 回收站', windowContents.trash.content); break;
                 default: createGenericWindow(id); break;
             }
         }
 
-        // ---- 播放器窗口（已有最大化） ----
+        // ---- 播放器窗口 ----
         function createPlayerWindow() {
             if (window._windowInstances['player'] && window._windowInstances['player'].window) {
                 const win = window._windowInstances['player'].window;
@@ -724,7 +765,7 @@
         }
 
         // ============================================================
-        //  4. ★★★ 图库应用（支持上传图片）★★★
+        //  4. ★★★ 图库应用 ★★★
         // ============================================================
         function createGalleryWindow() {
             if (window._windowInstances['gallery'] && window._windowInstances['gallery'].window) {
@@ -776,7 +817,6 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            // 窗口控制
             titlebar.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -857,7 +897,6 @@
                 })();
             }
 
-            // 上传
             document.getElementById('galleryUploadBtn').onclick = () => {
                 document.getElementById('galleryFileInput').click();
             };
@@ -882,7 +921,6 @@
                 }
             });
 
-            // 清空
             document.getElementById('galleryClearBtn').onclick = async () => {
                 const confirm = await showXpModal({ title: '确认清空', message: '确定清空所有图片？此操作不可撤销。', confirmText: '清空', cancelText: '取消' });
                 if (!confirm) return;
@@ -897,7 +935,7 @@
         }
 
         // ============================================================
-        //  5. ★★★ 写作工坊（使用自定义弹窗）★★★
+        //  5. ★★★ 写作工坊 ★★★
         // ============================================================
         function createWritingWindow() {
             if (window._windowInstances['writing'] && window._windowInstances['writing'].window) {
@@ -959,7 +997,6 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            // 窗口控制
             titlebar.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -996,7 +1033,7 @@
                 }
             });
 
-            // ---- 写作逻辑（与之前相同） ----
+            // ---- 写作逻辑 ----
             function getWritingData() {
                 let data = localStorage.getItem('writingData');
                 if (!data) {
@@ -1165,7 +1202,7 @@
         }
 
         // ============================================================
-        //  6. ★★★ 聊天室（窗口标题已改）★★★
+        //  6. ★★★ 聊天室 ★★★
         // ============================================================
         function createChatWindow() {
             if (window._windowInstances['chat'] && window._windowInstances['chat'].window) {
@@ -1230,7 +1267,6 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            // 窗口控制
             titlebar.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -1267,7 +1303,7 @@
                 }
             });
 
-            // ---- 聊天逻辑（与之前相同） ----
+            // ---- 聊天逻辑 ----
             function getChatData() {
                 let data = localStorage.getItem('chatData');
                 if (!data) {
@@ -1388,7 +1424,7 @@
         }
 
         // ============================================================
-        //  7. ★★★ 个人博客（头像上传功能）★★★
+        //  7. ★★★ 个人博客 ★★★
         // ============================================================
         function createBlogWindow() {
             if (window._windowInstances['blog'] && window._windowInstances['blog'].window) {
@@ -1485,7 +1521,6 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            // 窗口控制
             titlebar.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -1601,7 +1636,6 @@
                 })();
             }
 
-            // 新建文章
             document.getElementById('blogAddPostBtn').onclick = () => {
                 document.getElementById('blogEditTitle').value = '';
                 document.getElementById('blogEditContent').value = '';
@@ -1610,7 +1644,6 @@
                 document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">正在编辑新文章...</p>';
             };
 
-            // 保存文章
             document.getElementById('blogSavePostBtn').onclick = () => {
                 const title = document.getElementById('blogEditTitle').value.trim();
                 const content = document.getElementById('blogEditContent').value.trim();
@@ -1643,7 +1676,6 @@
                 xpAlert('文章已保存！');
             };
 
-            // 取消编辑
             document.getElementById('blogCancelEditBtn').onclick = () => {
                 document.getElementById('blogEditor').style.display = 'none';
                 if (window._blogPreviewIdx !== undefined && window._blogPreviewIdx >= 0) {
@@ -1653,7 +1685,6 @@
                 }
             };
 
-            // 保存个人资料
             document.getElementById('saveBlogProfileBtn').onclick = () => {
                 const data = getBlogData();
                 data.profile = {
@@ -1666,7 +1697,6 @@
                 renderPosts();
             };
 
-            // 更换头像（URL方式）
             document.getElementById('editAvatarBtn').onclick = async () => {
                 const url = await xpPrompt('更换头像', '头像图片URL：', '输入图片链接', document.getElementById('blogAvatar').src);
                 if (url !== null) {
@@ -1677,7 +1707,6 @@
                 }
             };
 
-            // 上传头像（本地文件）
             document.getElementById('uploadAvatarBtn').onclick = () => {
                 document.getElementById('avatarFileInput').click();
             };
@@ -1697,7 +1726,6 @@
                 reader.readAsDataURL(file);
             });
 
-            // 样式更新（实时预览）
             window.blogUpdateStyle = function() {
                 if (window._blogPreviewIdx !== undefined && window._blogPreviewIdx >= 0) {
                     previewPost(window._blogPreviewIdx);
@@ -1709,7 +1737,6 @@
                 }
             };
 
-            // 初始化
             renderPosts();
             const data = getBlogData();
             if (data.posts.length > 0) {
@@ -1721,7 +1748,182 @@
         }
 
         // ============================================================
-        //  8. 响应式 & 动画
+        //  8. ★★★ 设置应用（全局美化）★★★
+        // ============================================================
+        function createSettingsWindow() {
+            if (window._windowInstances['settings'] && window._windowInstances['settings'].window) {
+                const win = window._windowInstances['settings'].window;
+                win.style.display = 'flex';
+                win.style.zIndex = ++windowZIndex;
+                if (window._windowInstances['settings'].taskbarBtn) {
+                    window._windowInstances['settings'].taskbarBtn.remove();
+                    window._windowInstances['settings'].taskbarBtn = null;
+                }
+                return;
+            }
+            const id = 'settings';
+            const win = document.createElement('div');
+            win.className = 'xp-window';
+            win.dataset.windowId = id;
+            win.style.width = '600px';
+            win.style.height = '520px';
+            win.style.left = (70 + Math.random() * 60) + 'px';
+            win.style.top = (50 + Math.random() * 60) + 'px';
+            win.style.zIndex = ++windowZIndex;
+
+            const titlebar = document.createElement('div');
+            titlebar.className = 'window-titlebar';
+            titlebar.innerHTML = `
+                <span class="title-text">⚙️ 设置 · 全局美化</span>
+                <div class="win-btns">
+                    <button class="min-btn">─</button>
+                    <button class="max-btn">☐</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            `;
+            win.appendChild(titlebar);
+
+            const body = document.createElement('div');
+            body.className = 'window-body';
+            body.innerHTML = `
+                <div class="app-container" id="settingsApp">
+                    <h2>🎨 全局自定义样式</h2>
+                    <p>在这里输入自定义 CSS，将应用于所有窗口和桌面元素。</p>
+                    <div style="margin-bottom:8px;">
+                        <label><strong>CSS 代码：</strong></label>
+                        <textarea id="globalCssEditor" rows="10" style="width:100%; font-family: 'Courier New', monospace; background:#fafafa; border:2px inset #ccc;"></textarea>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button id="applyGlobalCssBtn">✅ 应用样式</button>
+                        <button id="resetGlobalCssBtn">↩️ 重置默认</button>
+                        <span style="flex:1;"></span>
+                        <label>预设：</label>
+                        <select id="presetSelect">
+                            <option value="preset1">预设 1</option>
+                            <option value="preset2">预设 2</option>
+                            <option value="preset3">预设 3</option>
+                        </select>
+                        <button id="savePresetBtn">💾 保存到预设</button>
+                        <button id="loadPresetBtn">📂 加载预设</button>
+                    </div>
+                    <div style="margin-top:12px; background:#eee; padding:8px; border:1px solid #ccc;">
+                        <p style="margin:0; font-size:13px;">💡 提示：样式会实时应用到所有窗口。可保存 3 组预设，方便切换。</p>
+                    </div>
+                </div>
+            `;
+            win.appendChild(body);
+            document.body.appendChild(win);
+            window._windowInstances[id] = { window: win, taskbarBtn: null };
+            makeDraggable(win, titlebar);
+
+            titlebar.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                e.stopPropagation();
+                if (btn.classList.contains('min-btn')) minimizeWindow(id);
+                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
+                else if (btn.classList.contains('close-btn')) closeWindow(id);
+            });
+            function toggleMaximize(win) {
+                if (!win._isMaximized) {
+                    win._prevRect = win.getBoundingClientRect();
+                    win.style.left = '0'; win.style.top = '0';
+                    win.style.width = '100%'; win.style.height = '100%';
+                    win.style.borderRadius = '0';
+                    win._isMaximized = true;
+                    const maxBtn = win.querySelector('.max-btn');
+                    if (maxBtn) maxBtn.textContent = '❐';
+                } else {
+                    const rect = win._prevRect || { left: 70, top: 50, width: 600, height: 520 };
+                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
+                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
+                    win.style.borderRadius = '';
+                    win._isMaximized = false;
+                    const maxBtn = win.querySelector('.max-btn');
+                    if (maxBtn) maxBtn.textContent = '☐';
+                }
+            }
+            win._isMaximized = false;
+            win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
+            win.addEventListener('DOMNodeRemoved', () => {
+                if (window._windowInstances[id]) {
+                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                    delete window._windowInstances[id];
+                }
+            });
+
+            // ---- 设置逻辑 ----
+            // 加载已保存的全局 CSS
+            const cssEditor = document.getElementById('globalCssEditor');
+            const styleTag = document.getElementById('global-custom-style') || (() => {
+                const s = document.createElement('style');
+                s.id = 'global-custom-style';
+                document.head.appendChild(s);
+                return s;
+            })();
+
+            function loadGlobalCss() {
+                const saved = localStorage.getItem('globalCss');
+                if (saved) {
+                    cssEditor.value = saved;
+                    styleTag.textContent = saved;
+                } else {
+                    // 默认样式（空）
+                    cssEditor.value = '';
+                    styleTag.textContent = '';
+                }
+            }
+
+            function applyGlobalCss(css) {
+                styleTag.textContent = css;
+                localStorage.setItem('globalCss', css);
+                xpAlert('样式已应用！');
+            }
+
+            document.getElementById('applyGlobalCssBtn').onclick = () => {
+                const css = cssEditor.value;
+                applyGlobalCss(css);
+            };
+
+            document.getElementById('resetGlobalCssBtn').onclick = () => {
+                cssEditor.value = '';
+                applyGlobalCss('');
+                xpAlert('已重置为默认样式。');
+            };
+
+            // 预设管理
+            const presetSelect = document.getElementById('presetSelect');
+            document.getElementById('savePresetBtn').onclick = () => {
+                const key = presetSelect.value;
+                const css = cssEditor.value;
+                const presets = JSON.parse(localStorage.getItem('cssPresets') || '{}');
+                presets[key] = css;
+                localStorage.setItem('cssPresets', JSON.stringify(presets));
+                xpAlert(`预设 "${key}" 已保存！`);
+            };
+
+            document.getElementById('loadPresetBtn').onclick = () => {
+                const key = presetSelect.value;
+                const presets = JSON.parse(localStorage.getItem('cssPresets') || '{}');
+                const css = presets[key];
+                if (css !== undefined) {
+                    cssEditor.value = css;
+                    applyGlobalCss(css);
+                    xpAlert(`预设 "${key}" 已加载！`);
+                } else {
+                    xpAlert(`预设 "${key}" 不存在。`);
+                }
+            };
+
+            // 初始化加载
+            loadGlobalCss();
+
+            // 自动应用（如果编辑器内容变化，用户手动应用）
+            // 也可以添加一个实时预览选项，但为了明确性，让用户点击按钮。
+        }
+
+        // ============================================================
+        //  9. 响应式 & 动画
         // ============================================================
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -1742,9 +1944,9 @@
         window.showXpModal = showXpModal;
         window.blogUpdateStyle = window.blogUpdateStyle;
 
-        console.log('✅ 复古桌面加载完成！所有窗口支持最大化，图库支持上传，博客头像支持上传。');
-        console.log('📝 写作工坊、💬 聊天室、📖 个人博客、🖼️ 图库 已就绪');
-        console.log('所有数据保存在 localStorage，关闭浏览器不丢失。');
+        console.log('✅ 复古桌面加载完成！包含设置应用，支持全局自定义 CSS 并保存预设。');
+        console.log('📝 所有窗口按钮有效，内容可编辑自动保存，拖拽有边界限制。');
+        console.log('💾 数据保存在 localStorage，关闭浏览器不丢失。');
     </script>
 </body>
 </html>
