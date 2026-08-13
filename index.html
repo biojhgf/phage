@@ -95,10 +95,11 @@
     </style>
 </head>
 <body>
-    <div id="status">⏳ 正在加载 Three.js ...</div>
+    <div id="status">⏳ 正在加载本地 Three.js ...</div>
     <div id="three-container"></div>
     <div id="hint">🖱️ 左右滑动环顾 · 点地板让小人走 · 点屏幕进桌面</div>
 
+    <!-- 桌面覆盖层 -->
     <div id="desktop-overlay">
         <div class="desktop-icons">
             <div class="desktop-icon" data-window="oc"><span class="icon-img">🧑‍🎤</span><span class="icon-label">我的 OC</span></div>
@@ -124,8 +125,17 @@
         <div class="window-body" id="windowBody"></div>
     </div>
 
+    <!-- 引用本地 three.module.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./three.module.js"
+            }
+        }
+    </script>
+
     <script type="module">
-        // ---------- 状态显示 ----------
+        // 状态显示
         const statusEl = document.getElementById('status');
 
         function setStatus(text, type = '') {
@@ -133,37 +143,11 @@
             statusEl.className = type;
         }
 
-        // ---------- 动态加载 Three.js ----------
-        async function loadThree() {
-            const cdnList = [
-                'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js',
-                'https://unpkg.com/three@0.160.0/build/three.module.js'
-            ];
-
-            for (let i = 0; i < cdnList.length; i++) {
-                const url = cdnList[i];
-                setStatus(`⏳ 尝试加载 Three.js (${i+1}/${cdnList.length})...`);
-                try {
-                    const module = await import(url);
-                    setStatus('✅ Three.js 加载成功', 'success');
-                    setTimeout(() => { statusEl.style.opacity = '0.5'; }, 2000);
-                    return module;
-                } catch (err) {
-                    console.warn(`从 ${url} 加载失败:`, err);
-                }
-            }
-            throw new Error('所有 CDN 尝试均失败，请检查网络或更换环境');
-        }
-
-        // ---------- 超时检测 ----------
-        let timeoutHandle = setTimeout(() => {
-            setStatus('⏱️ 加载超时，请检查网络或刷新重试', 'error');
-        }, 8000);
-
         try {
-            const THREE = await loadThree();
-            clearTimeout(timeoutHandle);
+            // 直接导入本地 three
+            const THREE = await import('three');
+            setStatus('✅ Three.js 加载成功（本地）', 'success');
+            setTimeout(() => { statusEl.style.opacity = '0.5'; }, 2000);
 
             // ---------- 以下为完整场景代码 ----------
             const container = document.getElementById('three-container');
@@ -658,9 +642,8 @@
                 }
             });
 
-            console.log('✅ 全部加载成功！');
+            console.log('✅ 全部加载成功（本地库）');
         } catch (err) {
-            clearTimeout(timeoutHandle);
             setStatus(`❌ 加载失败: ${err.message || '未知错误'}`, 'error');
             console.error(err);
         }
