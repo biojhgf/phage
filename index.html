@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* 全部样式（与之前一致，保证窗口控制、3D场景正常） */
+        /* 全部样式（保留3D房间和XP桌面，窗口控制正常） */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -37,10 +37,13 @@
         .xp-window .window-titlebar .win-btns .min-btn:hover { background: #5a7ab5; }
         .xp-window .window-titlebar .win-btns .max-btn:hover { background: #6a8a5a; }
         .xp-window .window-titlebar .win-btns .close-btn:hover { background: #c00; }
-        .xp-window .window-body { padding: 0; flex: 1; overflow: hidden; background: #fff; color: #000; display: flex; flex-direction: column; touch-action: auto; }
-        .player-container { flex: 1; display: flex; flex-direction: column; background: linear-gradient(145deg, #f5f0e8, #e8e0d0); padding: 16px; touch-action: auto; align-items: center; justify-content: center; }
-        .player-container iframe { width: 100%; max-width: 400px; height: 86px; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .player-container .tip { color: #666; font-size: 13px; margin-top: 12px; text-align: center; }
+        .xp-window .window-body { padding: 16px; flex: 1; overflow: auto; background: #fff; color: #000; display: flex; flex-direction: column; touch-action: auto; }
+        .player-container { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        .player-container .song-info { text-align: center; }
+        .player-container .song-info .title { font-size: 18px; font-weight: bold; }
+        .player-container .song-info .artist { font-size: 14px; color: #555; }
+        .player-container audio { width: 100%; }
+        .player-container .tip { font-size: 12px; color: #888; text-align: center; }
         #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 14px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 20px; pointer-events: none; transition: opacity 1s; font-family: sans-serif; }
     </style>
 </head>
@@ -81,7 +84,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景（完整，与之前一致）
+        //  1. Three.js 场景（完整，同上）
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -340,7 +343,7 @@
         };
 
         // ============================================================
-        //  3. 窗口管理器 + 播放器（使用网易云官方 iframe 播放器）
+        //  3. 窗口管理器 + 播放器（使用本地文件，原生控件）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
@@ -466,7 +469,7 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器窗口（使用网易云官方 iframe） ----
+        // ---- 播放器窗口（使用 <audio> 原生控件） ----
         function createPlayerWindow() {
             if (window._windowInstances['player'] && window._windowInstances['player'].window) {
                 const win = window._windowInstances['player'].window;
@@ -483,8 +486,8 @@
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
-            win.style.width = '520px';
-            win.style.height = '220px';
+            win.style.width = '460px';
+            win.style.height = '300px';
             win.style.left = (100 + Math.random() * 80) + 'px';
             win.style.top = (60 + Math.random() * 80) + 'px';
             win.style.zIndex = ++windowZIndex;
@@ -503,14 +506,19 @@
 
             const body = document.createElement('div');
             body.className = 'window-body';
-            // ★★★ 网易云官方歌单播放器（ID: 14273792576 千禧年摇滚精选）★★★
+            // ★★★ 直接使用 <audio> 标签，指定相对路径 1.mp3 ★★★
             body.innerHTML = `
                 <div class="player-container">
-                    <iframe 
-                        src="//music.163.com/outchain/player?type=0&id=14273792576&auto=0&height=66" 
-                        allow="autoplay">
-                    </iframe>
-                    <div class="tip">🎸 千禧年欧美摇滚精选 · 80+首歌</div>
+                    <div class="song-info">
+                        <div class="title">🎵 Science Fiction/Double Feature</div>
+                        <div class="artist">Richard O'Brien</div>
+                    </div>
+                    <audio controls style="width:100%;">
+                        <source src="./1.mp3" type="audio/mpeg">
+                        <source src="./1.mp3" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <div class="tip">📂 使用本地文件 1.mp3 · 可替换为其他歌曲</div>
                 </div>
             `;
             win.appendChild(body);
@@ -536,7 +544,7 @@
                     isMaximized = true;
                     maxBtn.textContent = '❐';
                 } else {
-                    const rect = win._prevRect || { left: 100, top: 60, width: 520, height: 220 };
+                    const rect = win._prevRect || { left: 100, top: 60, width: 460, height: 300 };
                     win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
                     win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
                     win.style.borderRadius = '';
@@ -576,9 +584,8 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 复古桌面加载成功！🎵 使用网易云官方播放器');
-        console.log('🎸 歌单ID: 14273792576（千禧年摇滚精选）');
-        console.log('💡 如需换歌单，修改 iframe 的 src 中的 id 参数。');
+        console.log('🖥️ 复古桌面加载成功！🎵 使用本地文件 1.mp3');
+        console.log('📂 如果听不到声音，请确保 1.mp3 与 index.html 在同一目录。');
     </script>
 </body>
 </html>
