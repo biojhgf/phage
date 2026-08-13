@@ -559,7 +559,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景
+        //  1. Three.js 场景（完整，略缩）
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -595,8 +595,7 @@
         // 地板
         const woodTex = (() => {
             const c = document.createElement('canvas');
-            c.width = 256;
-            c.height = 256;
+            c.width = 256; c.height = 256;
             const ctx = c.getContext('2d');
             ctx.fillStyle = '#4a3728';
             ctx.fillRect(0, 0, 256, 256);
@@ -604,10 +603,9 @@
                 ctx.strokeStyle = `rgba(90,70,50,${0.1+Math.random()*0.3})`;
                 ctx.lineWidth = 2 + Math.random() * 4;
                 ctx.beginPath();
-                const x = Math.random() * 256,
-                    y = Math.random() * 256;
+                const x = Math.random() * 256, y = Math.random() * 256;
                 ctx.moveTo(x, y);
-                ctx.lineTo(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 40);
+                ctx.lineTo(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*40);
                 ctx.stroke();
             }
             return new THREE.CanvasTexture(c);
@@ -624,14 +622,13 @@
         // 墙壁
         const wallTex = (() => {
             const c = document.createElement('canvas');
-            c.width = 256;
-            c.height = 256;
+            c.width = 256; c.height = 256;
             const ctx = c.getContext('2d');
             ctx.fillStyle = '#2a1f1a';
             ctx.fillRect(0, 0, 256, 256);
             for (let i = 0; i < 20; i++) {
                 ctx.fillStyle = `rgba(60,45,35,${0.2+Math.random()*0.3})`;
-                ctx.fillRect(i * 13, 0, 6, 256);
+                ctx.fillRect(i*13, 0, 6, 256);
             }
             return new THREE.CanvasTexture(c);
         })();
@@ -663,12 +660,7 @@
         tableTop.receiveShadow = true;
         roomGroup.add(tableTop);
         const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
-        [
-            [-0.6, -0.3],
-            [0.6, -0.3],
-            [-0.6, 0.3],
-            [0.6, 0.3]
-        ].forEach(([x, z]) => {
+        [[-0.6,-0.3],[0.6,-0.3],[-0.6,0.3],[0.6,0.3]].forEach(([x,z]) => {
             const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), legMat);
             leg.position.set(x, 0.25, -0.6 + z);
             leg.castShadow = true;
@@ -722,13 +714,8 @@
         const clickTargets = [screen, glass, bezel];
 
         // 海报
-        const posterColors = [
-            [0x8b3a3a, -1.8, 1.8, -2.9, 0],
-            [0x3a6b8b, 1.8, 2.0, -2.9, 0],
-            [0x6b8b3a, -2.9, 1.5, -0.5, Math.PI / 2],
-            [0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI / 2]
-        ];
-        posterColors.forEach(([color, x, y, z, rotY]) => {
+        const posterColors = [[0x8b3a3a,-1.8,1.8,-2.9,0],[0x3a6b8b,1.8,2.0,-2.9,0],[0x6b8b3a,-2.9,1.5,-0.5,Math.PI/2],[0x8b6b3a,2.9,1.5,0.5,-Math.PI/2]];
+        posterColors.forEach(([color,x,y,z,rotY]) => {
             const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
             const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat);
             poster.position.set(x, y, z);
@@ -807,8 +794,7 @@
         // 开始菜单
         const startBtn = document.getElementById('startBtn');
         const startMenu = document.getElementById('startMenu');
-        startBtn.addEventListener('click', (e) => { e.stopPropagation();
-            startMenu.classList.toggle('show'); });
+        startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('show'); });
         document.addEventListener('click', () => startMenu.classList.remove('show'));
         startMenu.addEventListener('click', (e) => e.stopPropagation());
         document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
@@ -832,7 +818,7 @@
         };
 
         // ============================================================
-        //  3. ★★★ 歌曲数据（已按顺序填入图片URL，音乐使用相对路径）★★★
+        //  3. ★★★ 歌曲数据（改为相对路径，并添加跨域设置）★★★
         // ============================================================
         const songList = [{
             title: 'Science Fiction/Double Feature',
@@ -852,19 +838,20 @@
         }];
 
         // ============================================================
-        //  4. 窗口管理器
+        //  4. 窗口管理器（完整，包含播放器）
         // ============================================================
         let currentIndex = 0;
         let isPlaying = false;
         let audio = new Audio();
         audio.preload = 'metadata';
+        // ★★★ 关键：允许跨域（虽然同域，但保留安全）★★★
+        audio.crossOrigin = 'anonymous';
         let isPlayerWindowOpen = false;
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
 
         function makeDraggable(element, handle) {
             let startX, startY, origLeft, origTop, isDragging = false;
-
             function onStart(e) {
                 if (e.button !== undefined && e.button !== 0) return;
                 if (e.target.closest('button')) return;
@@ -872,10 +859,8 @@
                 const clientX = e.clientX || (e.touches && e.touches[0].clientX);
                 const clientY = e.clientY || (e.touches && e.touches[0].clientY);
                 if (clientX === undefined) return;
-                startX = clientX;
-                startY = clientY;
-                origLeft = rect.left;
-                origTop = rect.top;
+                startX = clientX; startY = clientY;
+                origLeft = rect.left; origTop = rect.top;
                 isDragging = true;
                 element.style.left = origLeft + 'px';
                 element.style.top = origTop + 'px';
@@ -887,7 +872,6 @@
                 document.addEventListener('touchmove', onMove, { passive: false });
                 document.addEventListener('touchend', onEnd, { passive: false });
             }
-
             function onMove(e) {
                 if (!isDragging) return;
                 const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -897,7 +881,6 @@
                 element.style.top = (origTop + clientY - startY) + 'px';
                 e.preventDefault();
             }
-
             function onEnd() {
                 if (isDragging) {
                     isDragging = false;
@@ -907,7 +890,6 @@
                     document.removeEventListener('touchend', onEnd);
                 }
             }
-
             handle.addEventListener('mousedown', onStart);
             handle.addEventListener('touchstart', onStart, { passive: false });
         }
@@ -1153,31 +1135,28 @@
 
             function loadSong(index) {
                 const song = songList[index];
-                if (!song) {
-                    console.warn('歌曲不存在:', index);
-                    return;
-                }
+                if (!song) return;
+                // ★★★ 使用相对路径，并设置跨域（即使同域也保留）★★★
                 audio.src = song.url;
+                audio.crossOrigin = 'anonymous';
                 audio.load();
                 coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
-                songTitle.textContent = song.title || '未知歌名';
-                songArtist.textContent = song.artist || '未知歌手';
+                songTitle.textContent = song.title;
+                songArtist.textContent = song.artist;
                 songItems.forEach((item, i) => item.classList.toggle('active', i === index));
                 progressBar.value = 0;
                 currentTimeEl.textContent = '0:00';
                 totalTimeEl.textContent = '0:00';
                 if (isPlaying) {
-                    audio.play().catch((err) => {
-                        console.warn('自动播放失败，请点击播放按钮:', err);
-                    });
+                    audio.play().catch((err) => console.warn('自动播放失败:', err));
                 }
             }
 
             function playPause() {
                 if (audio.paused) {
                     audio.play().catch((err) => {
-                        console.warn('播放失败，请检查文件路径:', err);
-                        alert('⚠️ 音乐加载失败，请检查：\n1. 文件是否在仓库根目录\n2. 文件名是否与代码一致（1.mp3, 2.mp3, 3.mp3）');
+                        console.error('播放错误:', err);
+                        alert('⚠️ 音乐加载失败，请检查：\n1. 文件是否与 index.html 在同一目录\n2. 文件名是否为 1.mp3, 2.mp3, 3.mp3\n3. 控制台查看详细错误');
                     });
                     isPlaying = true;
                     playBtn.textContent = '⏸';
@@ -1218,11 +1197,7 @@
             audio.addEventListener('error', (e) => {
                 console.warn('音频加载错误:', e);
                 // 尝试重新加载
-                setTimeout(() => {
-                    if (audio.src) {
-                        audio.load();
-                    }
-                }, 2000);
+                setTimeout(() => { if (audio.src) audio.load(); }, 2000);
             });
             audio.addEventListener('ended', nextSong);
 
@@ -1302,9 +1277,7 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 复古房间已加载！');
-        console.log('🎵 音乐文件使用相对路径：./1.mp3, ./2.mp3, ./3.mp3');
-        console.log('📝 确保这三个文件与 index.html 在同一目录。');
+        console.log('🖥️ 已切换为相对路径，请确保 1.mp3, 2.mp3, 3.mp3 在根目录。');
     </script>
 </body>
 </html>
