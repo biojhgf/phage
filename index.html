@@ -6,12 +6,15 @@
     <title>复古房间 · 行走小人</title>
     <style>
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; }
-        #error-log {
+        #status {
             position: fixed; top: 10px; left: 10px; z-index: 9999;
-            color: #ff6; background: rgba(0,0,0,0.8); padding: 10px;
-            border-radius: 6px; font-size: 14px; max-width: 90%;
-            pointer-events: none;
+            color: #ff6; background: rgba(0,0,0,0.85); padding: 12px 18px;
+            border-radius: 8px; font-size: 15px; max-width: 90%;
+            border: 1px solid #444; pointer-events: none;
+            transition: opacity 0.5s;
         }
+        #status.error { color: #f77; border-color: #f77; }
+        #status.success { color: #7f7; border-color: #7f7; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         #desktop-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -92,7 +95,7 @@
     </style>
 </head>
 <body>
-    <div id="error-log">⏳ 加载中...</div>
+    <div id="status">⏳ 正在加载 Three.js ...</div>
     <div id="three-container"></div>
     <div id="hint">🖱️ 左右滑动环顾 · 点地板让小人走 · 点屏幕进桌面</div>
 
@@ -121,28 +124,48 @@
         <div class="window-body" id="windowBody"></div>
     </div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-            }
-        }
-    </script>
-
     <script type="module">
-        // ---------- 错误捕获 ----------
-        const errorLog = document.getElementById('error-log');
+        // ---------- 状态显示 ----------
+        const statusEl = document.getElementById('status');
 
-        window.addEventListener('error', (e) => {
-            errorLog.textContent = '❌ 错误: ' + (e.message || e);
-            errorLog.style.color = '#f88';
-        });
+        function setStatus(text, type = '') {
+            statusEl.textContent = text;
+            statusEl.className = type;
+        }
+
+        // ---------- 动态加载 Three.js ----------
+        async function loadThree() {
+            const cdnList = [
+                'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js',
+                'https://unpkg.com/three@0.160.0/build/three.module.js'
+            ];
+
+            for (let i = 0; i < cdnList.length; i++) {
+                const url = cdnList[i];
+                setStatus(`⏳ 尝试加载 Three.js (${i+1}/${cdnList.length})...`);
+                try {
+                    const module = await import(url);
+                    setStatus('✅ Three.js 加载成功', 'success');
+                    setTimeout(() => { statusEl.style.opacity = '0.5'; }, 2000);
+                    return module;
+                } catch (err) {
+                    console.warn(`从 ${url} 加载失败:`, err);
+                }
+            }
+            throw new Error('所有 CDN 尝试均失败，请检查网络或更换环境');
+        }
+
+        // ---------- 超时检测 ----------
+        let timeoutHandle = setTimeout(() => {
+            setStatus('⏱️ 加载超时，请检查网络或刷新重试', 'error');
+        }, 8000);
 
         try {
-            import * as THREE from 'three';
-            errorLog.textContent = '✅ Three.js 加载成功';
+            const THREE = await loadThree();
+            clearTimeout(timeoutHandle);
 
-            // ---------- 场景 ----------
+            // ---------- 以下为完整场景代码 ----------
             const container = document.getElementById('three-container');
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
@@ -168,7 +191,7 @@
             lampLight.position.set(-0.8, 1.6, 0.5);
             scene.add(lampLight);
 
-            // ---------- 房间 ----------
+            // 房间
             const roomGroup = new THREE.Group();
             scene.add(roomGroup);
 
@@ -202,7 +225,7 @@
             floor.userData.isFloor = true;
             roomGroup.add(floor);
 
-            // 墙壁（简化）
+            // 墙壁
             function createWallTexture() {
                 const canvas = document.createElement('canvas');
                 canvas.width = 256;
@@ -617,7 +640,7 @@
                     }
                     renderer.render(scene, camera);
                 } catch (err) {
-                    errorLog.textContent = '❌ 动画错误: ' + err.message;
+                    setStatus('❌ 动画错误: ' + err.message, 'error');
                 }
                 requestAnimationFrame(animate);
             }
@@ -635,14 +658,10 @@
                 }
             });
 
-            // 隐藏错误提示（成功加载）
-            setTimeout(() => {
-                errorLog.style.opacity = '0.5';
-            }, 3000);
-
-            console.log('✅ 所有功能加载成功！');
+            console.log('✅ 全部加载成功！');
         } catch (err) {
-            document.getElementById('error-log').textContent = '❌ 初始化错误: ' + err.message;
+            clearTimeout(timeoutHandle);
+            setStatus(`❌ 加载失败: ${err.message || '未知错误'}`, 'error');
             console.error(err);
         }
     </script>
