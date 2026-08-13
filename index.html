@@ -3,101 +3,240 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>复古房间 · 行走小人</title>
+    <title>复古房间 · 2D纸片人</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; }
-        #status {
-            position: fixed; top: 10px; left: 10px; z-index: 9999;
-            color: #ff6; background: rgba(0,0,0,0.85); padding: 12px 18px;
-            border-radius: 8px; font-size: 15px; max-width: 90%;
-            border: 1px solid #444; pointer-events: none;
-            transition: opacity 0.5s;
+        /* --- 全局重置 & 布局 --- */
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1410;
         }
-        #status.error { color: #f77; border-color: #f77; }
-        #status.success { color: #7f7; border-color: #7f7; }
-        #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* 2D 画布容器 */
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* 2D 画布 */
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #2a1f1a; /* 房间背景色 */
+            cursor: pointer;
+        }
+
+        /* --- XP 桌面覆盖层 (和之前一样) --- */
         #desktop-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 999; display: none; flex-direction: column;
-            background: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a);
-            user-select: none; font-size: 14px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            background: #3a6ea5;
+            background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a);
+            user-select: none;
+            font-size: 14px;
         }
-        #desktop-overlay.active { display: flex; }
+        #desktop-overlay.active {
+            display: flex;
+        }
+
+        /* 桌面图标 */
         .desktop-icons {
-            flex: 1; padding: 20px 30px;
-            display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px;
+            flex: 1;
+            padding: 20px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 30px 40px;
         }
         .desktop-icon {
-            display: flex; flex-direction: column; align-items: center;
-            width: 80px; cursor: pointer; color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            cursor: pointer;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            text-align: center;
         }
-        .desktop-icon:hover { background: rgba(255,255,255,0.1); border-radius: 6px; }
-        .desktop-icon .icon-img { font-size: 48px; }
-        .desktop-icon .icon-label { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+        .desktop-icon .icon-img {
+            font-size: 48px;
+        }
+        .desktop-icon .icon-label {
+            font-size: 13px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* 任务栏 */
         .taskbar {
-            height: 50px; background: linear-gradient(180deg, #245edb, #1a4a9f);
-            display: flex; align-items: center; padding: 0 12px;
-            border-top: 2px solid #3a7bd5; flex-shrink: 0; position: relative;
+            height: 50px;
+            background: linear-gradient(180deg, #245edb, #1a4a9f);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border-top: 2px solid #3a7bd5;
+            flex-shrink: 0;
+            position: relative;
         }
         .start-button {
             background: linear-gradient(180deg, #3c9b3c, #1f6a1f);
-            color: #fff; padding: 4px 16px; border-radius: 6px;
-            font-weight: bold; cursor: pointer; border: 1px solid #4cb84c; margin-right: 20px;
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid #4cb84c;
+            margin-right: 20px;
         }
-        .start-button:hover { background: linear-gradient(180deg, #4cb84c, #2a7a2a); }
+        .start-button:hover {
+            background: linear-gradient(180deg, #4cb84c, #2a7a2a);
+        }
         .taskbar-time {
-            margin-left: auto; color: #fff; font-size: 14px;
-            background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 4px;
+            margin-left: auto;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 12px;
+            border-radius: 4px;
         }
         .start-menu {
-            display: none; position: absolute; bottom: 52px; left: 12px;
-            width: 200px; background: #f0f0f0; border: 2px solid #3a7bd5;
-            border-radius: 8px 8px 0 0; padding: 8px 0; z-index: 1000;
+            display: none;
+            position: absolute;
+            bottom: 52px;
+            left: 12px;
+            width: 200px;
+            background: #f0f0f0;
+            border: 2px solid #3a7bd5;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 0;
+            z-index: 1000;
         }
-        .start-menu.show { display: block; }
+        .start-menu.show {
+            display: block;
+        }
         .start-menu-item {
-            padding: 6px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            padding: 6px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .start-menu-item:hover { background: #3a7bd5; color: #fff; }
+        .start-menu-item:hover {
+            background: #3a7bd5;
+            color: #fff;
+        }
+
+        /* XP 窗口 */
         .xp-window {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 400px; max-width: 90vw; max-height: 70vh;
-            background: #ece9d8; border: 3px solid #3a6ea5; border-radius: 8px;
-            display: none; flex-direction: column; z-index: 2000;
-            overflow: auto; font-family: sans-serif;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            max-width: 90vw;
+            max-height: 70vh;
+            background: #ece9d8;
+            border: 3px solid #3a6ea5;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            z-index: 2000;
+            overflow: auto;
+            font-family: sans-serif;
         }
-        .xp-window.active { display: flex; }
+        .xp-window.active {
+            display: flex;
+        }
         .window-titlebar {
             background: linear-gradient(90deg, #0a246a, #3a7bd5);
-            color: #fff; padding: 6px 12px; display: flex; justify-content: space-between;
-            border-radius: 6px 6px 0 0; font-weight: bold;
+            color: #fff;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
         }
         .window-titlebar .close-btn {
-            background: #c00; color: #fff; border: none; border-radius: 4px;
-            width: 24px; height: 24px; font-weight: bold; cursor: pointer;
+            background: #c00;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .window-titlebar .close-btn:hover { background: #e00; }
-        .window-body { padding: 20px; flex: 1; background: #fff; color: #000; line-height: 1.6; }
+        .window-titlebar .close-btn:hover {
+            background: #e00;
+        }
+        .window-body {
+            padding: 20px;
+            flex: 1;
+            background: #fff;
+            color: #000;
+            line-height: 1.6;
+        }
+
+        /* 返回房间按钮 */
         .back-to-room {
-            position: fixed; top: 20px; right: 20px; z-index: 3000;
-            background: rgba(0,0,0,0.6); color: #fff; border: 2px solid #aaa;
-            border-radius: 6px; padding: 8px 16px; cursor: pointer;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: 2px solid #aaa;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
             display: none;
         }
-        .back-to-room:hover { background: rgba(255,255,255,0.2); }
+        .back-to-room:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 提示文字 */
         #hint {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 10; color: rgba(255,255,255,0.5); font-size: 14px;
-            background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 20px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 18px;
+            border-radius: 20px;
             pointer-events: none;
+            font-family: sans-serif;
         }
     </style>
 </head>
 <body>
-    <div id="status">⏳ 正在加载 Three.js (CDN) ...</div>
-    <div id="three-container"></div>
-    <div id="hint">🖱️ 左右滑动环顾 · 点地板让小人走 · 点屏幕进桌面</div>
+
+    <!-- 2D 游戏容器 -->
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div id="hint">🖱️ 点击地板让纸片人走 · 点屏幕进桌面</div>
 
     <!-- 桌面覆盖层 -->
     <div id="desktop-overlay">
@@ -120,533 +259,506 @@
     </div>
     <button class="back-to-room" id="backBtn">🏠 返回房间</button>
 
+    <!-- XP 窗口 -->
     <div class="xp-window" id="xpWindow">
         <div class="window-titlebar"><span id="windowTitle">窗口</span><button class="close-btn" id="windowClose">✕</button></div>
         <div class="window-body" id="windowBody"></div>
     </div>
 
-    <!-- 使用 jsdelivr CDN，国内访问较快 -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-            }
+    <script>
+        // ============================================================
+        //  1. 获取 Canvas 和 绘制上下文
+        // ============================================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let canvasWidth, canvasHeight;
+
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
         }
-    </script>
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-    <script type="module">
-        // 状态显示
-        const statusEl = document.getElementById('status');
+        // ============================================================
+        //  2. 定义一个简单的“纸片人” (用 Canvas 2D 绘制)
+        //     这里用程序画了一个简易角色，你可以替换成图片
+        // ============================================================
+        function drawPaperCharacter(context, x, y, direction, scale = 1) {
+            // direction: 'down', 'up', 'left', 'right'
+            const s = 30 * scale; // 基础大小
 
-        function setStatus(text, type = '') {
-            statusEl.textContent = text;
-            statusEl.className = type;
+            context.save();
+            context.translate(x, y);
+
+            // ---- 根据方向旋转身体 ----
+            // 默认朝下 (down)
+            let rotation = 0;
+            if (direction === 'left') rotation = -Math.PI / 2;
+            else if (direction === 'right') rotation = Math.PI / 2;
+            else if (direction === 'up') rotation = Math.PI;
+            // 朝下不旋转
+
+            // 身体 (一个椭圆)
+            context.beginPath();
+            context.ellipse(0, 0, s * 0.5, s * 0.7, 0, 0, Math.PI * 2);
+            context.fillStyle = '#f5d0b0'; // 肤色
+            context.fill();
+            context.strokeStyle = '#333';
+            context.lineWidth = 1.5;
+            context.stroke();
+
+            // ---- 头部 (圆) ----
+            context.beginPath();
+            context.arc(0, -s * 0.75, s * 0.4, 0, Math.PI * 2);
+            context.fillStyle = '#f5d0b0';
+            context.fill();
+            context.stroke();
+
+            // ---- 头发 (黑色卷发，用几个小圆表示) ----
+            context.fillStyle = '#1a1a1a';
+            const hairOffsets = [
+                [-0.35, -0.85],
+                [-0.25, -0.95],
+                [-0.1, -1.0],
+                [0.1, -1.0],
+                [0.25, -0.95],
+                [0.35, -0.85],
+                [-0.2, -0.7],
+                [0.2, -0.7]
+            ];
+            hairOffsets.forEach(([hx, hy]) => {
+                context.beginPath();
+                context.arc(hx * s, hy * s, s * 0.15, 0, Math.PI * 2);
+                context.fill();
+            });
+
+            // ---- 眼睛 ----
+            context.fillStyle = '#fff';
+            const eyeX = 0.15 * s;
+            const eyeY = -0.75 * s;
+            // 左眼
+            context.beginPath();
+            context.ellipse(-eyeX, eyeY, s * 0.12, s * 0.1, 0, 0, Math.PI * 2);
+            context.fill();
+            context.strokeStyle = '#333';
+            context.lineWidth = 1;
+            context.stroke();
+            // 右眼
+            context.beginPath();
+            context.ellipse(eyeX, eyeY, s * 0.12, s * 0.1, 0, 0, Math.PI * 2);
+            context.fill();
+            context.stroke();
+
+            // 瞳孔 (跟随方向微调)
+            context.fillStyle = '#1a1a2e';
+            let pupilOffsetX = 0,
+                pupilOffsetY = 0;
+            if (direction === 'left') pupilOffsetX = -0.04 * s;
+            else if (direction === 'right') pupilOffsetX = 0.04 * s;
+            else if (direction === 'up') pupilOffsetY = -0.04 * s;
+            else pupilOffsetY = 0.04 * s; // down
+
+            context.beginPath();
+            context.arc(-eyeX + pupilOffsetX, eyeY + pupilOffsetY, s * 0.06, 0, Math.PI * 2);
+            context.fill();
+            context.beginPath();
+            context.arc(eyeX + pupilOffsetX, eyeY + pupilOffsetY, s * 0.06, 0, Math.PI * 2);
+            context.fill();
+
+            // ---- 嘴巴 (微笑) ----
+            context.strokeStyle = '#c44';
+            context.lineWidth = 1.5;
+            context.beginPath();
+            context.arc(0, -0.6 * s, s * 0.15, 0.1 * Math.PI, 0.9 * Math.PI);
+            context.stroke();
+
+            // ---- 衣服 (简单色块) ----
+            context.fillStyle = '#2c4a7a';
+            context.beginPath();
+            context.ellipse(0, s * 0.2, s * 0.45, s * 0.3, 0, 0, Math.PI * 2);
+            context.fill();
+
+            // ---- 手臂 (两个小圆) ----
+            context.fillStyle = '#f5d0b0';
+            const armY = -0.1 * s;
+            const armX = 0.5 * s;
+            context.beginPath();
+            context.arc(-armX, armY, s * 0.12, 0, Math.PI * 2);
+            context.fill();
+            context.beginPath();
+            context.arc(armX, armY, s * 0.12, 0, Math.PI * 2);
+            context.fill();
+
+            // ---- 腿 (两个小半圆/椭圆) ----
+            context.fillStyle = '#3a4a6a';
+            const legY = 0.6 * s;
+            const legX = 0.2 * s;
+            context.beginPath();
+            context.ellipse(-legX, legY, s * 0.12, s * 0.2, 0, 0, Math.PI * 2);
+            context.fill();
+            context.beginPath();
+            context.ellipse(legX, legY, s * 0.12, s * 0.2, 0, 0, Math.PI * 2);
+            context.fill();
+
+            // ---- 鞋子 ----
+            context.fillStyle = '#2a2a2a';
+            context.beginPath();
+            context.ellipse(-legX, legY + s * 0.2, s * 0.15, s * 0.08, 0, 0, Math.PI * 2);
+            context.fill();
+            context.beginPath();
+            context.ellipse(legX, legY + s * 0.2, s * 0.15, s * 0.08, 0, 0, Math.PI * 2);
+            context.fill();
+
+            context.restore();
         }
 
-        try {
-            // 直接导入 CDN 版本
-            const THREE = await import('three');
-            setStatus('✅ Three.js 加载成功 (CDN)', 'success');
-            setTimeout(() => { statusEl.style.opacity = '0.5'; }, 2000);
+        // ============================================================
+        //  3. 场景绘制 (房间背景 + 家具)
+        // ============================================================
+        function drawRoom() {
+            // 墙壁 (深色)
+            ctx.fillStyle = '#2a1f1a';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // ---------- 以下为完整场景代码 ----------
-            const container = document.getElementById('three-container');
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0a0a);
-            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 1.8, 4);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            container.appendChild(renderer.domElement);
+            // 地板 (木纹效果 用线条模拟)
+            const floorY = canvasHeight * 0.65;
+            ctx.fillStyle = '#4a3728';
+            ctx.fillRect(0, floorY, canvasWidth, canvasHeight - floorY);
 
-            // 灯光
-            const ambient = new THREE.AmbientLight(0x404060, 0.8);
-            scene.add(ambient);
-            const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
-            mainLight.position.set(3, 5, 2);
-            mainLight.castShadow = true;
-            scene.add(mainLight);
-            const screenLight = new THREE.PointLight(0x4488ff, 0.8);
-            screenLight.position.set(0, 1.2, 1.8);
-            scene.add(screenLight);
-            const lampLight = new THREE.PointLight(0xffaa55, 0.5);
-            lampLight.position.set(-0.8, 1.6, 0.5);
-            scene.add(lampLight);
-
-            // 房间
-            const roomGroup = new THREE.Group();
-            scene.add(roomGroup);
-
-            // 地板（标记）
-            function createWoodTexture() {
-                const canvas = document.createElement('canvas');
-                canvas.width = 256;
-                canvas.height = 256;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#4a3728';
-                ctx.fillRect(0, 0, 256, 256);
-                for (let i = 0; i < 200; i++) {
-                    ctx.strokeStyle = `rgba(90,70,50,${0.1+Math.random()*0.3})`;
-                    ctx.lineWidth = 2 + Math.random() * 4;
-                    ctx.beginPath();
-                    const x = Math.random() * 256, y = Math.random() * 256;
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*40);
-                    ctx.stroke();
-                }
-                return new THREE.CanvasTexture(canvas);
+            // 木纹线
+            ctx.strokeStyle = 'rgba(90,70,50,0.3)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 60; i++) {
+                const x = (i / 60) * canvasWidth;
+                ctx.beginPath();
+                ctx.moveTo(x, floorY);
+                ctx.lineTo(x + 20, canvasHeight);
+                ctx.stroke();
             }
-            const woodTex = createWoodTexture();
-            woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
-            woodTex.repeat.set(4, 4);
-            const floorMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.7 });
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.position.y = -0.5;
-            floor.receiveShadow = true;
-            floor.userData.isFloor = true;
-            roomGroup.add(floor);
 
-            // 墙壁
-            function createWallTexture() {
-                const canvas = document.createElement('canvas');
-                canvas.width = 256;
-                canvas.height = 256;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#2a1f1a';
-                ctx.fillRect(0, 0, 256, 256);
-                for (let i = 0; i < 20; i++) {
-                    ctx.fillStyle = `rgba(60,45,35,${0.2+Math.random()*0.3})`;
-                    ctx.fillRect(i*13, 0, 6, 256);
-                }
-                return new THREE.CanvasTexture(canvas);
-            }
-            const wallTex = createWallTexture();
-            wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
-            wallTex.repeat.set(3, 2);
-            const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9 });
-            const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
-            backWall.position.set(0, 1.25, -3);
-            roomGroup.add(backWall);
-            const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
-            leftWall.rotation.y = Math.PI/2;
-            leftWall.position.set(-3, 1.25, 0);
-            roomGroup.add(leftWall);
-            const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
-            rightWall.rotation.y = -Math.PI/2;
-            rightWall.position.set(3, 1.25, 0);
-            roomGroup.add(rightWall);
-            const ceilMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.9 });
-            const ceil = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), ceilMat);
-            ceil.rotation.x = Math.PI/2;
-            ceil.position.y = 3;
-            roomGroup.add(ceil);
+            // 桌子 (透视简化)
+            const tableX = canvasWidth / 2;
+            const tableY = floorY + 30;
+            const tableWidth = 200;
+            const tableHeight = 120;
 
-            // 桌子
-            const tableMat = new THREE.MeshStandardMaterial({ color: 0x5a3d2b, roughness: 0.7 });
-            const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.8), tableMat);
-            tableTop.position.set(0, 0.5, -0.6);
-            tableTop.castShadow = true;
-            tableTop.receiveShadow = true;
-            roomGroup.add(tableTop);
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
-            const legPos = [[-0.6,-0.3],[0.6,-0.3],[-0.6,0.3],[0.6,0.3]];
-            legPos.forEach(([x,z]) => {
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.45), legMat);
-                leg.position.set(x, 0.25, -0.6+z);
-                leg.castShadow = true;
-                roomGroup.add(leg);
+            // 桌面
+            ctx.fillStyle = '#5a3d2b';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.ellipse(tableX, tableY, tableWidth / 2, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // 桌腿
+            ctx.fillStyle = '#3a281c';
+            const legPositions = [
+                [tableX - 80, tableY + 20],
+                [tableX + 80, tableY + 20]
+            ];
+            legPositions.forEach(([lx, ly]) => {
+                ctx.fillRect(lx - 5, ly, 10, 60);
             });
 
-            // 显示器
-            const monitorGroup = new THREE.Group();
-            monitorGroup.position.set(0, 0.9, -0.3);
-            roomGroup.add(monitorGroup);
-            const baseMat = new THREE.MeshStandardMaterial({ color: 0x333, roughness: 0.4, metalness: 0.3 });
-            const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,0.15,16), baseMat);
-            base.position.y = -0.08;
-            base.castShadow = true;
-            monitorGroup.add(base);
-            const shellMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.2 });
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.5), shellMat);
-            body.position.set(0,0.3,0);
-            body.castShadow = true;
-            monitorGroup.add(body);
-            const backBump = new THREE.Mesh(new THREE.SphereGeometry(0.32,16,16), shellMat);
-            backBump.position.set(0,0.3,-0.28);
-            backBump.scale.set(1,0.85,0.7);
-            backBump.castShadow = true;
-            monitorGroup.add(backBump);
-            const bezelMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: 0.3, metalness: 0.1 });
-            const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.75,0.55,0.06), bezelMat);
-            bezel.position.set(0,0.3,0.28);
-            monitorGroup.add(bezel);
-            const screenMat = new THREE.MeshStandardMaterial({
-                color: 0x4488ff, emissive: 0x224488, emissiveIntensity: 0.6, roughness: 0.1
-            });
-            const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.65,0.45), screenMat);
-            screen.position.set(0,0.3,0.31);
-            monitorGroup.add(screen);
-            const glassMat = new THREE.MeshStandardMaterial({
-                color: 0x88aaff, transparent: true, opacity: 0.08, roughness: 0, metalness: 0.9
-            });
-            const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.62,0.42), glassMat);
-            glass.position.set(0,0.3,0.32);
-            monitorGroup.add(glass);
-            const clickTargets = [screen, glass, bezel];
+            // ---- 显示器 (大屁股CRT) ----
+            const monitorX = tableX;
+            const monitorY = tableY - 30;
 
-            // 装饰海报
-            function createPoster(color, x, y, z, rotY) {
-                const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
-                const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.7), mat);
-                poster.position.set(x,y,z);
-                poster.rotation.y = rotY || 0;
-                roomGroup.add(poster);
-            }
-            createPoster(0x8b3a3a, -1.8,1.8,-2.9,0);
-            createPoster(0x3a6b8b, 1.8,2.0,-2.9,0);
-            createPoster(0x6b8b3a, -2.9,1.5,-0.5,Math.PI/2);
-            createPoster(0x8b6b3a, 2.9,1.5,0.5,-Math.PI/2);
-            const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
-            const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8,12), carpetMat);
-            carpet.rotation.x = -Math.PI/2;
-            carpet.position.set(0.3,-0.49,0.2);
-            roomGroup.add(carpet);
+            // 底座
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.ellipse(monitorX, monitorY + 40, 40, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-            // ---------- 低多边形小人 ----------
-            const characterGroup = new THREE.Group();
-            characterGroup.position.set(0.3, -0.1, 0.6);
-            roomGroup.add(characterGroup);
+            // 显示器主体 (大屁股)
+            ctx.fillStyle = '#2a2a2a';
+            ctx.beginPath();
+            ctx.ellipse(monitorX, monitorY, 70, 55, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-            // 身体（胶囊体）
-            const bodyColor = 0xe8c4a0;
-            const bodyMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.4 });
-            const torsoGroup = new THREE.Group();
-            const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.35,8), bodyMat);
-            cyl.position.y = 0.2;
-            torsoGroup.add(cyl);
-            const topCap = new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8), bodyMat);
-            topCap.position.y = 0.375;
-            torsoGroup.add(topCap);
-            const botCap = new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8), bodyMat);
-            botCap.position.y = 0.025;
-            torsoGroup.add(botCap);
-            torsoGroup.position.y = 0.05;
-            characterGroup.add(torsoGroup);
+            // 屏幕 (蓝色发光)
+            const gradient = ctx.createRadialGradient(monitorX, monitorY, 10, monitorX, monitorY, 45);
+            gradient.addColorStop(0, '#4488ff');
+            gradient.addColorStop(0.6, '#224488');
+            gradient.addColorStop(1, '#1a2a4a');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.ellipse(monitorX, monitorY, 50, 38, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-            // 衣服
-            const shirtMat = new THREE.MeshStandardMaterial({ color: 0x2c4a7a, roughness: 0.5 });
-            const shirt = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.18,0.28,8), shirtMat);
-            shirt.position.set(0,0.18,0);
-            characterGroup.add(shirt);
+            // 屏幕高光
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.beginPath();
+            ctx.ellipse(monitorX - 15, monitorY - 15, 20, 12, -0.3, 0, Math.PI * 2);
+            ctx.fill();
 
-            // 头部
-            const headMat = new THREE.MeshStandardMaterial({ color: 0xf0d5b0, roughness: 0.3 });
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.16,10,10), headMat);
-            head.scale.set(1,1.15,0.9);
-            head.position.set(0,0.42,0);
-            head.castShadow = true;
-            characterGroup.add(head);
+            // 屏幕边框
+            ctx.strokeStyle = '#111';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(monitorX, monitorY, 52, 40, 0, 0, Math.PI * 2);
+            ctx.stroke();
 
-            // 眼睛
-            const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            const pupilMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e });
-            const eyePos = [[-0.06,0.45,0.15],[0.06,0.45,0.15]];
-            eyePos.forEach(([x,y,z]) => {
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028,8,8), eyeWhite);
-                eye.scale.set(1,0.8,0.6);
-                eye.position.set(x,y,z);
-                characterGroup.add(eye);
-                const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.015,6,6), pupilMat);
-                pupil.position.set(x*1.15, y-0.005, z+0.025);
-                characterGroup.add(pupil);
-            });
-
-            // 头发
-            const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8 });
-            const hairRing = new THREE.Mesh(new THREE.TorusGeometry(0.14,0.025,8,12), hairMat);
-            hairRing.position.set(0,0.5,0.02);
-            hairRing.rotation.x = Math.PI/2.5;
-            hairRing.rotation.z = 0.2;
-            hairRing.scale.set(1,1,0.6);
-            characterGroup.add(hairRing);
-            const hairRing2 = new THREE.Mesh(new THREE.TorusGeometry(0.16,0.03,8,12), hairMat);
-            hairRing2.position.set(0,0.48,-0.04);
-            hairRing2.rotation.x = Math.PI/3;
-            hairRing2.rotation.z = -0.1;
-            hairRing2.scale.set(1,1,0.5);
-            characterGroup.add(hairRing2);
-            for (let i=0; i<16; i++) {
-                const t = i/16;
-                const angle = t*Math.PI*2*3;
-                const radius = 0.14 + t*0.04;
-                const x = Math.sin(angle)*radius;
-                const z = Math.cos(angle)*radius*0.5 - 0.06;
-                const y = 0.48 + t*0.25;
-                const curl = new THREE.Mesh(new THREE.SphereGeometry(0.025,5,5), hairMat);
-                curl.scale.set(1,1.6,0.7);
-                curl.position.set(x,y,z);
-                characterGroup.add(curl);
-            }
-            for (let i=0; i<6; i++) {
-                const t = i/6;
-                const angle = t*Math.PI*2*1.5;
-                const radius = 0.07 + t*0.04;
-                const x = Math.sin(angle)*radius*0.6;
-                const z = Math.cos(angle)*radius*0.3 + 0.12;
-                const y = 0.43 + t*0.06;
-                const fringe = new THREE.Mesh(new THREE.SphereGeometry(0.02,5,5), hairMat);
-                fringe.scale.set(1,1.4,0.6);
-                fringe.position.set(x,y,z);
-                characterGroup.add(fringe);
-            }
-
-            // 手臂
-            const armMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.4 });
-            const armPos = [[-0.28,0.28,0],[0.28,0.28,0]];
-            armPos.forEach(([x,y,z]) => {
-                const armGroup = new THREE.Group();
-                const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.16,6), armMat);
-                upper.position.y = 0.08;
-                armGroup.add(upper);
-                const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.04,6,6), armMat);
-                shoulder.position.y = 0.16;
-                armGroup.add(shoulder);
-                const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.025,0.14,6), armMat);
-                lower.position.y = -0.06;
-                armGroup.add(lower);
-                const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.035,6,6), armMat);
-                elbow.position.set(0,-0.02,0);
-                armGroup.add(elbow);
-                const hand = new THREE.Mesh(new THREE.SphereGeometry(0.035,6,6), armMat);
-                hand.position.set(0,-0.15,0);
-                armGroup.add(hand);
-                armGroup.position.set(x, y+0.05, z);
-                armGroup.rotation.z = x<0 ? 0.3 : -0.3;
-                armGroup.rotation.x = -0.2;
-                characterGroup.add(armGroup);
-            });
-
-            // 腿
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x3a4a6a, roughness: 0.5 });
-            const shoeMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.7 });
-            const legPos2 = [[-0.08,0,0.02],[0.08,0,0.02]];
-            legPos2.forEach(([x,y,z]) => {
-                const legGroup = new THREE.Group();
-                const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.045,0.16,6), legMat);
-                thigh.position.y = 0.08;
-                legGroup.add(thigh);
-                const calf = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.03,0.14,6), legMat);
-                calf.position.y = -0.06;
-                legGroup.add(calf);
-                const foot = new THREE.Mesh(new THREE.SphereGeometry(0.045,6,6), shoeMat);
-                foot.scale.set(1.1,0.3,1.4);
-                foot.position.set(0,-0.16,0.03);
-                legGroup.add(foot);
-                legGroup.position.set(x,0.02,z);
-                characterGroup.add(legGroup);
-            });
-
-            // ---------- 行走 ----------
-            let targetPos = characterGroup.position.clone();
-            let isMoving = false;
-            const moveSpeed = 0.6;
-
-            // ---------- 交互 ----------
-            const raycaster = new THREE.Raycaster();
-            const pointer = new THREE.Vector2();
-            let isDesktopActive = false;
-
-            function onPointerDown(event) {
-                if (isDesktopActive) return;
-                const rect = renderer.domElement.getBoundingClientRect();
-                let clientX, clientY;
-                if (event.touches) {
-                    clientX = event.touches[0].clientX;
-                    clientY = event.touches[0].clientY;
-                    event.preventDefault();
-                } else {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                }
-                pointer.x = ((clientX - rect.left)/rect.width)*2 - 1;
-                pointer.y = -((clientY - rect.top)/rect.height)*2 + 1;
-
-                raycaster.setFromCamera(pointer, camera);
-                const allObjects = [];
-                roomGroup.children.forEach(child => {
-                    if (child === characterGroup) return;
-                    if (child.isMesh) allObjects.push(child);
-                    else child.children.forEach(gc => { if (gc.isMesh) allObjects.push(gc); });
-                });
-                const intersects = raycaster.intersectObjects(allObjects);
-                if (intersects.length > 0) {
-                    const hit = intersects[0];
-                    if (hit.object.userData.isFloor) {
-                        const localPoint = roomGroup.worldToLocal(hit.point.clone());
-                        const limit = 2.5;
-                        localPoint.x = Math.max(-limit, Math.min(limit, localPoint.x));
-                        localPoint.z = Math.max(-limit, Math.min(limit, localPoint.z));
-                        targetPos.set(localPoint.x, -0.1, localPoint.z);
-                        isMoving = true;
-                        return;
-                    }
-                    const isScreen = clickTargets.some(obj => obj === hit.object);
-                    if (isScreen) {
-                        enterDesktop();
-                        return;
-                    }
-                }
-            }
-
-            renderer.domElement.addEventListener('click', onPointerDown);
-            renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: false });
-
-            // ---------- 桌面 ----------
-            function enterDesktop() {
-                isDesktopActive = true;
-                document.getElementById('desktop-overlay').classList.add('active');
-                document.getElementById('backBtn').style.display = 'block';
-                document.getElementById('hint').style.opacity = '0';
-                updateTime();
-                setInterval(updateTime, 10000);
-            }
-            function exitDesktop() {
-                isDesktopActive = false;
-                document.getElementById('desktop-overlay').classList.remove('active');
-                document.getElementById('backBtn').style.display = 'none';
-                document.getElementById('hint').style.opacity = '1';
-                document.getElementById('xpWindow').classList.remove('active');
-            }
-            document.getElementById('backBtn').addEventListener('click', exitDesktop);
-            document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isDesktopActive) exitDesktop(); });
-            function updateTime() {
-                const now = new Date();
-                const h = String(now.getHours()).padStart(2,'0');
-                const m = String(now.getMinutes()).padStart(2,'0');
-                document.getElementById('taskbarTime').textContent = `${h}:${m}`;
-            }
-
-            // 开始菜单
-            const startBtn = document.getElementById('startBtn');
-            const startMenu = document.getElementById('startMenu');
-            startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('show'); });
-            document.addEventListener('click', () => { startMenu.classList.remove('show'); });
-            startMenu.addEventListener('click', (e) => e.stopPropagation());
-            document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
-                item.addEventListener('click', () => {
-                    openWindow(item.dataset.window);
-                    startMenu.classList.remove('show');
-                });
-            });
-            document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
-                icon.addEventListener('click', () => openWindow(icon.dataset.window));
-            });
-
-            // 窗口
-            const xpWindow = document.getElementById('xpWindow');
-            const windowTitle = document.getElementById('windowTitle');
-            const windowBody = document.getElementById('windowBody');
-            const windowClose = document.getElementById('windowClose');
-            const windowContents = {
-                oc: {
-                    title: '🧑‍🎤 我的 OC',
-                    content: `<h2>角色名称</h2><p><strong>名字：</strong>（填你的 OC 名字）</p><p><strong>简介：</strong>一个有个性的角色。</p><div style="background:#f0f0f0; padding:20px; text-align:center;">🖼️ 图片占位</div>`
-                },
-                gallery: {
-                    title: '🖼️ 图库',
-                    content: `<h2>图库</h2><p>展示你的 OC 图片。</p><div style="display:flex; gap:10px;"><div style="background:#ddd; width:100px; height:100px; display:flex; align-items:center; justify-content:center;">📷</div><div style="background:#ddd; width:100px; height:100px; display:flex; align-items:center; justify-content:center;">📷</div></div>`
-                },
-                about: {
-                    title: '📄 关于',
-                    content: `<h2>关于这个页面</h2><p>复古 XP 风格 + 3D 房间 + 行走小人。</p><p style="color:#888; font-size:12px;">Made with ❤️</p>`
-                }
+            // 存储显示器位置用于点击检测
+            window.monitorRect = {
+                x: monitorX - 70,
+                y: monitorY - 55,
+                w: 140,
+                h: 110
             };
-            function openWindow(id) {
-                const data = windowContents[id];
-                if (!data) return;
-                windowTitle.textContent = data.title;
-                windowBody.innerHTML = data.content;
-                xpWindow.classList.add('active');
-                xpWindow.style.zIndex = 2000;
-            }
-            windowClose.addEventListener('click', () => xpWindow.classList.remove('active'));
 
-            // ---------- 视角旋转 ----------
-            let rotationY = 0;
-            const maxRotation = 0.35;
-            document.addEventListener('mousemove', (e) => {
-                if (isDesktopActive) return;
-                const x = (e.clientX / window.innerWidth) * 2 - 1;
-                rotationY = x * maxRotation;
-                roomGroup.rotation.y = rotationY;
-            });
-            document.addEventListener('touchmove', (e) => {
-                if (isDesktopActive) return;
-                const touch = e.touches[0];
-                const x = (touch.clientX / window.innerWidth) * 2 - 1;
-                rotationY = x * maxRotation;
-                roomGroup.rotation.y = rotationY;
-            }, { passive: true });
-
-            // ---------- 动画循环 ----------
-            let clock = new THREE.Clock();
-
-            function animate() {
-                try {
-                    const delta = clock.getDelta();
-                    if (isMoving) {
-                        const currentPos = characterGroup.position;
-                        const dx = targetPos.x - currentPos.x;
-                        const dz = targetPos.z - currentPos.z;
-                        const dist = Math.sqrt(dx*dx + dz*dz);
-                        if (dist < 0.02) {
-                            isMoving = false;
-                            currentPos.x = targetPos.x;
-                            currentPos.z = targetPos.z;
-                        } else {
-                            const step = moveSpeed * delta;
-                            const ratio = Math.min(1, step / dist);
-                            currentPos.x += dx * ratio;
-                            currentPos.z += dz * ratio;
-                            const angle = Math.atan2(dx, dz);
-                            characterGroup.rotation.y = angle;
-                        }
-                    }
-                    if (isMoving) {
-                        const bounce = Math.sin(performance.now() / 150) * 0.015;
-                        characterGroup.position.y = -0.1 + bounce;
-                    } else {
-                        characterGroup.position.y = -0.1;
-                    }
-                    renderer.render(scene, camera);
-                } catch (err) {
-                    setStatus('❌ 动画错误: ' + err.message, 'error');
-                }
-                requestAnimationFrame(animate);
-            }
-            animate();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+            // ---- 墙上海报 (装饰) ----
+            const posterColors = ['#8b3a3a', '#3a6b8b', '#6b8b3a'];
+            const posterPositions = [
+                [canvasWidth * 0.1, canvasHeight * 0.15],
+                [canvasWidth * 0.85, canvasHeight * 0.15],
+                [canvasWidth * 0.5, canvasHeight * 0.08]
+            ];
+            posterPositions.forEach(([px, py], idx) => {
+                ctx.fillStyle = posterColors[idx % posterColors.length];
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 15;
+                ctx.fillRect(px - 40, py - 50, 80, 100);
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#222';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px - 40, py - 50, 80, 100);
             });
 
-            document.getElementById('desktop-overlay').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('desktop-overlay') || e.target.classList.contains('desktop-icons')) {
-                    startMenu.classList.remove('show');
-                }
-            });
-
-            console.log('✅ 全部加载成功（CDN）');
-        } catch (err) {
-            setStatus(`❌ 加载失败: ${err.message || '未知错误'}`, 'error');
-            console.error(err);
+            // ---- 地毯 ----
+            ctx.fillStyle = 'rgba(74, 42, 26, 0.6)';
+            ctx.beginPath();
+            ctx.ellipse(canvasWidth * 0.4, floorY + 80, 100, 40, 0.2, 0, Math.PI * 2);
+            ctx.fill();
         }
+
+        // ============================================================
+        //  4. 纸片人 逻辑 (位置、移动、方向)
+        // ============================================================
+        const character = {
+            x: canvasWidth / 2,
+            y: canvasHeight * 0.75,
+            direction: 'down', // 'down', 'up', 'left', 'right'
+            targetX: canvasWidth / 2,
+            targetY: canvasHeight * 0.75,
+            isMoving: false,
+            speed: 150, // 像素/秒
+            scale: 1.2,
+        };
+
+        let lastTime = 0;
+
+        function updateCharacter(deltaTime) {
+            if (!character.isMoving) return;
+
+            const dx = character.targetX - character.x;
+            const dy = character.targetY - character.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 2) {
+                character.x = character.targetX;
+                character.y = character.targetY;
+                character.isMoving = false;
+                return;
+            }
+
+            // 移动
+            const step = character.speed * deltaTime;
+            const ratio = Math.min(1, step / dist);
+            character.x += dx * ratio;
+            character.y += dy * ratio;
+
+            // 更新方向 (根据移动方向)
+            if (Math.abs(dx) > Math.abs(dy)) {
+                character.direction = dx > 0 ? 'right' : 'left';
+            } else {
+                character.direction = dy > 0 ? 'down' : 'up';
+            }
+        }
+
+        // ============================================================
+        //  5. 点击交互 (点击地板移动 / 点击屏幕进桌面)
+        // ============================================================
+        let isDesktopActive = false;
+
+        function handleCanvasClick(e) {
+            if (isDesktopActive) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) * (canvasWidth / rect.width);
+            const mouseY = (e.clientY - rect.top) * (canvasHeight / rect.height);
+
+            // 检查是否点击到显示器
+            const monitor = window.monitorRect;
+            if (monitor &&
+                mouseX >= monitor.x && mouseX <= monitor.x + monitor.w &&
+                mouseY >= monitor.y && mouseY <= monitor.y + monitor.h) {
+                enterDesktop();
+                return;
+            }
+
+            // 否则移动到点击位置 (限制在地板区域)
+            const floorY = canvasHeight * 0.65;
+            if (mouseY > floorY) {
+                character.targetX = Math.max(30, Math.min(canvasWidth - 30, mouseX));
+                character.targetY = Math.max(floorY + 30, Math.min(canvasHeight - 30, mouseY));
+                character.isMoving = true;
+            }
+        }
+
+        canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const fakeEvent = { clientX: touch.clientX, clientY: touch.clientY };
+            handleCanvasClick(fakeEvent);
+        }, { passive: false });
+
+        // ============================================================
+        //  6. 桌面相关功能 (和之前一样)
+        // ============================================================
+        function enterDesktop() {
+            isDesktopActive = true;
+            document.getElementById('desktop-overlay').classList.add('active');
+            document.getElementById('backBtn').style.display = 'block';
+            document.getElementById('hint').style.opacity = '0';
+            updateTime();
+            setInterval(updateTime, 10000);
+        }
+
+        function exitDesktop() {
+            isDesktopActive = false;
+            document.getElementById('desktop-overlay').classList.remove('active');
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('hint').style.opacity = '1';
+            document.getElementById('xpWindow').classList.remove('active');
+        }
+
+        document.getElementById('backBtn').addEventListener('click', exitDesktop);
+        document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDesktopActive) exitDesktop();
+        });
+
+        function updateTime() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('taskbarTime').textContent = `${h}:${m}`;
+        }
+
+        // 开始菜单
+        const startBtn = document.getElementById('startBtn');
+        const startMenu = document.getElementById('startMenu');
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startMenu.classList.toggle('show');
+        });
+        document.addEventListener('click', () => {
+            startMenu.classList.remove('show');
+        });
+        startMenu.addEventListener('click', (e) => e.stopPropagation());
+
+        document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
+            item.addEventListener('click', () => {
+                openWindow(item.dataset.window);
+                startMenu.classList.remove('show');
+            });
+        });
+        document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
+            icon.addEventListener('click', () => openWindow(icon.dataset.window));
+        });
+
+        // 窗口
+        const xpWindow = document.getElementById('xpWindow');
+        const windowTitle = document.getElementById('windowTitle');
+        const windowBody = document.getElementById('windowBody');
+        const windowClose = document.getElementById('windowClose');
+
+        const windowContents = {
+            oc: {
+                title: '🧑‍🎤 我的 OC',
+                content: `<h2>角色名称</h2><p><strong>名字：</strong>（填你的 OC 名字）</p><p><strong>简介：</strong>一个有个性的角色。</p><div style="background:#f0f0f0; padding:20px; text-align:center;">🖼️ 图片占位</div>`
+            },
+            gallery: {
+                title: '🖼️ 图库',
+                content: `<h2>图库</h2><p>展示你的 OC 图片。</p><div style="display:flex; gap:10px;"><div style="background:#ddd; width:100px; height:100px; display:flex; align-items:center; justify-content:center;">📷</div><div style="background:#ddd; width:100px; height:100px; display:flex; align-items:center; justify-content:center;">📷</div></div>`
+            },
+            about: {
+                title: '📄 关于',
+                content: `<h2>关于这个页面</h2><p>复古 XP 风格 + 2D 房间 + 纸片人行走。</p><p style="color:#888; font-size:12px;">Made with ❤️</p>`
+            }
+        };
+
+        function openWindow(id) {
+            const data = windowContents[id];
+            if (!data) return;
+            windowTitle.textContent = data.title;
+            windowBody.innerHTML = data.content;
+            xpWindow.classList.add('active');
+            xpWindow.style.zIndex = 2000;
+        }
+        windowClose.addEventListener('click', () => xpWindow.classList.remove('active'));
+
+        document.getElementById('desktop-overlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('desktop-overlay') || e.target.classList.contains('desktop-icons')) {
+                startMenu.classList.remove('show');
+            }
+        });
+
+        // ============================================================
+        //  7. 主循环 (绘制)
+        // ============================================================
+        function gameLoop(timestamp) {
+            const deltaTime = lastTime ? (timestamp - lastTime) / 1000 : 0.016;
+            lastTime = timestamp;
+
+            // 更新纸片人位置
+            updateCharacter(deltaTime);
+
+            // ---- 绘制 ----
+            drawRoom();
+
+            // 绘制纸片人 (带方向)
+            drawPaperCharacter(
+                ctx,
+                character.x,
+                character.y,
+                character.direction,
+                character.scale
+            );
+
+            // 画一个简单的阴影
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(character.x + 5, character.y + 25, 20, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ============================================================
+        //  8. 窗口自适应
+        // ============================================================
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            // 调整角色位置比例
+            character.x = Math.min(character.x, canvasWidth);
+            character.y = Math.min(character.y, canvasHeight);
+            character.targetX = Math.min(character.targetX, canvasWidth);
+            character.targetY = Math.min(character.targetY, canvasHeight);
+        });
+
+        // ============================================================
+        //  9. 启动
+        // ============================================================
+        requestAnimationFrame(gameLoop);
+        console.log('✅ 2D纸片人版本已加载！');
     </script>
 </body>
 </html>
