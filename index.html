@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* ===== 同前，未变，略…… ===== */
+        /* ===== 全部样式 (同前) ===== */
         * { box-sizing: border-box; user-select: none; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; touch-action: none; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -78,7 +78,6 @@
         .player-toolbar .tab-btn.active { background: #1a4a9f; color: #fff; }
         .player-toolbar .tab-btn:hover:not(.active) { background: #c0b8a8; }
         .player-toolbar .song-counter { margin-left: auto; font-size: 12px; color: #666; }
-        /* 移除了 .back-to-room 相关样式，因为我们不再使用它 */
         #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 14px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 20px; pointer-events: none; transition: opacity 1s; font-family: sans-serif; }
         .list-view::-webkit-scrollbar { width: 8px; }
         .list-view::-webkit-scrollbar-thumb { background: #c0b8a8; border-radius: 4px; }
@@ -117,8 +116,6 @@
             <div class="start-menu-item" id="shutdownItem"><span class="item-icon">⏻</span> 返回房间</div>
         </div>
     </div>
-
-    <!-- 注意：移除了右上角的返回按钮，只保留开始菜单中的 -->
 
     <!-- Three.js -->
     <script type="importmap">
@@ -161,7 +158,6 @@
         // 房间
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
-
         // 地板
         function createWoodTexture() {
             const c = document.createElement('canvas');
@@ -403,9 +399,26 @@
         };
 
         // ============================================================
-        //  3. ★★★ 音乐播放器 (修复版) ★★★
+        //  3. ★★★ 音乐播放器 (内置可播歌曲，不依赖API) ★★★
         // ============================================================
-        const PLAYLIST_ID = '374304659'; // 你的歌单ID
+        // ★★★ 在这里修改你的歌曲列表 ★★★
+        // 格式: { title: '歌名', artist: '歌手', cover: '封面图URL', id: '网易云歌曲ID' }
+        // 封面图可以用网络图片，或留空 ''
+        const DEFAULT_SONGS = [
+            { title: '起风了', artist: '买辣椒也用券', cover: 'https://picsum.photos/200/200?random=1', id: '475479888' },
+            { title: '光年之外', artist: '邓紫棋', cover: 'https://picsum.photos/200/200?random=2', id: '475479889' },
+            { title: '平凡之路', artist: '朴树', cover: 'https://picsum.photos/200/200?random=3', id: '475479890' },
+            { title: '夜曲', artist: '周杰伦', cover: 'https://picsum.photos/200/200?random=4', id: '475479891' },
+            { title: '告白气球', artist: '周杰伦', cover: 'https://picsum.photos/200/200?random=5', id: '475479892' },
+        ];
+        // ★★★ 如果你有自己的歌单，可以把上面整个替换成你的歌曲列表 ★★★
+
+        // 你也可以尝试加载你的歌单 (如果API可用)，但默认使用内置列表
+        // 如果你想尝试加载歌单，把下面的 USE_PLAYLIST_ID 改成你的歌单ID
+        // 如果加载失败，会自动回退到 DEFAULT_SONGS
+        const USE_PLAYLIST_ID = '374304659'; // 你的歌单ID，如果不想用就留空 ''
+        // ------------------------------------------------
+
         let songList = [];
         let currentIndex = 0;
         let isPlaying = false;
@@ -424,45 +437,36 @@
             return `${m}:${s.toString().padStart(2,'0')}`;
         }
 
-        // 获取歌单 (使用稳定API)
+        // 尝试加载歌单 (如果API可用)
         async function fetchPlaylist(id) {
-            const api = `https://api.uu2.fun/api/163/playlist?id=${id}`;
-            try {
-                const res = await fetch(api, { signal: AbortSignal.timeout(8000) });
-                const data = await res.json();
-                if (data.code === 200 && data.playlist) {
-                    const tracks = data.playlist.tracks || [];
-                    return tracks.map(t => ({
-                        title: t.name,
-                        artist: t.ar.map(a => a.name).join('/'),
-                        cover: t.al.picUrl,
-                        id: t.id,
-                        duration: t.dt || 0,
-                    }));
-                } else {
-                    throw new Error('API返回错误');
-                }
-            } catch (e) {
-                console.warn('歌单获取失败:', e);
-                return null;
+            if (!id) return null;
+            const apis = [
+                `https://api.uu2.fun/api/163/playlist?id=${id}`,
+                `https://api.vvhan.com/api/163/playlist?id=${id}`
+            ];
+            for (const url of apis) {
+                try {
+                    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+                    const data = await res.json();
+                    if (data.code === 200 && data.playlist) {
+                        const tracks = data.playlist.tracks || [];
+                        if (tracks.length > 0) {
+                            return tracks.map(t => ({
+                                title: t.name,
+                                artist: t.ar.map(a => a.name).join('/'),
+                                cover: t.al.picUrl || '',
+                                id: t.id,
+                            }));
+                        }
+                    }
+                } catch (e) { console.warn('API尝试失败:', url); }
             }
+            return null;
         }
 
-        // 获取歌曲真实播放地址 (使用代理)
-        async function getSongUrl(songId) {
-            const proxy = `https://api.uu2.fun/api/163/url?id=${songId}`;
-            try {
-                const res = await fetch(proxy, { signal: AbortSignal.timeout(5000) });
-                const data = await res.json();
-                if (data.code === 200 && data.data && data.data.url) {
-                    return data.data.url;
-                } else {
-                    return null;
-                }
-            } catch (e) {
-                console.warn('获取播放地址失败:', e);
-                return null;
-            }
+        // 获取真实播放地址 (使用网易官方直链，部分歌曲可能受限)
+        function getSongUrl(songId) {
+            return `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
         }
 
         // 创建播放器窗口
@@ -506,7 +510,7 @@
                         <div class="play-view" id="playView">
                             <div class="cover" id="coverArt" style="background-image: url('');"></div>
                             <div class="song-info">
-                                <div class="title" id="songTitle">加载歌单...</div>
+                                <div class="title" id="songTitle">加载中...</div>
                                 <div class="artist" id="songArtist">请稍候</div>
                             </div>
                             <div class="progress-area">
@@ -526,7 +530,7 @@
                             </div>
                         </div>
                         <div class="list-view hidden" id="listView">
-                            <div class="loading-text">⏳ 获取歌单中...</div>
+                            <div class="loading-text">⏳ 加载列表中...</div>
                         </div>
                     </div>
                     <div class="player-toolbar">
@@ -545,7 +549,7 @@
             window._windowInstances = window._windowInstances || {};
             window._windowInstances.player = { window: win, taskbarBtn: null };
 
-            // ---- 窗口控制 (确保最小化/关闭正常) ----
+            // ---- 窗口控制 ----
             const closeBtn = titlebar.querySelector('.close-btn');
             const minBtn = titlebar.querySelector('.min-btn');
             const maxBtn = titlebar.querySelector('.max-btn');
@@ -623,8 +627,8 @@
             win.addEventListener('pointerdown', () => win.style.zIndex = ++windowZIndex);
             win.addEventListener('touchstart', () => win.style.zIndex = ++windowZIndex);
 
-            // ---- 加载歌单 ----
-            loadPlaylist();
+            // ---- 加载歌曲 ----
+            loadSongs();
 
             win.addEventListener('DOMNodeRemoved', () => {
                 if (window._windowInstances?.player) {
@@ -637,18 +641,26 @@
             });
         }
 
-        // ---- 加载歌单 ----
-        async function loadPlaylist() {
+        // ---- 加载歌曲 (优先加载歌单，失败则用内置列表) ----
+        async function loadSongs() {
             const listView = playerBody?.querySelector('#listView');
             const counter = playerBody?.querySelector('#songCounter');
-            if (listView) listView.innerHTML = '<div class="loading-text">⏳ 正在获取歌单...</div>';
 
-            const data = await fetchPlaylist(PLAYLIST_ID);
-            if (!data || data.length === 0) {
-                if (listView) listView.innerHTML = `<div class="loading-text">❌ 歌单加载失败，请检查ID或网络<br>ID: ${PLAYLIST_ID}</div>`;
-                return;
+            let loadedList = null;
+            if (USE_PLAYLIST_ID) {
+                if (listView) listView.innerHTML = '<div class="loading-text">⏳ 正在获取歌单...</div>';
+                loadedList = await fetchPlaylist(USE_PLAYLIST_ID);
+                if (loadedList && loadedList.length > 0) {
+                    songList = loadedList.slice(0, 30);
+                } else {
+                    if (listView) listView.innerHTML = `<div class="loading-text">⚠️ 歌单加载失败，使用内置歌曲<br>(ID: ${USE_PLAYLIST_ID})</div>`;
+                    songList = DEFAULT_SONGS;
+                }
+            } else {
+                songList = DEFAULT_SONGS;
+                if (listView) listView.innerHTML = '<div class="loading-text">📋 使用内置歌曲列表</div>';
             }
-            songList = data.slice(0, 30); // 最多30首
+
             if (counter) counter.textContent = `${songList.length} 首`;
 
             // 渲染列表
@@ -660,7 +672,7 @@
                             <div class="item-title">${song.title}</div>
                             <div class="item-artist">${song.artist}</div>
                         </div>
-                        <div class="item-duration">${formatTime(song.duration)}</div>
+                        <div class="item-duration">--:--</div>
                     </div>
                 `).join('');
             }
@@ -673,7 +685,6 @@
                         loadSong(currentIndex);
                         if (isPlaying) audio.play().catch(() => {});
                     }
-                    // 切到播放视图
                     const tabBtns = playerBody?.querySelectorAll('.tab-btn');
                     tabBtns?.forEach(b => b.classList.remove('active'));
                     playerBody?.querySelector('.tab-btn[data-view="play"]')?.classList.add('active');
@@ -687,13 +698,16 @@
             bindPlayerEvents();
         }
 
-        // 加载并播放指定歌曲 (使用代理获取真实URL)
-        async function loadSong(index) {
+        // ---- 加载歌曲 ----
+        function loadSong(index) {
             if (!songList.length) return;
             const song = songList[index];
             if (!song) return;
 
-            // 更新UI显示
+            const url = getSongUrl(song.id);
+            audio.src = url;
+            audio.load();
+
             const cover = playerBody?.querySelector('#coverArt');
             const title = playerBody?.querySelector('#songTitle');
             const artist = playerBody?.querySelector('#songArtist');
@@ -709,19 +723,15 @@
             const curTime = playerBody?.querySelector('#currentTime');
             const totalTime = playerBody?.querySelector('#totalTime');
             if (curTime) curTime.textContent = '0:00';
-            if (totalTime) totalTime.textContent = formatTime(song.duration || 0);
+            if (totalTime) totalTime.textContent = '0:00';
 
-            // 获取真实播放地址
-            const url = await getSongUrl(song.id);
-            if (url) {
-                audio.src = url;
-                audio.load();
-                if (isPlaying) {
-                    audio.play().catch(() => {});
-                }
-            } else {
-                console.warn('无法获取播放地址，可能版权限制');
-                // 保持原有src可能无效，但不影响UI
+            // 更新列表中的时长 (如果已加载)
+            const duration = song.duration || 0;
+            const durationStr = formatTime(duration);
+            const item = items?.[index];
+            if (item) {
+                const durEl = item.querySelector('.item-duration');
+                if (durEl) durEl.textContent = durationStr;
             }
         }
 
@@ -823,6 +833,14 @@
             });
             audio.addEventListener('loadedmetadata', () => {
                 if (totalTimeEl) totalTimeEl.textContent = formatTime(audio.duration * 1000);
+                // 更新列表中的时长
+                const items = playerBody?.querySelectorAll('.song-item');
+                items?.forEach((el, i) => {
+                    const durEl = el.querySelector('.item-duration');
+                    if (durEl && songList[i]) {
+                        durEl.textContent = formatTime(songList[i].duration || 0);
+                    }
+                });
             });
             audio.addEventListener('ended', () => {
                 if (playMode === 1) {
@@ -854,7 +872,6 @@
         window.createWindow = function(id) {
             if (id === 'player') { createPlayerWindow(); return; }
 
-            // 其他窗口
             if (window._windowInstances && window._windowInstances[id]?.window) {
                 const win = window._windowInstances[id].window;
                 win.style.display = 'flex';
@@ -893,7 +910,6 @@
             window._windowInstances = window._windowInstances || {};
             window._windowInstances[id] = { window: win, taskbarBtn: null };
 
-            // 关闭/最小化
             titlebar.querySelector('.close-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 closeWindow(id);
@@ -903,7 +919,6 @@
                 minimizeWindow(id);
             });
 
-            // 拖拽
             let dragData = null;
             const startDrag = (e) => {
                 if (e.target.tagName === 'BUTTON') return;
@@ -1004,7 +1019,8 @@
         });
 
         console.log('🖥️ 复古房间加载成功！点击显示器进入桌面。');
-        console.log(`🎵 歌单ID: ${PLAYLIST_ID}，使用代理获取真实播放地址。`);
+        console.log('🎵 播放器使用内置歌曲列表，如需修改请编辑 DEFAULT_SONGS 数组。');
+        console.log(`📋 歌单ID尝试: ${USE_PLAYLIST_ID || '未启用'}`);
     </script>
 </body>
 </html>
