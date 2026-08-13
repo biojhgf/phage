@@ -29,7 +29,7 @@
             z-index: 1;
         }
 
-        /* ===== 桌面覆盖层 (XP) ===== */
+        /* ===== 桌面覆盖层 ===== */
         #desktop-overlay {
             position: fixed;
             top: 0;
@@ -47,7 +47,7 @@
             display: flex;
         }
 
-        /* ===== 桌面图标区 ===== */
+        /* ===== 桌面图标 ===== */
         .desktop-icons {
             flex: 1;
             padding: 20px 30px;
@@ -202,7 +202,7 @@
             border: 1px solid #ccc;
         }
 
-        /* ===== 通用 XP 窗口 (播放器继承) ===== */
+        /* ===== XP 窗口 ===== */
         .xp-window {
             position: fixed;
             min-width: 300px;
@@ -284,7 +284,7 @@
             touch-action: auto;
         }
 
-        /* ===== 播放器专用样式 ===== */
+        /* ===== 播放器样式 ===== */
         .player-container {
             flex: 1;
             display: flex;
@@ -509,7 +509,7 @@
             color: #888;
         }
 
-        /* 底部切换栏 */
+        /* 底部工具栏 */
         .player-toolbar {
             height: 40px;
             background: #ddd6c8;
@@ -545,27 +545,7 @@
             color: #666;
         }
 
-        /* ===== 返回房间按钮 ===== */
-        .back-to-room {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 3000;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            border: 2px solid #aaa;
-            border-radius: 6px;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 14px;
-            backdrop-filter: blur(4px);
-            display: none;
-            touch-action: manipulation;
-        }
-        .back-to-room:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
+        /* ===== 提示 ===== */
         #hint {
             position: fixed;
             bottom: 30px;
@@ -582,7 +562,7 @@
             font-family: sans-serif;
         }
 
-        /* ===== 滚动条样式 ===== */
+        /* 滚动条 */
         .list-view::-webkit-scrollbar {
             width: 8px;
         }
@@ -600,7 +580,7 @@
     <!-- Three.js 容器 -->
     <div id="three-container"></div>
 
-    <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 手指也可拖动窗口</div>
+    <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回房间</div>
 
     <!-- ===== 桌面覆盖层 ===== -->
     <div id="desktop-overlay">
@@ -629,8 +609,6 @@
         </div>
     </div>
 
-    <button class="back-to-room" id="backBtn">🏠 返回房间</button>
-
     <!-- ===== Three.js ===== -->
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -638,7 +616,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景 (与之前相同)
+        //  1. Three.js 场景 (同之前)
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -654,7 +632,6 @@
         renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
 
-        // 灯光
         scene.add(new THREE.AmbientLight(0x404060, 0.8));
         const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
         mainLight.position.set(3, 5, 2);
@@ -669,9 +646,9 @@
         lampLight.position.set(-0.8, 1.6, 0.5);
         scene.add(lampLight);
 
-        // 房间构建
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
+
         // 地板
         const woodTex = (() => {
             const c = document.createElement('canvas');
@@ -861,7 +838,6 @@
         function enterDesktop() {
             isDesktopActive = true;
             document.getElementById('desktop-overlay').classList.add('active');
-            document.getElementById('backBtn').style.display = 'block';
             document.getElementById('hint').style.opacity = '0';
             updateTime();
             setInterval(updateTime, 10000);
@@ -870,18 +846,22 @@
         function exitDesktop() {
             isDesktopActive = false;
             document.getElementById('desktop-overlay').classList.remove('active');
-            document.getElementById('backBtn').style.display = 'none';
             document.getElementById('hint').style.opacity = '1';
+            // 关闭所有打开的窗口
             document.querySelectorAll('.xp-window').forEach(w => w.remove());
             document.querySelectorAll('.taskbar-item').forEach(b => b.remove());
             window._windowInstances = {};
         }
 
-        document.getElementById('backBtn').addEventListener('click', exitDesktop);
-        document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
+        // ESC 键退出 (仍然保留)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isDesktopActive) exitDesktop();
+            if (e.key === 'Escape' && isDesktopActive) {
+                exitDesktop();
+            }
         });
+
+        // “开始”菜单中的“返回房间”仍保留
+        document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
 
         function updateTime() {
             const now = new Date();
@@ -919,30 +899,26 @@
         };
 
         // ============================================================
-        //  3. ★★★ 音乐播放器核心 (歌曲列表已填入你的歌) ★★★
+        //  3. ★★★ 音乐播放器 (已填图片URL，修复播放路径) ★★★
         // ============================================================
 
-        // ---------- 歌曲数据 (已替换为你提供的三首歌) ----------
-        const songList = [
-            {
-                title: 'Science Fiction/Double Feature',
-                artist: 'Richard O\'Brien',
-                cover: '',  // 留空，显示默认灰色
-                url: './Richard O\'Brien - Science FictionDouble Feature.mp3'
-            },
-            {
-                title: 'Evening Wear',
-                artist: 'Mindless Self Indulgence',
-                cover: '',
-                url: './Mindless Self Indulgence - Evening Wear.mp3'
-            },
-            {
-                title: 'Helena',
-                artist: 'My Chemical Romance',
-                cover: '',
-                url: './My Chemical Romance - Helena.mp3'
-            }
-        ];
+        // ---------- 歌曲数据 (已按顺序填入图片) ----------
+        const songList = [{
+            title: 'Science Fiction/Double Feature',
+            artist: 'Richard O\'Brien',
+            cover: 'https://zora404.dpdns.org/file/1786612897827_IMG_5678.jpeg',
+            url: './Richard O\'Brien - Science FictionDouble Feature.mp3'
+        }, {
+            title: 'Evening Wear',
+            artist: 'Mindless Self Indulgence',
+            cover: 'https://zora404.dpdns.org/file/1786612899785_IMG_5679.jpeg',
+            url: './Mindless Self Indulgence - Evening Wear.mp3'
+        }, {
+            title: 'Helena',
+            artist: 'My Chemical Romance',
+            cover: 'https://zora404.dpdns.org/file/1786612894857_IMG_5680.jpeg',
+            url: './My Chemical Romance - Helena.mp3'
+        }];
         // -------------------------------------------------
 
         let currentIndex = 0;
@@ -953,7 +929,7 @@
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
 
-        // ---- 通用拖拽函数 (支持鼠标和触摸) ----
+        // ---- 通用拖拽函数 ----
         function makeDraggable(element, handle) {
             let startX, startY, origLeft, origTop, origWidth, origHeight, isDragging = false;
 
@@ -1106,7 +1082,7 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器窗口 (专用) ----
+        // ---- 播放器窗口 ----
         function createPlayerWindow() {
             if (isPlayerWindowOpen) {
                 const inst = window._windowInstances['player'];
@@ -1255,7 +1231,8 @@
             function loadSong(index) {
                 const song = songList[index];
                 if (!song) return;
-                audio.src = song.url;
+                // ★★★ 修复：对文件路径进行编码，支持空格和特殊字符 ★★★
+                audio.src = encodeURI(song.url);
                 audio.load();
                 coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
                 songTitle.textContent = song.title;
@@ -1264,12 +1241,12 @@
                 progressBar.value = 0;
                 currentTimeEl.textContent = '0:00';
                 totalTimeEl.textContent = '0:00';
-                if (isPlaying) audio.play().catch(() => {});
+                if (isPlaying) audio.play().catch((err) => console.warn('播放失败:', err));
             }
 
             function playPause() {
                 if (audio.paused) {
-                    audio.play().catch(() => {});
+                    audio.play().catch((err) => console.warn('播放失败:', err));
                     isPlaying = true;
                     playBtn.textContent = '⏸';
                 } else {
@@ -1384,9 +1361,9 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 复古房间加载成功！所有窗口支持触摸拖动。');
-        console.log('🎵 已加载三首歌：Science Fiction/Double Feature, Evening Wear, Helena');
-        console.log('📝 如需添加封面，编辑 songList 中的 cover 字段。');
+        console.log('🖥️ 复古房间加载成功！');
+        console.log('🎵 已加载三首歌，图片URL已填入。');
+        console.log('💡 按 ESC 可退出桌面，窗口支持最小化/关闭/拖拽。');
     </script>
 </body>
 </html>
