@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* 全部样式（保留3D房间和XP桌面，窗口控制正常） */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -84,7 +83,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景（完整，同上）
+        //  1. Three.js 场景（完整）
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -343,7 +342,7 @@
         };
 
         // ============================================================
-        //  3. 窗口管理器 + 播放器（使用本地文件，原生控件）
+        //  3. 窗口管理器 + 播放器（最简原生控件）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
@@ -469,7 +468,7 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器窗口（使用 <audio> 原生控件） ----
+        // ---- 播放器窗口（极简原生） ----
         function createPlayerWindow() {
             if (window._windowInstances['player'] && window._windowInstances['player'].window) {
                 const win = window._windowInstances['player'].window;
@@ -487,7 +486,7 @@
             win.className = 'xp-window';
             win.dataset.windowId = id;
             win.style.width = '460px';
-            win.style.height = '300px';
+            win.style.height = '280px';
             win.style.left = (100 + Math.random() * 80) + 'px';
             win.style.top = (60 + Math.random() * 80) + 'px';
             win.style.zIndex = ++windowZIndex;
@@ -506,19 +505,18 @@
 
             const body = document.createElement('div');
             body.className = 'window-body';
-            // ★★★ 直接使用 <audio> 标签，指定相对路径 1.mp3 ★★★
+            // ★★★ 最简配置：只放一个 <audio> 标签 ★★★
             body.innerHTML = `
                 <div class="player-container">
                     <div class="song-info">
-                        <div class="title">🎵 Science Fiction/Double Feature</div>
-                        <div class="artist">Richard O'Brien</div>
+                        <div class="title">🎵 正在播放</div>
+                        <div class="artist">1.mp3</div>
                     </div>
                     <audio controls style="width:100%;">
                         <source src="./1.mp3" type="audio/mpeg">
-                        <source src="./1.mp3" type="audio/mpeg">
-                        Your browser does not support the audio element.
+                        你的浏览器不支持 audio 标签
                     </audio>
-                    <div class="tip">📂 使用本地文件 1.mp3 · 可替换为其他歌曲</div>
+                    <div class="tip">📂 文件路径: ./1.mp3</div>
                 </div>
             `;
             win.appendChild(body);
@@ -544,7 +542,7 @@
                     isMaximized = true;
                     maxBtn.textContent = '❐';
                 } else {
-                    const rect = win._prevRect || { left: 100, top: 60, width: 460, height: 300 };
+                    const rect = win._prevRect || { left: 100, top: 60, width: 460, height: 280 };
                     win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
                     win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
                     win.style.borderRadius = '';
@@ -584,8 +582,7 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 复古桌面加载成功！🎵 使用本地文件 1.mp3');
-        console.log('📂 如果听不到声音，请确保 1.mp3 与 index.html 在同一目录。');
+        console.log('🎵 播放器已加载，使用 <audio> 标签，文件: ./1.mp3');
     </script>
 </body>
 </html>
