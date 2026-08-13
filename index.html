@@ -41,10 +41,10 @@
         .start-menu-item .item-icon { font-size: 20px; }
         .start-menu hr { margin: 6px 12px; border: 1px solid #999; }
         .xp-window { position: fixed; min-width: 300px; min-height: 140px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; box-shadow: 8px 8px 0 rgba(0,0,0,0.2); display: flex; flex-direction: column; z-index: 2000; font-family: 'Press Start 2P', monospace; overflow: hidden; touch-action: none; }
-        .xp-window .window-titlebar { background: linear-gradient(90deg, #0a246a, #3a7bd5); color: #fff; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-radius: 4px 4px 0 0; font-weight: bold; font-size: 12px; height: 32px; touch-action: none; }
+        .xp-window .window-titlebar { background: linear-gradient(90deg, #0a246a, #3a7bd5); color: #fff; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-radius: 4px 4px 0 0; font-weight: bold; font-size: 12px; height: 36px; touch-action: none; pointer-events: auto; }
         .xp-window .window-titlebar .title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Press Start 2P', monospace; }
-        .xp-window .window-titlebar .win-btns { display: flex; gap: 4px; flex-shrink: 0; }
-        .xp-window .window-titlebar .win-btns button { width: 26px; height: 26px; border: none; border-radius: 2px; font-weight: bold; font-size: 14px; cursor: pointer; line-height: 22px; text-align: center; background: rgba(255,255,255,0.15); color: #fff; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
+        .xp-window .window-titlebar .win-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .xp-window .window-titlebar .win-btns button { width: 30px; height: 30px; border: none; border-radius: 2px; font-weight: bold; font-size: 16px; cursor: pointer; line-height: 26px; text-align: center; background: rgba(255,255,255,0.15); color: #fff; touch-action: manipulation; font-family: 'Press Start 2P', monospace; pointer-events: auto; }
         .xp-window .window-titlebar .win-btns button:hover { background: rgba(255,255,255,0.3); }
         .xp-window .window-titlebar .win-btns .min-btn:hover { background: #5a7ab5; }
         .xp-window .window-titlebar .win-btns .max-btn:hover { background: #6a8a5a; }
@@ -124,7 +124,6 @@
         .comic-viewer .comic-page { max-width: 100%; border: 2px solid #999; }
         .comic-viewer .comic-page img { width: 100%; height: auto; image-rendering: pixelated; }
         .comic-viewer .comic-nav { display: flex; gap: 12px; align-items: center; }
-        /* 宠物对话编辑 */
         .pet-dialogs { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
         .pet-dialogs .dialog-item { display: flex; gap: 6px; align-items: center; }
         .pet-dialogs .dialog-item input { flex: 1; }
@@ -418,7 +417,7 @@
         });
 
         // ============================================================
-        //  2. 窗口管理（统一绑定按钮）
+        //  2. 窗口管理（统一绑定按钮，防止穿透）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
@@ -446,7 +445,7 @@
                 if (!isDragging) return;
                 let newLeft = origLeft + e.clientX - startX;
                 let newTop = origTop + e.clientY - startY;
-                const titlebarHeight = 32;
+                const titlebarHeight = 36;
                 const maxX = window.innerWidth - 20;
                 const maxY = window.innerHeight - 20;
                 newLeft = Math.max(-element.offsetWidth + 60, Math.min(newLeft, maxX));
@@ -469,8 +468,16 @@
         function closeWindow(id) {
             if (window._windowInstances[id]) {
                 const win = window._windowInstances[id].window;
-                if (win) win.remove();
-                if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                if (win) {
+                    // 先隐藏再移除，防止点击穿透
+                    win.style.display = 'none';
+                    setTimeout(() => {
+                        if (win.parentNode) win.remove();
+                    }, 50);
+                    if (window._windowInstances[id].taskbarBtn) {
+                        window._windowInstances[id].taskbarBtn.remove();
+                    }
+                }
                 delete window._windowInstances[id];
             }
         }
@@ -486,7 +493,8 @@
             btn.dataset.windowId = id;
             const title = win.querySelector('.title-text')?.textContent || id;
             btn.textContent = title;
-            btn.addEventListener('pointerdown', () => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
                 win.style.display = 'flex';
                 win.style.zIndex = ++windowZIndex;
                 btn.remove();
@@ -519,13 +527,37 @@
             const minBtn = win.querySelector('.min-btn');
             const maxBtn = win.querySelector('.max-btn');
             const closeBtn = win.querySelector('.close-btn');
-            if (minBtn) minBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(id); });
-            if (maxBtn) maxBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMaximize(win); });
-            if (closeBtn) closeBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(id); });
-            win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
+            if (minBtn) {
+                minBtn.addEventListener('pointerdown', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    minimizeWindow(id);
+                });
+            }
+            if (maxBtn) {
+                maxBtn.addEventListener('pointerdown', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleMaximize(win);
+                });
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('pointerdown', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    closeWindow(id);
+                });
+            }
+            // 防止点击标题栏其他区域穿透
+            win.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('.win-btns')) return;
+                win.style.zIndex = ++windowZIndex;
+            });
             win.addEventListener('DOMNodeRemoved', () => {
                 if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                    if (window._windowInstances[id].taskbarBtn) {
+                        window._windowInstances[id].taskbarBtn.remove();
+                    }
                     delete window._windowInstances[id];
                 }
             });
@@ -803,7 +835,7 @@
         }
 
         // ============================================================
-        //  5. 画图应用（修复抖动）
+        //  5. 画图应用（修复按钮和灵敏度）
         // ============================================================
         function createPaintWindow() {
             if (window._windowInstances['paint'] && window._windowInstances['paint'].window) {
@@ -1016,7 +1048,7 @@
         }
 
         // ============================================================
-        //  6. 漫画应用
+        //  6. 漫画应用（修复按钮）
         // ============================================================
         function createComicWindow() {
             if (window._windowInstances['comic'] && window._windowInstances['comic'].window) {
@@ -1726,7 +1758,6 @@
                 });
             }
 
-            // 编辑宠物名称
             window.editPetName = async (idx) => {
                 const pets = getPets();
                 const pet = pets[idx];
@@ -1734,7 +1765,6 @@
                 const newName = await xpPrompt('编辑名称', '新名称：', '', pet.name);
                 if (newName !== null) { pet.name = newName; savePets(pets); }
             };
-            // 编辑图片
             window.editPetImage = async (idx) => {
                 const pets = getPets();
                 const pet = pets[idx];
@@ -1742,7 +1772,6 @@
                 const newImg = await xpPrompt('图片URL', 'URL：', '', pet.img);
                 if (newImg !== null) { pet.img = newImg; savePets(pets); }
             };
-            // 编辑对话（多个）
             window.editPetDialogs = async (idx) => {
                 const pets = getPets();
                 const pet = pets[idx];
@@ -1759,7 +1788,6 @@
                     savePets(pets);
                 }
             };
-            // 删除宠物
             window.deletePet = async (idx) => {
                 const confirm = await showXpModal({ title: '确认删除', message: '确定删除此宠物？', confirmText: '删除', cancelText: '取消' });
                 if (!confirm) return;
@@ -1768,13 +1796,11 @@
                 savePets(pets);
             };
 
-            // 添加宠物
             document.getElementById('addPetBtn').onclick = async () => {
                 const name = await xpPrompt('添加宠物', '名称：', '小可爱');
                 if (name === null) return;
                 const img = await xpPrompt('图片URL', 'URL', 'https://via.placeholder.com/100?text=Pet');
                 if (img === null) return;
-                // 默认对话
                 const defaultDialogs = ['你好！', '今天开心吗？', '一起玩吧！'];
                 const dialogsResult = await showXpModal({
                     title: '设置对话（每行一句）',
@@ -1822,7 +1848,6 @@
                         <div class="bubble">${pet.dialogs && pet.dialogs.length ? pet.dialogs[0] : '你好！'}</div>
                     `;
                     const bubble = el.querySelector('.bubble');
-                    // 点击显示随机对话
                     el.addEventListener('click', (e) => {
                         e.stopPropagation();
                         if (pet.dialogs && pet.dialogs.length) {
@@ -2156,7 +2181,7 @@
         window.loadWallpaper = loadWallpaper;
         window.loadPets = loadPets;
 
-        console.log('✅ 像素复古桌面已加载！所有窗口按钮有效，宠物支持多对话随机播放。');
+        console.log('✅ 像素复古桌面已加载！所有窗口按钮有效，宠物支持多对话随机播放，灵敏度已优化。');
     </script>
 </body>
 </html>
