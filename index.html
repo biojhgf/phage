@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* 样式与之前完全相同，略去重复以节省篇幅，但保证完整 */
+        /* 样式完整（同上，保证所有按钮和界面完整） */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -113,7 +113,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景 (完整)
+        //  1. Three.js 场景 (略缩，完整)
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -146,7 +146,7 @@
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        // 地板、墙壁、桌子、显示器、海报（同之前，略缩）
+        // 地板
         const woodTex = (() => {
             const c = document.createElement('canvas');
             c.width = 256; c.height = 256;
@@ -387,7 +387,7 @@
         }];
 
         // ============================================================
-        //  4. 窗口管理器 + 播放器（使用 Blob 强行加载）
+        //  4. 窗口管理器 + 播放器 (平板最终修复版)
         // ============================================================
         let currentIndex = 0;
         let isPlaying = false;
@@ -395,7 +395,7 @@
         let isPlayerWindowOpen = false;
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
-        let currentBlobUrl = null; // 用于释放内存
+        let currentBlobUrl = null;
 
         // ---- 拖拽 ----
         function makeDraggable(element, handle) {
@@ -490,7 +490,7 @@
                 if (win) win.remove();
                 if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
                 delete window._windowInstances[id];
-                if (id === 'player') { isPlayerWindowOpen = false; audio.pause(); isPlaying = false; }
+                if (id === 'player') { isPlayerWindowOpen = false; audio.pause(); isPlaying = false; if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; } }
             }
         }
 
@@ -516,7 +516,7 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器核心 ----
+        // ---- 播放器核心 (最终修复) ----
         function createPlayerWindow() {
             if (isPlayerWindowOpen) {
                 const inst = window._windowInstances['player'];
@@ -641,7 +641,7 @@
             });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
 
-            // ---- 播放器逻辑 (使用 Fetch + Blob 绕过 MIME 问题) ----
+            // ---- 播放器逻辑 (强行修正 MIME 类型) ----
             const playBtn = body.querySelector('#playBtn');
             const prevBtn = body.querySelector('#prevBtn');
             const nextBtn = body.querySelector('#nextBtn');
@@ -657,7 +657,7 @@
             const tabBtns = body.querySelectorAll('.tab-btn');
             const songItems = body.querySelectorAll('.song-item');
 
-            // 加载函数：通过 fetch 获取文件并转为 blob URL
+            // ★★★ 核心修复：加载时强制指定 Blob 为 audio/mpeg ★★★
             async function loadSong(index) {
                 const song = songList[index];
                 if (!song) {
@@ -665,7 +665,6 @@
                     return;
                 }
 
-                // 暂停当前播放并释放旧的 Blob URL
                 audio.pause();
                 isPlaying = false;
                 playBtn.textContent = '▶';
@@ -674,7 +673,6 @@
                     currentBlobUrl = null;
                 }
 
-                // 更新 UI（歌名、封面）
                 coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
                 songTitle.textContent = song.title;
                 songArtist.textContent = song.artist;
@@ -684,20 +682,22 @@
                 totalTimeEl.textContent = '0:00';
 
                 try {
-                    // ★★★ 核心修复：用 fetch 拿文件数据，生成 blob URL ★★★
                     const response = await fetch(song.url);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    const blob = await response.blob();
-                    // 检查 blob 类型，如果是 text/plain 也不怕，我们直接创建 object URL
+                    let blob = await response.blob();
+                    // ★★★ 关键一步：无论服务器返回什么类型，都强制覆盖为音频格式 ★★★
+                    blob = new Blob([blob], { type: 'audio/mpeg' });
+                    
                     const blobUrl = URL.createObjectURL(blob);
                     currentBlobUrl = blobUrl;
 
-                    // 将 blob URL 赋给 audio 元素
+                    // 先暂停，清空 src，再赋值，确保干净
+                    audio.src = '';
                     audio.src = blobUrl;
                     audio.load();
-                    console.log('✅ Blob URL 加载成功:', blobUrl);
+                    console.log('✅ 强制 MIME 为 audio/mpeg 加载成功');
                 } catch (err) {
                     console.error('❌ fetch 失败:', err);
                     alert(`⚠️ 无法加载音乐文件\n\n错误: ${err.message}\n\n请检查文件是否在仓库根目录。`);
@@ -714,7 +714,7 @@
                         })
                         .catch((err) => {
                             console.error('❌ 播放启动失败:', err);
-                            alert(`⚠️ 播放失败\n\n错误类型: ${err.name}\n错误信息: ${err.message}\n\n请联系开发者查看控制台详情。`);
+                            alert(`⚠️ 播放失败\n\n错误类型: ${err.name}\n错误信息: ${err.message}\n\n可尝试在控制台查看详情。`);
                         });
                 } else {
                     audio.pause();
@@ -836,7 +836,7 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 已使用 Fetch + Blob 加载模式，彻底绕过 MIME 类型问题！');
+        console.log('🖥️ 平板终极修复版已加载！已将 Blob 强制指定为 audio/mpeg');
         console.log('🎵 如果还有问题，请查看控制台网络错误。');
     </script>
 </body>
