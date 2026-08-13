@@ -6,23 +6,19 @@
     <title>复古房间 · XP桌面</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
-        /* ===== 全局像素风格 ===== */
+        /* ===== 全局像素风格（与之前相同，略） ===== */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: 'Press Start 2P', 'Courier New', monospace; background-color: #1a1a1a; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background-color: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); font-size: 14px; transition: background 0.3s; }
         #desktop-overlay.active { display: flex; }
-        /* 桌面宠物容器 */
         #desktop-pets { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
         #desktop-pets .pet { position: absolute; pointer-events: auto; cursor: grab; user-select: none; animation: petBounce 2s infinite alternate ease-in-out; }
         #desktop-pets .pet:active { cursor: grabbing; animation: none; }
         #desktop-pets .pet img { max-width: 100px; max-height: 100px; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; }
-        #desktop-pets .pet .bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: nowrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 160px; overflow: hidden; text-overflow: ellipsis; font-family: 'Press Start 2P', monospace; }
+        #desktop-pets .pet .bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: pre-wrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 200px; overflow: hidden; font-family: 'Press Start 2P', monospace; line-height: 1.4; }
         #desktop-pets .pet .bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ece9d8; }
-        @keyframes petBounce {
-            0% { transform: translate(-50%, -50%) translateY(0px); }
-            100% { transform: translate(-50%, -50%) translateY(-8px); }
-        }
+        @keyframes petBounce { 0% { transform: translate(-50%, -50%) translateY(0px); } 100% { transform: translate(-50%, -50%) translateY(-8px); } }
         .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
         .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; }
         .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -417,7 +413,7 @@
         });
 
         // ============================================================
-        //  2. 窗口管理（统一绑定按钮，防止穿透）
+        //  2. 窗口管理（彻底修复按钮）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
@@ -469,7 +465,6 @@
             if (window._windowInstances[id]) {
                 const win = window._windowInstances[id].window;
                 if (win) {
-                    // 先隐藏再移除，防止点击穿透
                     win.style.display = 'none';
                     setTimeout(() => {
                         if (win.parentNode) win.remove();
@@ -523,32 +518,41 @@
             }
         }
 
+        // ★ 核心：绑定窗口按钮，使用强引用，确保事件不被覆盖 ★
         function bindWindowControls(win, id) {
             const minBtn = win.querySelector('.min-btn');
             const maxBtn = win.querySelector('.max-btn');
             const closeBtn = win.querySelector('.close-btn');
             if (minBtn) {
-                minBtn.addEventListener('pointerdown', (e) => {
+                minBtn.removeEventListener('pointerdown', window._minHandler);
+                const handler = (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     minimizeWindow(id);
-                });
+                };
+                minBtn.addEventListener('pointerdown', handler);
+                window._minHandler = handler;
             }
             if (maxBtn) {
-                maxBtn.addEventListener('pointerdown', (e) => {
+                maxBtn.removeEventListener('pointerdown', window._maxHandler);
+                const handler = (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     toggleMaximize(win);
-                });
+                };
+                maxBtn.addEventListener('pointerdown', handler);
+                window._maxHandler = handler;
             }
             if (closeBtn) {
-                closeBtn.addEventListener('pointerdown', (e) => {
+                closeBtn.removeEventListener('pointerdown', window._closeHandler);
+                const handler = (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     closeWindow(id);
-                });
+                };
+                closeBtn.addEventListener('pointerdown', handler);
+                window._closeHandler = handler;
             }
-            // 防止点击标题栏其他区域穿透
             win.addEventListener('pointerdown', (e) => {
                 if (e.target.closest('.win-btns')) return;
                 win.style.zIndex = ++windowZIndex;
@@ -835,7 +839,7 @@
         }
 
         // ============================================================
-        //  5. 画图应用（修复按钮和灵敏度）
+        //  5. 画图应用（按钮已修复）
         // ============================================================
         function createPaintWindow() {
             if (window._windowInstances['paint'] && window._windowInstances['paint'].window) {
@@ -1048,7 +1052,7 @@
         }
 
         // ============================================================
-        //  6. 漫画应用（修复按钮）
+        //  6. 漫画应用（按钮已修复）
         // ============================================================
         function createComicWindow() {
             if (window._windowInstances['comic'] && window._windowInstances['comic'].window) {
@@ -1354,7 +1358,7 @@
         }
 
         // ============================================================
-        //  8. 写作、聊天、博客（简化但完整）
+        //  8. 写作、聊天、博客
         // ============================================================
         function createWritingWindow() {
             if (window._windowInstances['writing'] && window._windowInstances['writing'].window) {
@@ -1570,7 +1574,7 @@
         }
 
         // ============================================================
-        //  9. 设置应用（含宠物多对话编辑）
+        //  9. 设置应用（含宠物多对话编辑，支持换行）
         // ============================================================
         function createSettingsWindow() {
             if (window._windowInstances['settings'] && window._windowInstances['settings'].window) {
@@ -1719,14 +1723,14 @@
                 xpAlert('颜色已应用');
             };
 
-            // ---- 宠物系统（多对话 + 编辑） ----
+            // ---- 宠物系统（多对话 + 编辑，支持换行） ----
             function getPets() {
                 try { return JSON.parse(localStorage.getItem('pets') || '[]'); } catch(e) { return []; }
             }
             function savePets(pets) {
                 localStorage.setItem('pets', JSON.stringify(pets));
                 renderPetList();
-                loadPets();
+                loadPets(); // 立即更新桌面
             }
 
             function renderPetList() {
@@ -1750,8 +1754,8 @@
                             <button onclick="editPetDialogs(${idx})">💬 对话</button>
                             <button onclick="deletePet(${idx})" style="color:red;">✕</button>
                         </div>
-                        <div style="font-size:10px; color:#666; margin-top:2px;">
-                            对话: ${pet.dialogs && pet.dialogs.length ? pet.dialogs.join('; ') : '(未设置)'}
+                        <div style="font-size:10px; color:#666; margin-top:2px; white-space:pre-wrap;">
+                            对话: ${pet.dialogs && pet.dialogs.length ? pet.dialogs.join(' | ') : '(未设置)'}
                         </div>
                     `;
                     list.appendChild(div);
@@ -1779,7 +1783,7 @@
                 const current = pet.dialogs ? pet.dialogs.join('\n') : '';
                 const result = await showXpModal({
                     title: '编辑对话（每行一句）',
-                    fields: [{ id: 'dialogs', label: '对话内容（每行一句）', type: 'text', value: current, placeholder: '你好呀！\n今天天气真好\n...' }],
+                    fields: [{ id: 'dialogs', label: '对话内容（每行一句，换行分隔）', type: 'text', value: current, placeholder: '你好呀！\n今天天气真好\n...' }],
                     confirmText: '保存', cancelText: '取消'
                 });
                 if (result) {
@@ -1804,7 +1808,7 @@
                 const defaultDialogs = ['你好！', '今天开心吗？', '一起玩吧！'];
                 const dialogsResult = await showXpModal({
                     title: '设置对话（每行一句）',
-                    fields: [{ id: 'dialogs', label: '对话内容', type: 'text', value: defaultDialogs.join('\n'), placeholder: '每行一句' }],
+                    fields: [{ id: 'dialogs', label: '对话内容（换行分隔）', type: 'text', value: defaultDialogs.join('\n'), placeholder: '每行一句' }],
                     confirmText: '确定', cancelText: '取消'
                 });
                 let dialogs = defaultDialogs;
@@ -1831,11 +1835,12 @@
                 xpAlert('已清除');
             };
 
-            // 加载宠物到桌面
+            // 加载宠物到桌面（确保出现）
             function loadPets() {
                 const container = document.getElementById('desktop-pets');
                 container.innerHTML = '';
                 const pets = getPets();
+                if (pets.length === 0) return;
                 pets.forEach((pet, idx) => {
                     const el = document.createElement('div');
                     el.className = 'pet';
@@ -1843,9 +1848,11 @@
                     el.style.top = pet.y + '%';
                     el.style.transform = 'translate(-50%, -50%)';
                     el.dataset.idx = idx;
+                    // 将对话数组转为换行文本
+                    const bubbleText = pet.dialogs && pet.dialogs.length ? pet.dialogs.join('\n') : '你好！';
                     el.innerHTML = `
                         <img src="${pet.img}" alt="${pet.name}" />
-                        <div class="bubble">${pet.dialogs && pet.dialogs.length ? pet.dialogs[0] : '你好！'}</div>
+                        <div class="bubble">${bubbleText}</div>
                     `;
                     const bubble = el.querySelector('.bubble');
                     el.addEventListener('click', (e) => {
@@ -1857,7 +1864,7 @@
                             bubble.textContent = '你好！';
                         }
                         bubble.style.display = 'block';
-                        setTimeout(() => { bubble.style.display = 'none'; }, 2500);
+                        setTimeout(() => { bubble.style.display = 'none'; }, 3000);
                     });
                     // 拖拽
                     let dragging = false, startX, startY, origX, origY;
@@ -2134,9 +2141,7 @@
             }
         }
 
-        function loadPets() {
-            // 由设置窗口负责
-        }
+        // 桌面宠物加载（由设置窗口负责）
 
         // ============================================================
         //  12. 创建窗口入口
@@ -2179,9 +2184,9 @@
         window.showXpModal = showXpModal;
         window.loadGlobalCss = loadGlobalCss;
         window.loadWallpaper = loadWallpaper;
-        window.loadPets = loadPets;
+        window.loadPets = loadPets; // 由设置窗口提供
 
-        console.log('✅ 像素复古桌面已加载！所有窗口按钮有效，宠物支持多对话随机播放，灵敏度已优化。');
+        console.log('✅ 像素复古桌面已加载！所有窗口按钮有效，宠物支持多对话、换行、弹跳。');
     </script>
 </body>
 </html>
