@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* ===== 全部样式（与之前一致） ===== */
+        /* ===== 全局样式 ===== */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -49,6 +49,41 @@
         .app-container .item-list li:hover { background: #d0d0d0; }
         .app-container .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
         #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 14px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 20px; pointer-events: none; transition: opacity 1s; font-family: sans-serif; }
+
+        /* ===== 自定义弹窗（XP风格） ===== */
+        .xp-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+        .xp-modal {
+            background: #ece9d8;
+            border: 3px solid #3a6ea5;
+            border-radius: 8px;
+            padding: 20px 24px;
+            min-width: 320px;
+            max-width: 90%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+        .xp-modal h3 { margin: 0 0 12px 0; color: #0a246a; }
+        .xp-modal label { display: block; margin: 8px 0 4px 0; font-weight: bold; }
+        .xp-modal input[type="text"], .xp-modal input[type="color"] {
+            width: 100%; padding: 4px; border: 2px inset #ccc; background: #fff;
+        }
+        .xp-modal .modal-btns {
+            display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;
+        }
+        .xp-modal .modal-btns button {
+            background: #ddd; border: 2px outset #fff; padding: 4px 16px; cursor: pointer;
+        }
+        .xp-modal .modal-btns button:active { border-style: inset; }
+        .xp-modal .modal-btns .primary { background: #3a7bd5; color: #fff; border-color: #1a4a9f; }
     </style>
 </head>
 <body>
@@ -110,7 +145,6 @@
         renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
 
-        // 灯光
         scene.add(new THREE.AmbientLight(0x404060, 0.8));
         const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
         mainLight.position.set(3, 5, 2);
@@ -125,11 +159,10 @@
         lampLight.position.set(-0.8, 1.6, 0.5);
         scene.add(lampLight);
 
-        // 房间群组
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        // 地板（木纹）
+        // 地板
         function createWoodTexture() {
             const c = document.createElement('canvas');
             c.width = 256; c.height = 256;
@@ -157,7 +190,7 @@
         floor.receiveShadow = true;
         roomGroup.add(floor);
 
-        // 墙壁（暗色条纹）
+        // 墙壁
         function createWallTexture() {
             const c = document.createElement('canvas');
             c.width = 256; c.height = 256;
@@ -178,17 +211,14 @@
         const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         backWall.position.set(0, 1.25, -3);
         roomGroup.add(backWall);
-
         const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         leftWall.rotation.y = Math.PI / 2;
         leftWall.position.set(-3, 1.25, 0);
         roomGroup.add(leftWall);
-
         const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         rightWall.rotation.y = -Math.PI / 2;
         rightWall.position.set(3, 1.25, 0);
         roomGroup.add(rightWall);
-
         const ceilMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.9 });
         const ceil = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), ceilMat);
         ceil.rotation.x = Math.PI / 2;
@@ -202,45 +232,38 @@
         tableTop.castShadow = true;
         tableTop.receiveShadow = true;
         roomGroup.add(tableTop);
-
         const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
-        const legPositions = [[-0.6,-0.3],[0.6,-0.3],[-0.6,0.3],[0.6,0.3]];
-        legPositions.forEach(([x,z]) => {
+        [[-0.6,-0.3],[0.6,-0.3],[-0.6,0.3],[0.6,0.3]].forEach(([x,z]) => {
             const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), legMat);
             leg.position.set(x, 0.25, -0.6+z);
             leg.castShadow = true;
             roomGroup.add(leg);
         });
 
-        // 显示器（大屁股）
+        // 显示器
         const monitorGroup = new THREE.Group();
         monitorGroup.position.set(0, 0.9, -0.3);
         roomGroup.add(monitorGroup);
-
         const baseMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.3 });
         const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 0.15, 16), baseMat);
         base.position.y = -0.08;
         base.castShadow = true;
         monitorGroup.add(base);
-
         const shellMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.2 });
         const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.5), shellMat);
         body.position.set(0, 0.3, 0);
         body.castShadow = true;
         monitorGroup.add(body);
-
         const backMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.3 });
         const backBump = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), backMat);
         backBump.position.set(0, 0.3, -0.28);
         backBump.scale.set(1, 0.85, 0.7);
         backBump.castShadow = true;
         monitorGroup.add(backBump);
-
         const bezelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.1 });
         const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, 0.06), bezelMat);
         bezel.position.set(0, 0.3, 0.28);
         monitorGroup.add(bezel);
-
         const screenMat = new THREE.MeshStandardMaterial({
             color: 0x4488ff,
             emissive: 0x224488,
@@ -251,7 +274,6 @@
         const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.45), screenMat);
         screen.position.set(0, 0.3, 0.31);
         monitorGroup.add(screen);
-
         const glassMat = new THREE.MeshStandardMaterial({
             color: 0x88aaff,
             transparent: true,
@@ -263,10 +285,9 @@
         glass.position.set(0, 0.3, 0.32);
         monitorGroup.add(glass);
 
-        // 点击目标（屏幕、玻璃、边框）
         const clickTargets = [screen, glass, bezel];
 
-        // 海报装饰
+        // 海报
         function createPoster(color, x, y, z, rotY) {
             const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
             const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat);
@@ -279,7 +300,6 @@
         createPoster(0x6b8b3a, -2.9, 1.5, -0.5, Math.PI/2);
         createPoster(0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI/2);
 
-        // 地毯
         const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
         const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8, 12), carpetMat);
         carpet.rotation.x = -Math.PI / 2;
@@ -325,7 +345,6 @@
         renderer.domElement.addEventListener('click', onPointerDown);
         renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
 
-        // 桌面进入/退出
         function enterDesktop() {
             isDesktopActive = true;
             document.getElementById('desktop-overlay').classList.add('active');
@@ -508,7 +527,7 @@
             inst.taskbarBtn = btn;
         }
 
-        // ---- 播放器窗口（直接使用已验证的 file.garden 链接） ----
+        // ---- 播放器窗口 ----
         function createPlayerWindow() {
             if (window._windowInstances['player'] && window._windowInstances['player'].window) {
                 const win = window._windowInstances['player'].window;
@@ -591,10 +610,78 @@
         }
 
         // ============================================================
-        //  3. ★★★ 三个新应用 ★★★
+        //  3. ★★★ 自定义弹窗系统（XP风格）★★★
         // ============================================================
+        function showXpModal(options) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'xp-modal-overlay';
+                const modal = document.createElement('div');
+                modal.className = 'xp-modal';
+                modal.innerHTML = `
+                    <h3>${options.title || '提示'}</h3>
+                    ${options.fields ? options.fields.map(f => `
+                        <label>${f.label}</label>
+                        <input type="${f.type || 'text'}" id="modal_${f.id}" value="${f.value || ''}" placeholder="${f.placeholder || ''}" />
+                    `).join('') : `<p>${options.message || ''}</p>`}
+                    <div class="modal-btns">
+                        ${options.cancelText ? `<button id="modalCancel">${options.cancelText}</button>` : ''}
+                        <button class="primary" id="modalConfirm">${options.confirmText || '确定'}</button>
+                    </div>
+                `;
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
 
-        // ---------- 3.1 写作工坊 ----------
+                const confirmBtn = modal.querySelector('#modalConfirm');
+                const cancelBtn = modal.querySelector('#modalCancel');
+
+                function cleanup(result) {
+                    overlay.remove();
+                    resolve(result);
+                }
+
+                confirmBtn.addEventListener('click', () => {
+                    if (options.fields) {
+                        const results = {};
+                        options.fields.forEach(f => {
+                            const input = document.getElementById(`modal_${f.id}`);
+                            results[f.id] = input ? input.value : '';
+                        });
+                        cleanup(results);
+                    } else {
+                        cleanup(true);
+                    }
+                });
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', () => cleanup(null));
+                }
+                // 点击背景关闭（无取消按钮时）
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay && !cancelBtn) {
+                        cleanup(null);
+                    }
+                });
+            });
+        }
+
+        // 封装常用弹窗
+        async function xpPrompt(title, label, placeholder, defaultValue) {
+            const result = await showXpModal({
+                title: title,
+                fields: [{ id: 'input', label: label, placeholder: placeholder, value: defaultValue || '' }],
+                confirmText: '确定',
+                cancelText: '取消'
+            });
+            return result ? result.input : null;
+        }
+
+        async function xpAlert(message) {
+            await showXpModal({ title: '提示', message: message, confirmText: '确定' });
+        }
+
+        // ============================================================
+        //  4. ★★★ 写作工坊（使用自定义弹窗）★★★
+        // ============================================================
         function createWritingWindow() {
             if (window._windowInstances['writing'] && window._windowInstances['writing'].window) {
                 const win = window._windowInstances['writing'].window;
@@ -635,11 +722,11 @@
                     <div style="display:flex; gap:16px; height:100%;">
                         <div style="flex:1; border-right:2px solid #ccc; padding-right:12px; overflow-y:auto;">
                             <h3>📚 作品</h3>
-                            <button onclick="window.writingAddProject()">+ 新建作品</button>
+                            <button id="writingAddProjectBtn">+ 新建作品</button>
                             <ul class="item-list" id="projectList"></ul>
                             <hr />
                             <h3>📌 备忘录</h3>
-                            <button onclick="window.writingAddNote()">+ 新建备忘</button>
+                            <button id="writingAddNoteBtn">+ 新建备忘</button>
                             <ul class="item-list" id="noteList"></ul>
                         </div>
                         <div style="flex:2; display:flex; flex-direction:column;">
@@ -687,7 +774,7 @@
                 }
             });
 
-            // ---- 写作逻辑 ----
+            // ---- 写作逻辑（使用自定义弹窗） ----
             function getWritingData() {
                 let data = localStorage.getItem('writingData');
                 if (!data) {
@@ -728,7 +815,7 @@
                 if (!proj) return;
                 const editor = document.getElementById('writingEditor');
                 let html = `<h3>${proj.title}</h3>
-                    <button onclick="window.writingAddChapter(${idx})">+ 添加章节</button>
+                    <button id="addChapterBtn">+ 添加章节</button>
                     <ul class="item-list" id="chapterList">`;
                 proj.chapters.forEach((ch, ci) => {
                     html += `<li onclick="window.openChapter(${idx}, ${ci})">${ch.title || '无标题章节'}</li>`;
@@ -738,22 +825,52 @@
                     <div id="chapterEditor" style="border:1px solid #ccc; padding:8px; min-height:120px;">
                         <p style="color:#888;">点击章节编辑</p>
                     </div>
-                    <button onclick="window.saveChapter(${idx})">保存当前章节</button>
-                    <button onclick="window.deleteProject(${idx})" style="color:red;">删除作品</button>
+                    <button id="saveChapterBtn">保存当前章节</button>
+                    <button id="deleteProjectBtn" style="color:red;">删除作品</button>
                 `;
                 editor.innerHTML = html;
                 window._writingState = { projectIdx: idx, chapterIdx: -1 };
+
+                // 绑定事件
+                document.getElementById('addChapterBtn').onclick = async () => {
+                    const title = await xpPrompt('添加章节', '章节标题：', '输入标题');
+                    if (title === null) return;
+                    const data = getWritingData();
+                    const proj = data.projects[idx];
+                    if (!proj) return;
+                    proj.chapters.push({ title: title || '无标题', content: '' });
+                    saveWritingData(data);
+                    openProject(idx);
+                };
+                document.getElementById('saveChapterBtn').onclick = () => {
+                    const data = getWritingData();
+                    const proj = data.projects[idx];
+                    if (!proj) return;
+                    const state = window._writingState;
+                    if (!state || state.chapterIdx === undefined || state.chapterIdx < 0) {
+                        xpAlert('请先打开一个章节');
+                        return;
+                    }
+                    const ch = proj.chapters[state.chapterIdx];
+                    if (!ch) return;
+                    const titleInput = document.getElementById('chTitle');
+                    const contentInput = document.getElementById('chContent');
+                    if (titleInput) ch.title = titleInput.value;
+                    if (contentInput) ch.content = contentInput.value;
+                    saveWritingData(data);
+                    xpAlert('章节已保存！');
+                    openProject(idx);
+                };
+                document.getElementById('deleteProjectBtn').onclick = async () => {
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除此作品及其所有章节？', confirmText: '删除', cancelText: '取消' });
+                    if (!confirm) return;
+                    const data = getWritingData();
+                    data.projects.splice(idx, 1);
+                    saveWritingData(data);
+                    renderProjects();
+                    document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
+                };
             }
-            window.writingAddChapter = function(projIdx) {
-                const data = getWritingData();
-                const proj = data.projects[projIdx];
-                if (!proj) return;
-                const title = prompt('章节标题：');
-                if (title === null) return;
-                proj.chapters.push({ title: title || '无标题', content: '' });
-                saveWritingData(data);
-                openProject(projIdx);
-            };
             window.openChapter = function(projIdx, chIdx) {
                 const data = getWritingData();
                 const proj = data.projects[projIdx];
@@ -767,37 +884,19 @@
                 `;
                 window._writingState = { projectIdx: projIdx, chapterIdx: chIdx };
             };
-            window.saveChapter = function(projIdx) {
-                const data = getWritingData();
-                const proj = data.projects[projIdx];
-                if (!proj) return;
-                const state = window._writingState;
-                if (!state || state.chapterIdx === undefined || state.chapterIdx < 0) {
-                    alert('请先打开一个章节');
-                    return;
-                }
-                const ch = proj.chapters[state.chapterIdx];
-                if (!ch) return;
-                const titleInput = document.getElementById('chTitle');
-                const contentInput = document.getElementById('chContent');
-                if (titleInput) ch.title = titleInput.value;
-                if (contentInput) ch.content = contentInput.value;
-                saveWritingData(data);
-                alert('章节已保存！');
-                openProject(projIdx);
-            };
-            window.writingAddProject = function() {
-                const title = prompt('作品名称：');
+
+            document.getElementById('writingAddProjectBtn').onclick = async () => {
+                const title = await xpPrompt('新建作品', '作品名称：', '输入作品名');
                 if (title === null) return;
                 const data = getWritingData();
                 data.projects.push({ title: title || '未命名', chapters: [] });
                 saveWritingData(data);
                 renderProjects();
             };
-            window.writingAddNote = function() {
-                const title = prompt('备忘标题：');
+            document.getElementById('writingAddNoteBtn').onclick = async () => {
+                const title = await xpPrompt('新建备忘', '备忘标题：', '输入标题');
                 if (title === null) return;
-                const content = prompt('备忘内容：');
+                const content = await xpPrompt('备忘内容', '内容：', '输入内容');
                 if (content === null) return;
                 const data = getWritingData();
                 data.notes.push({ title: title || '备忘', content: content || '', timestamp: new Date().toLocaleString() });
@@ -815,30 +914,25 @@
                     <p><strong>内容：</strong></p>
                     <pre style="background:#eee; padding:8px; white-space:pre-wrap;">${note.content}</pre>
                     <p style="color:#888;">创建时间：${note.timestamp}</p>
-                    <button onclick="window.deleteNote(${idx})" style="color:red;">删除备忘</button>
+                    <button id="deleteNoteBtn" style="color:red;">删除备忘</button>
                 `;
+                document.getElementById('deleteNoteBtn').onclick = async () => {
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除此备忘？', confirmText: '删除', cancelText: '取消' });
+                    if (!confirm) return;
+                    const data = getWritingData();
+                    data.notes.splice(idx, 1);
+                    saveWritingData(data);
+                    renderNotes();
+                    document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
+                };
             }
-            window.deleteNote = function(idx) {
-                if (!confirm('确定删除此备忘？')) return;
-                const data = getWritingData();
-                data.notes.splice(idx, 1);
-                saveWritingData(data);
-                renderNotes();
-                document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
-            };
-            window.deleteProject = function(idx) {
-                if (!confirm('确定删除此作品及其所有章节？')) return;
-                const data = getWritingData();
-                data.projects.splice(idx, 1);
-                saveWritingData(data);
-                renderProjects();
-                document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
-            };
             renderProjects();
             renderNotes();
         }
 
-        // ---------- 3.2 聊天室 ----------
+        // ============================================================
+        //  5. ★★★ 聊天室（使用自定义弹窗）★★★
+        // ============================================================
         function createChatWindow() {
             if (window._windowInstances['chat'] && window._windowInstances['chat'].window) {
                 const win = window._windowInstances['chat'].window;
@@ -878,11 +972,11 @@
                 <div class="app-container" id="chatApp" style="display:flex; gap:12px; height:100%;">
                     <div style="flex:1; border-right:2px solid #ccc; padding-right:12px; overflow-y:auto;">
                         <h3>📡 聊天室</h3>
-                        <button onclick="window.chatAddRoom()">+ 新建房间</button>
+                        <button id="chatAddRoomBtn">+ 新建房间</button>
                         <ul class="item-list" id="roomList"></ul>
                         <hr />
                         <h3>👥 角色</h3>
-                        <button onclick="window.chatAddCharacter()">+ 新建角色</button>
+                        <button id="chatAddCharBtn">+ 新建角色</button>
                         <ul class="item-list" id="charList"></ul>
                     </div>
                     <div style="flex:2; display:flex; flex-direction:column;">
@@ -892,7 +986,7 @@
                         <div style="display:flex; gap:6px; margin-top:8px;">
                             <select id="chatCharacterSelect" style="flex:1; padding:4px;"></select>
                             <input type="text" id="chatInput" placeholder="输入消息..." style="flex:3; padding:4px;" />
-                            <button onclick="window.chatSend()" style="padding:4px 16px;">发送</button>
+                            <button id="chatSendBtn" style="padding:4px 16px;">发送</button>
                         </div>
                     </div>
                 </div>
@@ -934,7 +1028,7 @@
                 }
             });
 
-            // ---- 聊天逻辑 ----
+            // ---- 聊天逻辑（使用自定义弹窗） ----
             function getChatData() {
                 let data = localStorage.getItem('chatData');
                 if (!data) {
@@ -980,35 +1074,40 @@
                     });
                 }
             }
-            window.chatAddRoom = function() {
-                const name = prompt('聊天室名称：');
+            document.getElementById('chatAddRoomBtn').onclick = async () => {
+                const name = await xpPrompt('新建聊天室', '聊天室名称：', '输入名称');
                 if (name === null) return;
                 const data = getChatData();
                 data.rooms.push({ name: name || '新房间', messages: [] });
                 saveChatData(data);
                 renderRooms();
             };
-            window.chatAddCharacter = function() {
-                const name = prompt('角色名称：');
+            document.getElementById('chatAddCharBtn').onclick = async () => {
+                const name = await xpPrompt('新建角色', '角色名称：', '输入名称');
                 if (name === null) return;
-                const color = prompt('颜色（英文或十六进制，如 #ff0000）：') || '#ff0000';
+                const color = await xpPrompt('角色颜色', '颜色（英文或十六进制，如 #ff0000）：', '#ff0000');
+                if (color === null) return;
                 const data = getChatData();
-                data.characters.push({ name: name || '无名', color: color });
+                data.characters.push({ name: name || '无名', color: color || '#ff0000' });
                 saveChatData(data);
                 renderCharacters();
             };
             function editCharacter(idx) {
-                const data = getChatData();
-                const ch = data.characters[idx];
-                if (!ch) return;
-                const newName = prompt('角色名称：', ch.name);
-                if (newName === null) return;
-                const newColor = prompt('角色颜色：', ch.color);
-                if (newColor === null) return;
-                ch.name = newName || ch.name;
-                ch.color = newColor || ch.color;
-                saveChatData(data);
-                renderCharacters();
+                // 点击角色列表编辑
+                // 直接弹出编辑框
+                (async () => {
+                    const data = getChatData();
+                    const ch = data.characters[idx];
+                    if (!ch) return;
+                    const newName = await xpPrompt('编辑角色', '角色名称：', '', ch.name);
+                    if (newName === null) return;
+                    const newColor = await xpPrompt('编辑角色', '角色颜色：', '', ch.color);
+                    if (newColor === null) return;
+                    ch.name = newName || ch.name;
+                    ch.color = newColor || ch.color;
+                    saveChatData(data);
+                    renderCharacters();
+                })();
             }
             function openRoom(idx) {
                 currentRoomIdx = idx;
@@ -1025,18 +1124,18 @@
                 view.scrollTop = view.scrollHeight;
                 renderCharacters();
             }
-            window.chatSend = function() {
+            document.getElementById('chatSendBtn').onclick = () => {
                 const input = document.getElementById('chatInput');
                 const text = input.value.trim();
                 if (!text) return;
-                if (currentRoomIdx < 0) { alert('请先选择一个聊天室'); return; }
+                if (currentRoomIdx < 0) { xpAlert('请先选择一个聊天室'); return; }
                 const select = document.getElementById('chatCharacterSelect');
                 const charIdx = parseInt(select.value);
                 const data = getChatData();
                 const room = data.rooms[currentRoomIdx];
                 if (!room) return;
                 const char = data.characters[charIdx];
-                if (!char) { alert('请先创建角色'); return; }
+                if (!char) { xpAlert('请先创建角色'); return; }
                 room.messages.push({ role: char.name, text: text, color: char.color });
                 saveChatData(data);
                 input.value = '';
@@ -1044,14 +1143,16 @@
             };
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && document.activeElement === document.getElementById('chatInput')) {
-                    window.chatSend();
+                    document.getElementById('chatSendBtn').click();
                 }
             });
             renderRooms();
             renderCharacters();
         }
 
-        // ---------- 3.3 个人博客 ----------
+        // ============================================================
+        //  6. ★★★ 个人博客（重新设计布局 + 修复按钮）★★★
+        // ============================================================
         function createBlogWindow() {
             if (window._windowInstances['blog'] && window._windowInstances['blog'].window) {
                 const win = window._windowInstances['blog'].window;
@@ -1067,10 +1168,10 @@
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
-            win.style.width = '700px';
-            win.style.height = '560px';
-            win.style.left = (70 + Math.random() * 60) + 'px';
-            win.style.top = (45 + Math.random() * 60) + 'px';
+            win.style.width = '800px';
+            win.style.height = '600px';
+            win.style.left = (60 + Math.random() * 60) + 'px';
+            win.style.top = (40 + Math.random() * 60) + 'px';
             win.style.zIndex = ++windowZIndex;
 
             const titlebar = document.createElement('div');
@@ -1089,12 +1190,22 @@
             body.className = 'window-body';
             body.innerHTML = `
                 <div class="app-container" id="blogApp" style="display:flex; gap:16px; height:100%;">
-                    <div style="flex:1; border-right:2px solid #ccc; padding-right:12px; overflow-y:auto;">
-                        <h3>📰 文章列表</h3>
-                        <button onclick="window.blogAddPost()">+ 新建文章</button>
-                        <ul class="item-list" id="postList"></ul>
+                    <!-- 左栏：头像 + 简介 + 样式设置 -->
+                    <div style="flex:0 0 220px; border-right:2px solid #ccc; padding-right:12px; overflow-y:auto;">
+                        <div style="text-align:center; margin-bottom:12px;">
+                            <img id="blogAvatar" src="" alt="头像" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:2px solid #999; background:#ddd;" />
+                            <button id="editAvatarBtn" style="display:block; margin:4px auto;">更换头像URL</button>
+                        </div>
+                        <div>
+                            <label>昵称：</label>
+                            <input type="text" id="blogNickname" value="我的博客" style="width:100%;" />
+                        </div>
+                        <div>
+                            <label>简介：</label>
+                            <textarea id="blogBio" rows="3" style="width:100%;">欢迎来到我的个人博客，分享想法与创作。</textarea>
+                        </div>
                         <hr />
-                        <h3>🎨 博客样式</h3>
+                        <h4>样式设置</h4>
                         <div style="display:flex; flex-direction:column; gap:6px;">
                             <label>背景色：<input type="color" id="blogBgColor" value="#ffffff" onchange="window.blogUpdateStyle()" /></label>
                             <label>文字颜色：<input type="color" id="blogTextColor" value="#000000" onchange="window.blogUpdateStyle()" /></label>
@@ -1105,16 +1216,30 @@
                                 <option value="'Comic Sans MS', cursive">Comic Sans</option>
                             </select></label>
                         </div>
+                        <button id="saveBlogProfileBtn" style="margin-top:8px;">保存个人资料</button>
                     </div>
-                    <div style="flex:2; display:flex; flex-direction:column;">
-                        <div id="blogPreview" style="flex:1; padding:16px; border:2px inset #ccc; overflow-y:auto; background:#fff; color:#000;">
-                            <p style="color:#888;">选择文章预览，或创建新文章</p>
+                    <!-- 右栏：文章列表 + 预览 -->
+                    <div style="flex:1; display:flex; flex-direction:column;">
+                        <div style="display:flex; gap:8px; margin-bottom:8px;">
+                            <button id="blogAddPostBtn">+ 新建文章</button>
                         </div>
-                        <div id="blogEditor" style="display:none; margin-top:8px;">
+                        <div style="flex:1; display:flex; gap:12px; min-height:0;">
+                            <!-- 文章列表（可滚动） -->
+                            <div style="flex:1; overflow-y:auto; border:1px solid #ccc; padding:8px; background:#fafafa;">
+                                <h4 style="margin:0 0 8px 0;">📰 文章</h4>
+                                <ul class="item-list" id="postList"></ul>
+                            </div>
+                            <!-- 预览区 -->
+                            <div style="flex:2; overflow-y:auto; border:1px solid #ccc; padding:12px; background:#fff; color:#000;" id="blogPreview">
+                                <p style="color:#888;">选择文章预览</p>
+                            </div>
+                        </div>
+                        <!-- 编辑器 -->
+                        <div id="blogEditor" style="display:none; margin-top:8px; border-top:2px solid #ccc; padding-top:8px;">
                             <input type="text" id="blogEditTitle" placeholder="文章标题" style="width:100%;" />
                             <textarea id="blogEditContent" rows="4" placeholder="文章正文" style="width:100%;"></textarea>
-                            <button onclick="window.blogSavePost()">保存文章</button>
-                            <button onclick="window.blogCancelEdit()">取消</button>
+                            <button id="blogSavePostBtn">保存文章</button>
+                            <button id="blogCancelEditBtn">取消</button>
                         </div>
                     </div>
                 </div>
@@ -1139,7 +1264,7 @@
                     isMaximized = true;
                     maxBtn.textContent = '❐';
                 } else {
-                    const rect = win._prevRect || { left: 70, top: 45, width: 700, height: 560 };
+                    const rect = win._prevRect || { left: 60, top: 40, width: 800, height: 600 };
                     win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
                     win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
                     win.style.borderRadius = '';
@@ -1160,7 +1285,7 @@
             function getBlogData() {
                 let data = localStorage.getItem('blogData');
                 if (!data) {
-                    const defaultData = { posts: [] };
+                    const defaultData = { posts: [], profile: { avatar: '', nickname: '我的博客', bio: '欢迎来到我的个人博客。' } };
                     localStorage.setItem('blogData', JSON.stringify(defaultData));
                     return defaultData;
                 }
@@ -1169,7 +1294,9 @@
             function saveBlogData(data) {
                 localStorage.setItem('blogData', JSON.stringify(data));
             }
+
             let editingPostIdx = -1;
+
             function renderPosts() {
                 const data = getBlogData();
                 const list = document.getElementById('postList');
@@ -1180,15 +1307,21 @@
                     li.onclick = () => previewPost(idx);
                     list.appendChild(li);
                 });
+                // 更新头像、昵称、简介
+                const profile = data.profile || {};
+                document.getElementById('blogAvatar').src = profile.avatar || '';
+                document.getElementById('blogNickname').value = profile.nickname || '我的博客';
+                document.getElementById('blogBio').value = profile.bio || '';
             }
+
             function previewPost(idx) {
                 const data = getBlogData();
                 const post = data.posts[idx];
                 if (!post) return;
                 const preview = document.getElementById('blogPreview');
-                const bg = post.bgColor || '#ffffff';
-                const color = post.textColor || '#000000';
-                const font = post.fontFamily || 'Georgia, serif';
+                const bg = post.bgColor || document.getElementById('blogBgColor').value || '#ffffff';
+                const color = post.textColor || document.getElementById('blogTextColor').value || '#000000';
+                const font = post.fontFamily || document.getElementById('blogFont').value || 'Georgia, serif';
                 preview.style.background = bg;
                 preview.style.color = color;
                 preview.style.fontFamily = font;
@@ -1196,19 +1329,15 @@
                     <h2 style="margin-top:0;">${post.title}</h2>
                     <div style="white-space:pre-wrap;">${post.content}</div>
                     <p style="color:#888; font-size:12px; margin-top:16px;">发布于 ${post.createdAt || '未知'}</p>
-                    <button onclick="window.blogEditPost(${idx})">编辑</button>
-                    <button onclick="window.blogDeletePost(${idx})" style="color:red;">删除</button>
+                    <button id="editPostBtn">编辑</button>
+                    <button id="deletePostBtn" style="color:red;">删除</button>
                 `;
+                document.getElementById('editPostBtn').onclick = () => blogEditPost(idx);
+                document.getElementById('deletePostBtn').onclick = () => blogDeletePost(idx);
                 window._blogPreviewIdx = idx;
             }
-            window.blogAddPost = function() {
-                document.getElementById('blogEditTitle').value = '';
-                document.getElementById('blogEditContent').value = '';
-                document.getElementById('blogEditor').style.display = 'block';
-                editingPostIdx = -1;
-                document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">正在编辑新文章...</p>';
-            };
-            window.blogEditPost = function(idx) {
+
+            function blogEditPost(idx) {
                 const data = getBlogData();
                 const post = data.posts[idx];
                 if (!post) return;
@@ -1217,11 +1346,35 @@
                 document.getElementById('blogEditor').style.display = 'block';
                 editingPostIdx = idx;
                 document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">正在编辑文章...</p>';
+            }
+
+            function blogDeletePost(idx) {
+                (async () => {
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除这篇文章？', confirmText: '删除', cancelText: '取消' });
+                    if (!confirm) return;
+                    const data = getBlogData();
+                    data.posts.splice(idx, 1);
+                    saveBlogData(data);
+                    renderPosts();
+                    document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">文章已删除</p>';
+                    window._blogPreviewIdx = -1;
+                })();
+            }
+
+            // 新建文章
+            document.getElementById('blogAddPostBtn').onclick = () => {
+                document.getElementById('blogEditTitle').value = '';
+                document.getElementById('blogEditContent').value = '';
+                document.getElementById('blogEditor').style.display = 'block';
+                editingPostIdx = -1;
+                document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">正在编辑新文章...</p>';
             };
-            window.blogSavePost = function() {
+
+            // 保存文章
+            document.getElementById('blogSavePostBtn').onclick = () => {
                 const title = document.getElementById('blogEditTitle').value.trim();
                 const content = document.getElementById('blogEditContent').value.trim();
-                if (!title) { alert('请输入标题'); return; }
+                if (!title) { xpAlert('请输入标题'); return; }
                 const data = getBlogData();
                 const bgColor = document.getElementById('blogBgColor').value;
                 const textColor = document.getElementById('blogTextColor').value;
@@ -1247,9 +1400,11 @@
                 document.getElementById('blogEditor').style.display = 'none';
                 renderPosts();
                 if (data.posts.length > 0) previewPost(data.posts.length - 1);
-                alert('文章已保存！');
+                xpAlert('文章已保存！');
             };
-            window.blogCancelEdit = function() {
+
+            // 取消编辑
+            document.getElementById('blogCancelEditBtn').onclick = () => {
                 document.getElementById('blogEditor').style.display = 'none';
                 if (window._blogPreviewIdx !== undefined && window._blogPreviewIdx >= 0) {
                     previewPost(window._blogPreviewIdx);
@@ -1257,30 +1412,60 @@
                     document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">选择文章预览</p>';
                 }
             };
-            window.blogDeletePost = function(idx) {
-                if (!confirm('确定删除这篇文章？')) return;
+
+            // 保存个人资料
+            document.getElementById('saveBlogProfileBtn').onclick = () => {
                 const data = getBlogData();
-                data.posts.splice(idx, 1);
+                data.profile = {
+                    avatar: document.getElementById('blogAvatar').src,
+                    nickname: document.getElementById('blogNickname').value,
+                    bio: document.getElementById('blogBio').value
+                };
                 saveBlogData(data);
-                renderPosts();
-                document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">文章已删除</p>';
-                window._blogPreviewIdx = -1;
+                xpAlert('个人资料已保存！');
+                renderPosts(); // 刷新头像等
             };
+
+            // 更换头像
+            document.getElementById('editAvatarBtn').onclick = async () => {
+                const url = await xpPrompt('更换头像', '头像图片URL：', '输入图片链接', document.getElementById('blogAvatar').src);
+                if (url !== null) {
+                    document.getElementById('blogAvatar').src = url;
+                    // 自动保存
+                    const data = getBlogData();
+                    data.profile.avatar = url;
+                    saveBlogData(data);
+                }
+            };
+
+            // 样式更新（实时预览）
             window.blogUpdateStyle = function() {
                 if (window._blogPreviewIdx !== undefined && window._blogPreviewIdx >= 0) {
                     previewPost(window._blogPreviewIdx);
+                } else {
+                    // 如果无预览，更新预览背景色
+                    const preview = document.getElementById('blogPreview');
+                    preview.style.background = document.getElementById('blogBgColor').value;
+                    preview.style.color = document.getElementById('blogTextColor').value;
+                    preview.style.fontFamily = document.getElementById('blogFont').value;
                 }
             };
+
+            // 初始化
             renderPosts();
-            if (getBlogData().posts.length > 0) {
+            // 默认加载第一篇文章
+            const data = getBlogData();
+            if (data.posts.length > 0) {
                 previewPost(0);
             } else {
                 document.getElementById('blogPreview').innerHTML = '<p style="color:#888;">还没有文章，创建一篇吧！</p>';
             }
+            // 应用初始样式
+            window.blogUpdateStyle();
         }
 
         // ============================================================
-        //  4. 响应式 & 动画
+        //  7. 响应式 & 动画
         // ============================================================
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -1296,10 +1481,15 @@
 
         // 暴露全局函数供 onclick 调用
         window.createWindow = createWindow;
+        window.xpPrompt = xpPrompt;
+        window.xpAlert = xpAlert;
+        window.showXpModal = showXpModal;
+        window.blogUpdateStyle = window.blogUpdateStyle; // 已在上面定义
 
         console.log('✅ 复古桌面加载完成！');
         console.log('📝 写作工坊、💬 聊天室、📖 个人博客 已就绪');
         console.log('所有数据保存在 localStorage，关闭浏览器不丢失。');
+        console.log('✏️ 所有输入框使用自定义 XP 风格弹窗，告别浏览器原生对话框！');
     </script>
 </body>
 </html>
