@@ -5,41 +5,837 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* 所有样式（同之前，略，但保证完整） */
-        * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; overflow: hidden; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #000; }
-        #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background-color: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); font-size: 14px; }
-        #desktop-overlay.active { display: flex; }
-        .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
-        .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; }
-        .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 6px; }
-        .desktop-icon .icon-img { font-size: 48px; line-height: 1.2; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-        .desktop-icon .icon-label { font-size: 13px; word-break: break-all; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; }
-        .taskbar { height: 50px; background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%); display: flex; align-items: center; padding: 0 8px; box-shadow: 0 -2px 6px rgba(0,0,0,0.3); border-top: 2px solid #3a7bd5; flex-shrink: 0; position: relative; z-index: 5000; }
-        .start-button { background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%); color: #fff; padding: 4px 16px; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 0 #0a3a0a; border: 1px solid #4cb84c; flex-shrink: 0; touch-action: manipulation; }
-        #taskbar-items { display: flex; flex: 1; gap: 4px; overflow-x: auto; margin: 0 10px; padding: 2px 0; }
-        .taskbar-item { background: rgba(255,255,255,0.15); color: #fff; padding: 2px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 6px; height: 32px; touch-action: manipulation; }
-        .taskbar-item:hover { background: rgba(255,255,255,0.3); }
-        .taskbar-time { margin-left: auto; color: #fff; font-size: 14px; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 4px; border: 1px solid #3a7bd5; flex-shrink: 0; }
-        .start-menu { display: none; position: absolute; bottom: 52px; left: 8px; width: 280px; background: #f0f0f0; border: 2px solid #3a7bd5; border-radius: 8px 8px 0 0; padding: 12px 0; box-shadow: 0 6px 20px rgba(0,0,0,0.6); z-index: 6000; }
-        .start-menu.show { display: block; }
-        .start-menu-item { padding: 8px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; touch-action: manipulation; }
-        .start-menu-item:hover { background: #3a7bd5; color: #fff; }
-        .start-menu-item .item-icon { font-size: 22px; }
-        .start-menu hr { margin: 6px 12px; border: 1px solid #ccc; }
-        .xp-window { position: fixed; min-width: 300px; min-height: 140px; background: #ece9d8; border: 3px solid #3a6ea5; border-radius: 8px 8px 6px 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.7); display: flex; flex-direction: column; z-index: 2000; font-family: "Segoe UI", Tahoma, sans-serif; overflow: hidden; touch-action: none; }
-        .xp-window .window-titlebar { background: linear-gradient(90deg, #0a246a, #3a7bd5); color: #fff; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-radius: 6px 6px 0 0; font-weight: bold; font-size: 14px; height: 32px; touch-action: none; }
-        .xp-window .window-titlebar .title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .xp-window .window-titlebar .win-btns { display: flex; gap: 4px; flex-shrink: 0; }
-        .xp-window .window-titlebar .win-btns button { width: 26px; height: 26px; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; line-height: 22px; text-align: center; background: rgba(255,255,255,0.15); color: #fff; touch-action: manipulation; }
-        .xp-window .window-titlebar .win-btns button:hover { background: rgba(255,255,255,0.3); }
-        .xp-window .window-titlebar .win-btns .min-btn:hover { background: #5a7ab5; }
-        .xp-window .window-titlebar .win-btns .max-btn:hover { background: #6a8a5a; }
-        .xp-window .window-titlebar .win-btns .close-btn:hover { background: #c00; }
-        .xp-window .window-body { padding: 0; flex: 1; overflow: hidden; background: #fff; color: #000; display: flex; flex-direction: column; touch-action: auto; }
-        .player-container { flex: 1; display: flex; flex-direction: column; background: linear-gradient(145deg, #f5f0e8, #e8e0d0); touch-action: auto; }
-        .player-views { flex: 1; position: relative; overflow: hidden; touch-action: auto; }
-        .play-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.3s; background: linear-gradient(135deg, #f0ebe0, #ddd6c8); touch-action: auto; }
-        .play-view.hidden { opacity: 0; pointer-events: none; }
-        .play-view .cover { width: 180px
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+        }
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        #desktop-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            background-color: #3a6ea5;
+            background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a);
+            font-size: 14px;
+        }
+        #desktop-overlay.active {
+            display: flex;
+        }
+
+        .desktop-icons {
+            flex: 1;
+            padding: 20px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 30px 40px;
+        }
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            cursor: pointer;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            padding: 4px;
+            touch-action: manipulation;
+        }
+        .desktop-icon:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+        }
+        .desktop-icon .icon-img {
+            font-size: 48px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+        .desktop-icon .icon-label {
+            font-size: 13px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .taskbar {
+            height: 50px;
+            background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+            border-top: 2px solid #3a7bd5;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5000;
+        }
+        .start-button {
+            background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 0 #0a3a0a;
+            border: 1px solid #4cb84c;
+            flex-shrink: 0;
+            touch-action: manipulation;
+        }
+        #taskbar-items {
+            display: flex;
+            flex: 1;
+            gap: 4px;
+            overflow-x: auto;
+            margin: 0 10px;
+            padding: 2px 0;
+        }
+        .taskbar-item {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 2px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            touch-action: manipulation;
+        }
+        .taskbar-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .taskbar-time {
+            margin-left: auto;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid #3a7bd5;
+            flex-shrink: 0;
+        }
+
+        .start-menu {
+            display: none;
+            position: absolute;
+            bottom: 52px;
+            left: 8px;
+            width: 280px;
+            background: #f0f0f0;
+            border: 2px solid #3a7bd5;
+            border-radius: 8px 8px 0 0;
+            padding: 12px 0;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            z-index: 6000;
+        }
+        .start-menu.show {
+            display: block;
+        }
+        .start-menu-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            touch-action: manipulation;
+        }
+        .start-menu-item:hover {
+            background: #3a7bd5;
+            color: #fff;
+        }
+        .start-menu-item .item-icon {
+            font-size: 22px;
+        }
+        .start-menu hr {
+            margin: 6px 12px;
+            border: 1px solid #ccc;
+        }
+
+        .xp-window {
+            position: fixed;
+            min-width: 300px;
+            min-height: 140px;
+            background: #ece9d8;
+            border: 3px solid #3a6ea5;
+            border-radius: 8px 8px 6px 6px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            z-index: 2000;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .xp-window .window-titlebar {
+            background: linear-gradient(90deg, #0a246a, #3a7bd5);
+            color: #fff;
+            padding: 4px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+            font-size: 14px;
+            height: 32px;
+            touch-action: none;
+        }
+        .xp-window .window-titlebar .title-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .xp-window .window-titlebar .win-btns {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .xp-window .window-titlebar .win-btns button {
+            width: 26px;
+            height: 26px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            line-height: 22px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            touch-action: manipulation;
+        }
+        .xp-window .window-titlebar .win-btns button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .xp-window .window-titlebar .win-btns .min-btn:hover {
+            background: #5a7ab5;
+        }
+        .xp-window .window-titlebar .win-btns .max-btn:hover {
+            background: #6a8a5a;
+        }
+        .xp-window .window-titlebar .win-btns .close-btn:hover {
+            background: #c00;
+        }
+        .xp-window .window-body {
+            padding: 0;
+            flex: 1;
+            overflow: hidden;
+            background: #fff;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            touch-action: auto;
+        }
+
+        .player-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(145deg, #f5f0e8, #e8e0d0);
+            padding: 16px;
+            touch-action: auto;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-container iframe {
+            width: 100%;
+            max-width: 400px;
+            height: 86px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .player-container .tip {
+            color: #666;
+            font-size: 13px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        #hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 18px;
+            border-radius: 20px;
+            pointer-events: none;
+            transition: opacity 1s;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="three-container"></div>
+    <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回</div>
+
+    <div id="desktop-overlay">
+        <div class="desktop-icons">
+            <div class="desktop-icon" data-window="oc"><span class="icon-img">🧑‍🎤</span><span class="icon-label">我的 OC</span></div>
+            <div class="desktop-icon" data-window="gallery"><span class="icon-img">🖼️</span><span class="icon-label">图库</span></div>
+            <div class="desktop-icon" data-window="player"><span class="icon-img">🎵</span><span class="icon-label">千千静听</span></div>
+            <div class="desktop-icon" data-window="about"><span class="icon-img">📄</span><span class="icon-label">关于</span></div>
+            <div class="desktop-icon" data-window="trash"><span class="icon-img">🗑️</span><span class="icon-label">回收站</span></div>
+        </div>
+
+        <div class="taskbar">
+            <div class="start-button" id="startBtn">🪟 开始</div>
+            <div id="taskbar-items"></div>
+            <div class="taskbar-time" id="taskbarTime">12:00</div>
+        </div>
+
+        <div class="start-menu" id="startMenu">
+            <div class="start-menu-item" data-window="oc"><span class="item-icon">🧑‍🎤</span> 我的 OC</div>
+            <div class="start-menu-item" data-window="gallery"><span class="item-icon">🖼️</span> 图库</div>
+            <div class="start-menu-item" data-window="player"><span class="item-icon">🎵</span> 千千静听</div>
+            <div class="start-menu-item" data-window="about"><span class="item-icon">📄</span> 关于</div>
+            <div class="start-menu-item" data-window="trash"><span class="item-icon">🗑️</span> 回收站</div>
+            <hr />
+            <div class="start-menu-item" id="shutdownItem"><span class="item-icon">⏻</span> 返回房间</div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        // ============================================================
+        //  1. Three.js 场景（完整，与之前一致）
+        // ============================================================
+        import * as THREE from 'three';
+        const container = document.getElementById('three-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0a);
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.8, 4);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0x404060, 0.8));
+        const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
+        mainLight.position.set(3, 5, 2);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        scene.add(mainLight);
+        const screenLight = new THREE.PointLight(0x4488ff, 0.8);
+        screenLight.position.set(0, 1.2, 1.8);
+        scene.add(screenLight);
+        const lampLight = new THREE.PointLight(0xffaa55, 0.5);
+        lampLight.position.set(-0.8, 1.6, 0.5);
+        scene.add(lampLight);
+
+        const roomGroup = new THREE.Group();
+        scene.add(roomGroup);
+
+        // 地板
+        const woodTex = (() => {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#4a3728';
+            ctx.fillRect(0, 0, 256, 256);
+            for (let i = 0; i < 200; i++) {
+                ctx.strokeStyle = `rgba(90,70,50,${0.1+Math.random()*0.3})`;
+                ctx.lineWidth = 2 + Math.random() * 4;
+                ctx.beginPath();
+                const x = Math.random() * 256, y = Math.random() * 256;
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*40);
+                ctx.stroke();
+            }
+            return new THREE.CanvasTexture(c);
+        })();
+        woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
+        woodTex.repeat.set(4, 4);
+        const floorMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.7, metalness: 0.1 });
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -0.5;
+        floor.receiveShadow = true;
+        roomGroup.add(floor);
+
+        // 墙壁
+        const wallTex = (() => {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#2a1f1a';
+            ctx.fillRect(0, 0, 256, 256);
+            for (let i = 0; i < 20; i++) {
+                ctx.fillStyle = `rgba(60,45,35,${0.2+Math.random()*0.3})`;
+                ctx.fillRect(i*13, 0, 6, 256);
+            }
+            return new THREE.CanvasTexture(c);
+        })();
+        wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
+        wallTex.repeat.set(3, 2);
+        const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9, metalness: 0 });
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+        backWall.position.set(0, 1.25, -3);
+        roomGroup.add(backWall);
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.position.set(-3, 1.25, 0);
+        roomGroup.add(leftWall);
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.set(3, 1.25, 0);
+        roomGroup.add(rightWall);
+        const ceilMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.9 });
+        const ceil = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), ceilMat);
+        ceil.rotation.x = Math.PI / 2;
+        ceil.position.y = 3;
+        roomGroup.add(ceil);
+
+        // 桌子
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0x5a3d2b, roughness: 0.7, metalness: 0.1 });
+        const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.8), tableMat);
+        tableTop.position.set(0, 0.5, -0.6);
+        tableTop.castShadow = true;
+        tableTop.receiveShadow = true;
+        roomGroup.add(tableTop);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
+        [[-0.6,-0.3],[0.6,-0.3],[-0.6,0.3],[0.6,0.3]].forEach(([x,z]) => {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), legMat);
+            leg.position.set(x, 0.25, -0.6 + z);
+            leg.castShadow = true;
+            roomGroup.add(leg);
+        });
+
+        // 显示器
+        const monitorGroup = new THREE.Group();
+        monitorGroup.position.set(0, 0.9, -0.3);
+        roomGroup.add(monitorGroup);
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.3 });
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 0.15, 16), baseMat);
+        base.position.y = -0.08;
+        base.castShadow = true;
+        monitorGroup.add(base);
+        const shellMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.2 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.5), shellMat);
+        body.position.set(0, 0.3, 0);
+        body.castShadow = true;
+        monitorGroup.add(body);
+        const backMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.3 });
+        const backBump = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), backMat);
+        backBump.position.set(0, 0.3, -0.28);
+        backBump.scale.set(1, 0.85, 0.7);
+        backBump.castShadow = true;
+        monitorGroup.add(backBump);
+        const bezelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.1 });
+        const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, 0.06), bezelMat);
+        bezel.position.set(0, 0.3, 0.28);
+        monitorGroup.add(bezel);
+        const screenMat = new THREE.MeshStandardMaterial({
+            color: 0x4488ff,
+            emissive: 0x224488,
+            emissiveIntensity: 0.6,
+            roughness: 0.1,
+            metalness: 0.0,
+        });
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.45), screenMat);
+        screen.position.set(0, 0.3, 0.31);
+        monitorGroup.add(screen);
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0x88aaff,
+            transparent: true,
+            opacity: 0.08,
+            roughness: 0.0,
+            metalness: 0.9,
+        });
+        const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.42), glassMat);
+        glass.position.set(0, 0.3, 0.32);
+        monitorGroup.add(glass);
+        const clickTargets = [screen, glass, bezel];
+
+        // 海报
+        const posterColors = [[0x8b3a3a,-1.8,1.8,-2.9,0],[0x3a6b8b,1.8,2.0,-2.9,0],[0x6b8b3a,-2.9,1.5,-0.5,Math.PI/2],[0x8b6b3a,2.9,1.5,0.5,-Math.PI/2]];
+        posterColors.forEach(([color,x,y,z,rotY]) => {
+            const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
+            const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat);
+            poster.position.set(x, y, z);
+            poster.rotation.y = rotY || 0;
+            roomGroup.add(poster);
+        });
+        const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
+        const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8, 12), carpetMat);
+        carpet.rotation.x = -Math.PI / 2;
+        carpet.position.set(0.3, -0.49, 0.2);
+        roomGroup.add(carpet);
+
+        let rotationY = 0;
+        const maxRotation = 0.35;
+        document.addEventListener('mousemove', (e) => {
+            if (document.getElementById('desktop-overlay').classList.contains('active')) return;
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            rotationY = x * maxRotation;
+            roomGroup.rotation.y = rotationY;
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (document.getElementById('desktop-overlay').classList.contains('active')) return;
+            const touch = e.touches[0];
+            const x = (touch.clientX / window.innerWidth) * 2 - 1;
+            rotationY = x * maxRotation;
+            roomGroup.rotation.y = rotationY;
+        }, { passive: true });
+
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+        let isDesktopActive = false;
+
+        function onPointerDown(event) {
+            if (isDesktopActive) return;
+            const rect = renderer.domElement.getBoundingClientRect();
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+            if (clientX === undefined) return;
+            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(clickTargets);
+            if (intersects.length > 0) enterDesktop();
+        }
+        renderer.domElement.addEventListener('click', onPointerDown);
+        renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
+
+        function enterDesktop() {
+            isDesktopActive = true;
+            document.getElementById('desktop-overlay').classList.add('active');
+            document.getElementById('hint').style.opacity = '0';
+            updateTime();
+            setInterval(updateTime, 10000);
+        }
+
+        function exitDesktop() {
+            isDesktopActive = false;
+            document.getElementById('desktop-overlay').classList.remove('active');
+            document.getElementById('hint').style.opacity = '1';
+            document.querySelectorAll('.xp-window').forEach(w => w.remove());
+            document.querySelectorAll('.taskbar-item').forEach(b => b.remove());
+            window._windowInstances = {};
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isDesktopActive) exitDesktop();
+        });
+        document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('taskbarTime').textContent =
+                String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        }
+
+        // 开始菜单
+        const startBtn = document.getElementById('startBtn');
+        const startMenu = document.getElementById('startMenu');
+        startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('show'); });
+        document.addEventListener('click', () => startMenu.classList.remove('show'));
+        startMenu.addEventListener('click', (e) => e.stopPropagation());
+        document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
+            item.addEventListener('click', () => {
+                createWindow(item.dataset.window);
+                startMenu.classList.remove('show');
+            });
+        });
+        document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
+            icon.addEventListener('click', () => createWindow(icon.dataset.window));
+        });
+
+        // ============================================================
+        //  2. 窗口内容（其他窗口占位）
+        // ============================================================
+        const windowContents = {
+            oc: { title: '🧑‍🎤 我的 OC', content: `<div style="padding:20px;"><h2>角色名称</h2><p>在这里填你的OC信息</p></div>` },
+            gallery: { title: '🖼️ 图库', content: `<div style="padding:20px;"><p>图片占位</p></div>` },
+            about: { title: '📄 关于', content: `<div style="padding:20px;"><p>复古XP风格页面，支持触摸拖动</p></div>` },
+            trash: { title: '🗑️ 回收站', content: `<div style="padding:20px;"><p>空空如也～</p></div>` }
+        };
+
+        // ============================================================
+        //  3. 窗口管理器（包含播放器，使用网易云外链）
+        // ============================================================
+        let windowZIndex = 2000;
+        window._windowInstances = window._windowInstances || {};
+
+        // ---- 拖拽（使用 pointer 事件，已修复按钮问题） ----
+        function makeDraggable(element, handle) {
+            let startX, startY, origLeft, origTop, isDragging = false;
+            function onPointerDown(e) {
+                if (e.target.closest('button')) return;
+                if (e.button !== undefined && e.button !== 0 && e.pointerType !== 'touch') return;
+                const rect = element.getBoundingClientRect();
+                startX = e.clientX; startY = e.clientY;
+                origLeft = rect.left; origTop = rect.top;
+                isDragging = true;
+                element.style.left = origLeft + 'px';
+                element.style.top = origTop + 'px';
+                element.style.transform = 'none';
+                element.style.zIndex = ++windowZIndex;
+                element.setPointerCapture(e.pointerId);
+                e.preventDefault();
+                element.addEventListener('pointermove', onPointerMove);
+                element.addEventListener('pointerup', onPointerUp);
+                element.addEventListener('pointercancel', onPointerUp);
+            }
+            function onPointerMove(e) {
+                if (!isDragging) return;
+                element.style.left = (origLeft + e.clientX - startX) + 'px';
+                element.style.top = (origTop + e.clientY - startY) + 'px';
+                e.preventDefault();
+            }
+            function onPointerUp(e) {
+                if (isDragging) {
+                    isDragging = false;
+                    element.removeEventListener('pointermove', onPointerMove);
+                    element.removeEventListener('pointerup', onPointerUp);
+                    element.removeEventListener('pointercancel', onPointerUp);
+                }
+            }
+            handle.addEventListener('pointerdown', onPointerDown);
+        }
+
+        function createWindow(id) {
+            if (id === 'player') {
+                createPlayerWindow();
+                return;
+            }
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
+                win.style.display = 'flex';
+                win.style.zIndex = ++windowZIndex;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
+                }
+                return;
+            }
+            const data = windowContents[id];
+            if (!data) return;
+            const win = document.createElement('div');
+            win.className = 'xp-window';
+            win.dataset.windowId = id;
+            win.style.width = '460px';
+            win.style.left = (120 + Math.random() * 60) + 'px';
+            win.style.top = (80 + Math.random() * 60) + 'px';
+            win.style.zIndex = ++windowZIndex;
+            const titlebar = document.createElement('div');
+            titlebar.className = 'window-titlebar';
+            titlebar.innerHTML = `
+                <span class="title-text">${data.title}</span>
+                <div class="win-btns">
+                    <button class="min-btn">─</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            `;
+            win.appendChild(titlebar);
+            const body = document.createElement('div');
+            body.className = 'window-body';
+            body.style.padding = '16px 20px';
+            body.innerHTML = data.content;
+            win.appendChild(body);
+            document.body.appendChild(win);
+            window._windowInstances[id] = { window: win, taskbarBtn: null };
+            makeDraggable(win, titlebar);
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(id); });
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(id); });
+            win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
+            win.addEventListener('DOMNodeRemoved', () => {
+                if (window._windowInstances[id]) {
+                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                    delete window._windowInstances[id];
+                }
+            });
+        }
+
+        function closeWindow(id) {
+            if (window._windowInstances[id]) {
+                const win = window._windowInstances[id].window;
+                if (win) win.remove();
+                if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                delete window._windowInstances[id];
+            }
+        }
+
+        function minimizeWindow(id) {
+            const inst = window._windowInstances[id];
+            if (!inst) return;
+            const win = inst.window;
+            if (!win) return;
+            win.style.display = 'none';
+            const taskbarItems = document.getElementById('taskbar-items');
+            const btn = document.createElement('div');
+            btn.className = 'taskbar-item';
+            btn.dataset.windowId = id;
+            const title = win.querySelector('.title-text')?.textContent || id;
+            btn.textContent = title;
+            btn.addEventListener('pointerdown', () => {
+                win.style.display = 'flex';
+                win.style.zIndex = ++windowZIndex;
+                btn.remove();
+                inst.taskbarBtn = null;
+            });
+            taskbarItems.appendChild(btn);
+            inst.taskbarBtn = btn;
+        }
+
+        // ---- 播放器窗口 ----
+        function createPlayerWindow() {
+            if (window._windowInstances['player'] && window._windowInstances['player'].window) {
+                const win = window._windowInstances['player'].window;
+                win.style.display = 'flex';
+                win.style.zIndex = ++windowZIndex;
+                if (window._windowInstances['player'].taskbarBtn) {
+                    window._windowInstances['player'].taskbarBtn.remove();
+                    window._windowInstances['player'].taskbarBtn = null;
+                }
+                return;
+            }
+
+            const id = 'player';
+            const win = document.createElement('div');
+            win.className = 'xp-window';
+            win.dataset.windowId = id;
+            win.style.width = '520px';
+            win.style.height = '300px';
+            win.style.left = (100 + Math.random() * 80) + 'px';
+            win.style.top = (60 + Math.random() * 80) + 'px';
+            win.style.zIndex = ++windowZIndex;
+
+            const titlebar = document.createElement('div');
+            titlebar.className = 'window-titlebar';
+            titlebar.innerHTML = `
+                <span class="title-text">🎵 千千静听</span>
+                <div class="win-btns">
+                    <button class="min-btn">─</button>
+                    <button class="max-btn">☐</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            `;
+            win.appendChild(titlebar);
+
+            const body = document.createElement('div');
+            body.className = 'window-body';
+            // ★★★ 网易云外链播放器（替换 id 即可） ★★★
+            body.innerHTML = `
+                <div class="player-container">
+                    <iframe 
+                        src="//music.163.com/outchain/player?type=0&id=14273792576&auto=0&height=66" 
+                        allow="autoplay">
+                    </iframe>
+                    <div class="tip">💡 可替换歌单ID（当前为示例歌单）</div>
+                </div>
+            `;
+            win.appendChild(body);
+
+            document.body.appendChild(win);
+            window._windowInstances[id] = { window: win, taskbarBtn: null };
+
+            makeDraggable(win, titlebar);
+
+            let isMaximized = false;
+            const minBtn = titlebar.querySelector('.min-btn');
+            const maxBtn = titlebar.querySelector('.max-btn');
+            const closeBtn = titlebar.querySelector('.close-btn');
+
+            minBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(id); });
+            maxBtn.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                if (!isMaximized) {
+                    win._prevRect = win.getBoundingClientRect();
+                    win.style.left = '0'; win.style.top = '0';
+                    win.style.width = '100%'; win.style.height = '100%';
+                    win.style.borderRadius = '0';
+                    isMaximized = true;
+                    maxBtn.textContent = '❐';
+                } else {
+                    const rect = win._prevRect || { left: 100, top: 60, width: 520, height: 300 };
+                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
+                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
+                    win.style.borderRadius = '';
+                    isMaximized = false;
+                    maxBtn.textContent = '☐';
+                }
+            });
+            closeBtn.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                closeWindow(id);
+            });
+            win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
+            win.addEventListener('DOMNodeRemoved', () => {
+                if (window._windowInstances[id]) {
+                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
+                    delete window._windowInstances[id];
+                }
+            });
+        }
+
+        // ============================================================
+        //  4. 响应式 & 动画
+        // ============================================================
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        document.querySelectorAll('.desktop-icon, .taskbar-item, .start-menu-item').forEach(el => {
+            el.addEventListener('dragstart', (e) => e.preventDefault());
+        });
+
+        console.log('🖥️ 页面已加载，播放器使用网易云外链。');
+        console.log('🎵 如需更换歌单，修改 iframe 的 src 中的 id 参数。');
+    </script>
+</body>
+</html>
