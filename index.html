@@ -95,7 +95,7 @@
     </style>
 </head>
 <body>
-    <div id="status">⏳ 正在加载本地 Three.js ...</div>
+    <div id="status">⏳ 正在加载 Three.js (CDN) ...</div>
     <div id="three-container"></div>
     <div id="hint">🖱️ 左右滑动环顾 · 点地板让小人走 · 点屏幕进桌面</div>
 
@@ -125,11 +125,11 @@
         <div class="window-body" id="windowBody"></div>
     </div>
 
-    <!-- 引用本地 three.module.js -->
+    <!-- 使用 jsdelivr CDN，国内访问较快 -->
     <script type="importmap">
         {
             "imports": {
-                "three": "./three.module.js"
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
             }
         }
     </script>
@@ -144,9 +144,9 @@
         }
 
         try {
-            // 直接导入本地 three
+            // 直接导入 CDN 版本
             const THREE = await import('three');
-            setStatus('✅ Three.js 加载成功（本地）', 'success');
+            setStatus('✅ Three.js 加载成功 (CDN)', 'success');
             setTimeout(() => { statusEl.style.opacity = '0.5'; }, 2000);
 
             // ---------- 以下为完整场景代码 ----------
@@ -642,7 +642,7 @@
                 }
             });
 
-            console.log('✅ 全部加载成功（本地库）');
+            console.log('✅ 全部加载成功（CDN）');
         } catch (err) {
             setStatus(`❌ 加载失败: ${err.message || '未知错误'}`, 'error');
             console.error(err);
