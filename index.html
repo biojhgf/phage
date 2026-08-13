@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>复古房间 · 大屁股电脑</title>
+    <title>复古房间 · 行走小人</title>
     <style>
-        /* 全局重置 */
         body {
             margin: 0;
             overflow: hidden;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background-color: #000;
         }
-
-        /* Three.js 渲染器 */
         #three-container {
             position: fixed;
             top: 0;
@@ -22,8 +19,6 @@
             height: 100%;
             z-index: 1;
         }
-
-        /* 桌面覆盖层 (模拟 XP) */
         #desktop-overlay {
             position: fixed;
             top: 0;
@@ -41,8 +36,6 @@
         #desktop-overlay.active {
             display: flex;
         }
-
-        /* 桌面图标区 */
         .desktop-icons {
             flex: 1;
             padding: 20px 30px;
@@ -80,8 +73,6 @@
             padding: 2px 8px;
             border-radius: 4px;
         }
-
-        /* 任务栏 (底部) */
         .taskbar {
             height: 50px;
             background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%);
@@ -120,8 +111,6 @@
             border-radius: 4px;
             border: 1px solid #3a7bd5;
         }
-
-        /* 开始菜单弹出 */
         .start-menu {
             display: none;
             position: absolute;
@@ -153,8 +142,6 @@
         .start-menu-item .item-icon {
             font-size: 22px;
         }
-
-        /* XP 风格窗口 */
         .xp-window {
             position: fixed;
             top: 50%;
@@ -222,8 +209,6 @@
             color: #888;
             font-style: italic;
         }
-
-        /* 返回房间按钮 (桌面右上角) */
         .back-to-room {
             position: fixed;
             top: 20px;
@@ -242,8 +227,6 @@
         .back-to-room:hover {
             background: rgba(255,255,255,0.2);
         }
-
-        /* 提示 (房间中) */
         #hint {
             position: fixed;
             bottom: 30px;
@@ -262,80 +245,36 @@
     </style>
 </head>
 <body>
-
-    <!-- Three.js 渲染容器 -->
     <div id="three-container"></div>
+    <div id="hint">🖱️ 左右滑动环顾 · 点击地板让小人走 · 点屏幕进桌面</div>
 
-    <!-- 房间提示 -->
-    <div id="hint">🖱️ 左右移动鼠标环顾 · 点击电脑屏幕进入桌面</div>
-
-    <!-- 桌面覆盖层 -->
     <div id="desktop-overlay">
-        <!-- 桌面图标 -->
         <div class="desktop-icons">
-            <!-- 图标 1: 我的 OC -->
-            <div class="desktop-icon" data-window="oc">
-                <span class="icon-img">🧑‍🎤</span>
-                <span class="icon-label">我的 OC</span>
-            </div>
-            <!-- 图标 2: 图库 -->
-            <div class="desktop-icon" data-window="gallery">
-                <span class="icon-img">🖼️</span>
-                <span class="icon-label">图库</span>
-            </div>
-            <!-- 图标 3: 关于 -->
-            <div class="desktop-icon" data-window="about">
-                <span class="icon-img">📄</span>
-                <span class="icon-label">关于</span>
-            </div>
-            <!-- 图标 4: 回收站 (占位) -->
-            <div class="desktop-icon" data-window="trash">
-                <span class="icon-img">🗑️</span>
-                <span class="icon-label">回收站</span>
-            </div>
+            <div class="desktop-icon" data-window="oc"><span class="icon-img">🧑‍🎤</span><span class="icon-label">我的 OC</span></div>
+            <div class="desktop-icon" data-window="gallery"><span class="icon-img">🖼️</span><span class="icon-label">图库</span></div>
+            <div class="desktop-icon" data-window="about"><span class="icon-img">📄</span><span class="icon-label">关于</span></div>
+            <div class="desktop-icon" data-window="trash"><span class="icon-img">🗑️</span><span class="icon-label">回收站</span></div>
         </div>
-
-        <!-- 任务栏 -->
         <div class="taskbar">
             <div class="start-button" id="startBtn">🪟 开始</div>
-            <!-- 开始菜单 -->
             <div class="start-menu" id="startMenu">
-                <div class="start-menu-item" data-window="oc">
-                    <span class="item-icon">🧑‍🎤</span> 我的 OC
-                </div>
-                <div class="start-menu-item" data-window="gallery">
-                    <span class="item-icon">🖼️</span> 图库
-                </div>
-                <div class="start-menu-item" data-window="about">
-                    <span class="item-icon">📄</span> 关于
-                </div>
-                <div class="start-menu-item" data-window="trash">
-                    <span class="item-icon">🗑️</span> 回收站
-                </div>
+                <div class="start-menu-item" data-window="oc"><span class="item-icon">🧑‍🎤</span> 我的 OC</div>
+                <div class="start-menu-item" data-window="gallery"><span class="item-icon">🖼️</span> 图库</div>
+                <div class="start-menu-item" data-window="about"><span class="item-icon">📄</span> 关于</div>
+                <div class="start-menu-item" data-window="trash"><span class="item-icon">🗑️</span> 回收站</div>
                 <hr style="margin: 6px 12px; border:1px solid #ccc;" />
-                <div class="start-menu-item" id="shutdownItem">
-                    <span class="item-icon">⏻</span> 返回房间
-                </div>
+                <div class="start-menu-item" id="shutdownItem"><span class="item-icon">⏻</span> 返回房间</div>
             </div>
             <div class="taskbar-time" id="taskbarTime">12:00</div>
         </div>
     </div>
-
-    <!-- 返回房间按钮 (桌面时显示) -->
     <button class="back-to-room" id="backBtn">🏠 返回房间</button>
 
-    <!-- XP 窗口 (多个复用同一个) -->
     <div class="xp-window" id="xpWindow">
-        <div class="window-titlebar">
-            <span id="windowTitle">窗口</span>
-            <button class="close-btn" id="windowClose">✕</button>
-        </div>
-        <div class="window-body" id="windowBody">
-            <!-- 内容由 JS 动态填充 -->
-        </div>
+        <div class="window-titlebar"><span id="windowTitle">窗口</span><button class="close-btn" id="windowClose">✕</button></div>
+        <div class="window-body" id="windowBody"></div>
     </div>
 
-    <!-- 使用 importmap 加载 Three.js（原始官方 CDN） -->
     <script type="importmap">
         {
             "imports": {
@@ -345,17 +284,15 @@
     </script>
 
     <script type="module">
-        // ----- 导入 Three.js -----
+        // ---------- 引入 Three.js ----------
         import * as THREE from 'three';
 
-        // ----- 1. 基本场景、相机、渲染器 -----
+        // ---------- 1. 基础场景 ----------
         const container = document.getElementById('three-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a0a);
-
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 1.8, 4);
-
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
@@ -364,30 +301,27 @@
         renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
 
-        // ----- 2. 灯光 -----
+        // ---------- 2. 灯光 ----------
         const ambient = new THREE.AmbientLight(0x404060, 0.8);
         scene.add(ambient);
-
         const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
         mainLight.position.set(3, 5, 2);
         mainLight.castShadow = true;
         mainLight.shadow.mapSize.width = 1024;
         mainLight.shadow.mapSize.height = 1024;
         scene.add(mainLight);
-
         const screenLight = new THREE.PointLight(0x4488ff, 0.8);
         screenLight.position.set(0, 1.2, 1.8);
         scene.add(screenLight);
-
         const lampLight = new THREE.PointLight(0xffaa55, 0.5);
         lampLight.position.set(-0.8, 1.6, 0.5);
         scene.add(lampLight);
 
-        // ----- 3. 构建房间 (内部) -----
+        // ---------- 3. 房间 ----------
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        // 地板 - 深色木纹
+        // 地板（标记为地板，用于点击检测）
         function createWoodTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -410,15 +344,15 @@
         const woodTex = createWoodTexture();
         woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
         woodTex.repeat.set(4, 4);
-
         const floorMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.7, metalness: 0.1 });
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = -0.5;
         floor.receiveShadow = true;
+        floor.userData.isFloor = true;   // 关键标记
         roomGroup.add(floor);
 
-        // 墙壁
+        // 墙壁（略，沿用之前）
         function createWallTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -435,37 +369,32 @@
         const wallTex = createWallTexture();
         wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
         wallTex.repeat.set(3, 2);
-
         const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.9, metalness: 0 });
 
         const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         backWall.position.set(0, 1.25, -3);
         roomGroup.add(backWall);
-
         const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         leftWall.rotation.y = Math.PI / 2;
         leftWall.position.set(-3, 1.25, 0);
         roomGroup.add(leftWall);
-
         const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
         rightWall.rotation.y = -Math.PI / 2;
         rightWall.position.set(3, 1.25, 0);
         roomGroup.add(rightWall);
-
         const ceilMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.9 });
         const ceil = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), ceilMat);
         ceil.rotation.x = Math.PI / 2;
         ceil.position.y = 3;
         roomGroup.add(ceil);
 
-        // ----- 4. 家具 -----
+        // 桌子
         const tableMat = new THREE.MeshStandardMaterial({ color: 0x5a3d2b, roughness: 0.7, metalness: 0.1 });
         const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.8), tableMat);
         tableTop.position.set(0, 0.5, -0.6);
         tableTop.castShadow = true;
         tableTop.receiveShadow = true;
         roomGroup.add(tableTop);
-
         const legMat = new THREE.MeshStandardMaterial({ color: 0x3a281c, roughness: 0.8 });
         const legPositions = [[-0.6, -0.3], [0.6, -0.3], [-0.6, 0.3], [0.6, 0.3]];
         legPositions.forEach(([x, z]) => {
@@ -475,35 +404,30 @@
             roomGroup.add(leg);
         });
 
-        // ----- 5. 大屁股 CRT 显示器 -----
+        // 显示器（大屁股）
         const monitorGroup = new THREE.Group();
         monitorGroup.position.set(0, 0.9, -0.3);
         roomGroup.add(monitorGroup);
-
         const baseMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.3 });
         const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 0.15, 16), baseMat);
         base.position.y = -0.08;
         base.castShadow = true;
         monitorGroup.add(base);
-
         const shellMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.2 });
         const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.5), shellMat);
         body.position.set(0, 0.3, 0);
         body.castShadow = true;
         monitorGroup.add(body);
-
         const backMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.3 });
         const backBump = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), backMat);
         backBump.position.set(0, 0.3, -0.28);
         backBump.scale.set(1, 0.85, 0.7);
         backBump.castShadow = true;
         monitorGroup.add(backBump);
-
         const bezelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.1 });
         const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, 0.06), bezelMat);
         bezel.position.set(0, 0.3, 0.28);
         monitorGroup.add(bezel);
-
         const screenMat = new THREE.MeshStandardMaterial({
             color: 0x4488ff,
             emissive: 0x224488,
@@ -514,7 +438,6 @@
         const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.45), screenMat);
         screen.position.set(0, 0.3, 0.31);
         monitorGroup.add(screen);
-
         const glassMat = new THREE.MeshStandardMaterial({
             color: 0x88aaff,
             transparent: true,
@@ -525,35 +448,28 @@
         const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.42), glassMat);
         glass.position.set(0, 0.3, 0.32);
         monitorGroup.add(glass);
-
+        // 点击屏幕检测的目标
         const clickTargets = [screen, glass, bezel];
 
-        const stickerMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200, emissiveIntensity: 0.2 });
-        const sticker = new THREE.Mesh(new THREE.CircleGeometry(0.06, 8), stickerMat);
-        sticker.position.set(0.2, 0.52, 0.31);
-        monitorGroup.add(sticker);
-
-        // ----- 6. 装饰：墙上海报 -----
+        // 装饰
         function createPoster(color, x, y, z, rotY) {
             const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8, side: THREE.DoubleSide });
             const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat);
             poster.position.set(x, y, z);
             poster.rotation.y = rotY || 0;
             roomGroup.add(poster);
-            return poster;
         }
         createPoster(0x8b3a3a, -1.8, 1.8, -2.9, 0);
         createPoster(0x3a6b8b, 1.8, 2.0, -2.9, 0);
         createPoster(0x6b8b3a, -2.9, 1.5, -0.5, Math.PI/2);
         createPoster(0x8b6b3a, 2.9, 1.5, 0.5, -Math.PI/2);
-
         const carpetMat = new THREE.MeshStandardMaterial({ color: 0x4a2a1a, roughness: 0.9 });
         const carpet = new THREE.Mesh(new THREE.CircleGeometry(0.8, 12), carpetMat);
         carpet.rotation.x = -Math.PI / 2;
         carpet.position.set(0.3, -0.49, 0.2);
         roomGroup.add(carpet);
 
-        // ========== 新增：几何小人 ==========
+        // ---------- 4. 几何小人 ----------
         const characterGroup = new THREE.Group();
         characterGroup.position.set(0.3, -0.1, 0.6);
         roomGroup.add(characterGroup);
@@ -566,28 +482,25 @@
         bodyMesh.castShadow = true;
         characterGroup.add(bodyMesh);
 
-        // 头部（球）
+        // 头部
         const headMat = new THREE.MeshStandardMaterial({ color: 0xf5d0b0, roughness: 0.4 });
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 12), headMat);
         head.position.set(0, 0.45, 0);
         head.castShadow = true;
         characterGroup.add(head);
 
-        // 头发：黑色卷发（用多个小球体沿螺旋路径）
+        // 黑色长卷发（小球螺旋排列）
         const hairMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
         const hairPositions = [];
-        const turns = 3;
-        const steps = 20;
-        for (let i = 0; i < steps; i++) {
-            const t = i / steps;
-            const angle = t * Math.PI * 2 * turns;
+        for (let i = 0; i < 20; i++) {
+            const t = i / 20;
+            const angle = t * Math.PI * 2 * 3;
             const radius = 0.15 + t * 0.08;
             const x = Math.sin(angle) * radius;
             const z = Math.cos(angle) * radius * 0.6;
             const y = 0.45 + t * 0.3 - 0.05;
             hairPositions.push({x, y, z});
         }
-        // 也加一些散落在额前
         for (let i = 0; i < 12; i++) {
             const t = i / 12;
             const angle = t * Math.PI * 2 * 2;
@@ -603,7 +516,7 @@
             characterGroup.add(sphere);
         });
 
-        // 眼睛（两个小白点）
+        // 眼睛
         const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
         const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
         const eyePos = [[-0.05, 0.48, 0.12], [0.05, 0.48, 0.12]];
@@ -616,7 +529,7 @@
             characterGroup.add(pupil);
         });
 
-        // 脚（两个半圆：用压扁的半球，旋转使平面朝下）
+        // 脚（半圆）
         const footMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.7 });
         const footPos = [[-0.08, 0, 0.04], [0.08, 0, 0.04]];
         footPos.forEach(pos => {
@@ -627,7 +540,7 @@
             characterGroup.add(foot);
         });
 
-        // 手（两个小球）
+        // 手（小球）
         const handMat = new THREE.MeshStandardMaterial({ color: 0xf5d0b0, roughness: 0.4 });
         const handPos = [[-0.2, 0.2, 0], [0.2, 0.2, 0]];
         handPos.forEach(pos => {
@@ -636,56 +549,60 @@
             characterGroup.add(hand);
         });
 
-        // 保存小人部件以便动画（身体和头部用于浮动）
-        const charParts = {
-            group: characterGroup,
-            body: bodyMesh,
-            head: head,
-        };
-
-        // 行走目标位置
+        // ---------- 5. 行走逻辑 ----------
         let targetPos = characterGroup.position.clone();
         let isMoving = false;
-        const moveSpeed = 0.6; // 单位/秒
+        const moveSpeed = 0.6;
 
-        // ----- 点击事件（区分地板和屏幕）-----
+        // ---------- 6. 交互（点击地板 / 点击屏幕） ----------
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
         let isDesktopActive = false;
 
         function onPointerDown(event) {
             if (isDesktopActive) return;
+            // 获取点击位置
             const rect = renderer.domElement.getBoundingClientRect();
-            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
-            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
-            if (clientX === undefined) return;
+            let clientX, clientY;
+            if (event.touches) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+                event.preventDefault(); // 防止滚动
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
             pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
             pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
             raycaster.setFromCamera(pointer, camera);
-            // 检测所有物体（除了小人自身）
+
+            // 收集所有可点击物体（排除小人自身）
             const allObjects = [];
             roomGroup.children.forEach(child => {
                 if (child === characterGroup) return;
-                child.children.forEach(grandChild => {
-                    if (grandChild.isMesh) allObjects.push(grandChild);
-                });
-                if (child.isMesh) allObjects.push(child);
+                if (child.isMesh) {
+                    allObjects.push(child);
+                } else {
+                    // 如果是 Group，取其子物体
+                    child.children.forEach(grandChild => {
+                        if (grandChild.isMesh) allObjects.push(grandChild);
+                    });
+                }
             });
-            const intersects = raycaster.intersectObjects(allObjects);
 
+            const intersects = raycaster.intersectObjects(allObjects);
             if (intersects.length > 0) {
                 const hit = intersects[0];
                 // 检查是否点击到地板
                 if (hit.object.userData.isFloor) {
-                    // 计算点击点在房间组局部坐标
+                    // 将点击点转换到房间局部坐标
                     const worldPoint = hit.point;
                     const localPoint = roomGroup.worldToLocal(worldPoint.clone());
-                    // 限制范围，避免走出房间
+                    // 限制范围
                     const limit = 2.5;
                     localPoint.x = Math.max(-limit, Math.min(limit, localPoint.x));
                     localPoint.z = Math.max(-limit, Math.min(limit, localPoint.z));
-                    // 设置目标（y固定在地面）
                     targetPos.set(localPoint.x, -0.1, localPoint.z);
                     isMoving = true;
                     return;
@@ -699,10 +616,11 @@
             }
         }
 
+        // 绑定事件（同时支持鼠标和触摸）
         renderer.domElement.addEventListener('click', onPointerDown);
-        renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
+        renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: false });
 
-        // ----- 进入/退出桌面（和之前一样）-----
+        // ---------- 7. 桌面相关功能（保持不变） ----------
         function enterDesktop() {
             isDesktopActive = true;
             document.getElementById('desktop-overlay').classList.add('active');
@@ -730,7 +648,7 @@
             document.getElementById('taskbarTime').textContent = `${h}:${m}`;
         }
 
-        // ----- 桌面功能（和之前一样）-----
+        // 开始菜单
         const startBtn = document.getElementById('startBtn');
         const startMenu = document.getElementById('startMenu');
         startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('show'); });
@@ -746,6 +664,7 @@
             icon.addEventListener('click', () => openWindow(icon.dataset.window));
         });
 
+        // 窗口
         const xpWindow = document.getElementById('xpWindow');
         const windowTitle = document.getElementById('windowTitle');
         const windowBody = document.getElementById('windowBody');
@@ -753,48 +672,19 @@
         const windowContents = {
             oc: {
                 title: '🧑‍🎤 我的 OC',
-                content: `
-                    <h2>角色名称</h2>
-                    <p><strong>名字：</strong>（在这里填你的 OC 名字）</p>
-                    <p><strong>年龄：</strong>（填年龄）</p>
-                    <p><strong>简介：</strong>这是一个充满个性的角色，拥有独特的背景故事。</p>
-                    <p><em>（你可以在这里替换成自己的文字和图片）</em></p>
-                    <div style="background:#f0f0f0; padding:20px; text-align:center; border-radius:8px; margin:10px 0;">
-                        🖼️ 图片占位
-                    </div>
-                    <p>更多内容等你来填充！</p>
-                `
+                content: `<h2>角色名称</h2><p><strong>名字：</strong>（在这里填你的 OC 名字）</p><p><strong>年龄：</strong>（填年龄）</p><p><strong>简介：</strong>这是一个充满个性的角色，拥有独特的背景故事。</p><p><em>（你可以在这里替换成自己的文字和图片）</em></p><div style="background:#f0f0f0; padding:20px; text-align:center; border-radius:8px; margin:10px 0;">🖼️ 图片占位</div><p>更多内容等你来填充！</p>`
             },
             gallery: {
                 title: '🖼️ 图库',
-                content: `
-                    <h2>图库</h2>
-                    <p>这里展示你的 OC 相关图片。</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin:10px 0;">
-                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片1</div>
-                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片2</div>
-                        <div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片3</div>
-                    </div>
-                    <p class="placeholder-text">（将上面的占位替换为你的图片链接）</p>
-                `
+                content: `<h2>图库</h2><p>这里展示你的 OC 相关图片。</p><div style="display:flex; flex-wrap:wrap; gap:10px; margin:10px 0;"><div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片1</div><div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片2</div><div style="background:#ddd; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:8px;">📷 图片3</div></div><p class="placeholder-text">（将上面的占位替换为你的图片链接）</p>`
             },
             about: {
                 title: '📄 关于',
-                content: `
-                    <h2>关于这个页面</h2>
-                    <p>这是一个复古风格的个人展示页，灵感来自 2000 年代的 Windows XP 和 CRT 显示器。</p>
-                    <p>你可以自由编辑此窗口的内容，添加自己的 OC 信息。</p>
-                    <p>所有代码都在一个 HTML 文件中，方便管理。</p>
-                    <p style="color:#888; font-size:12px; margin-top:20px;">Made with ❤️ and Three.js</p>
-                `
+                content: `<h2>关于这个页面</h2><p>这是一个复古风格的个人展示页，灵感来自 2000 年代的 Windows XP 和 CRT 显示器。</p><p>你可以自由编辑此窗口的内容，添加自己的 OC 信息。</p><p>所有代码都在一个 HTML 文件中，方便管理。</p><p style="color:#888; font-size:12px; margin-top:20px;">Made with ❤️ and Three.js</p>`
             },
             trash: {
                 title: '🗑️ 回收站',
-                content: `
-                    <h2>回收站</h2>
-                    <p>这里是空的…… 就像你的待办清单一样 😄</p>
-                    <p style="color:#aaa; text-align:center; padding:40px 0;">📭</p>
-                `
+                content: `<h2>回收站</h2><p>这里是空的…… 就像你的待办清单一样 😄</p><p style="color:#aaa; text-align:center; padding:40px 0;">📭</p>`
             }
         };
         function openWindow(id) {
@@ -807,7 +697,7 @@
         }
         windowClose.addEventListener('click', () => xpWindow.classList.remove('active'));
 
-        // 窗口拖拽（不变）
+        // 窗口拖拽
         let dragData = null;
         const titlebar = xpWindow.querySelector('.window-titlebar');
         titlebar.addEventListener('mousedown', (e) => {
@@ -831,7 +721,7 @@
             document.removeEventListener('mouseup', stopDrag);
         }
 
-        // 视角旋转（和之前一样）
+        // ---------- 8. 视角旋转 ----------
         let rotationY = 0;
         const maxRotation = 0.35;
         document.addEventListener('mousemove', (e) => {
@@ -848,46 +738,50 @@
             roomGroup.rotation.y = rotationY;
         }, { passive: true });
 
-        // ----- 动画循环（包含行走和浮动）-----
+        // ---------- 9. 动画循环 ----------
         let clock = new THREE.Clock();
 
         function animate() {
-            const delta = clock.getDelta();
-            // 移动小人
-            if (isMoving) {
-                const currentPos = characterGroup.position;
-                const dx = targetPos.x - currentPos.x;
-                const dz = targetPos.z - currentPos.z;
-                const dist = Math.sqrt(dx*dx + dz*dz);
-                if (dist < 0.02) {
-                    isMoving = false;
-                    currentPos.x = targetPos.x;
-                    currentPos.z = targetPos.z;
-                } else {
-                    const step = moveSpeed * delta;
-                    const ratio = Math.min(1, step / dist);
-                    currentPos.x += dx * ratio;
-                    currentPos.z += dz * ratio;
-                    // 面向移动方向
-                    const angle = Math.atan2(dx, dz);
-                    characterGroup.rotation.y = angle;
+            try {
+                const delta = clock.getDelta();
+                // 移动小人
+                if (isMoving) {
+                    const currentPos = characterGroup.position;
+                    const dx = targetPos.x - currentPos.x;
+                    const dz = targetPos.z - currentPos.z;
+                    const dist = Math.sqrt(dx*dx + dz*dz);
+                    if (dist < 0.02) {
+                        isMoving = false;
+                        currentPos.x = targetPos.x;
+                        currentPos.z = targetPos.z;
+                    } else {
+                        const step = moveSpeed * delta;
+                        const ratio = Math.min(1, step / dist);
+                        currentPos.x += dx * ratio;
+                        currentPos.z += dz * ratio;
+                        // 面向移动方向
+                        const angle = Math.atan2(dx, dz);
+                        characterGroup.rotation.y = angle;
+                    }
                 }
-            }
 
-            // 行走浮动（上下颠簸）
-            if (isMoving) {
-                const bounce = Math.sin(performance.now() / 150) * 0.015;
-                characterGroup.position.y = -0.1 + bounce;
-            } else {
-                characterGroup.position.y = -0.1;
-            }
+                // 行走浮动
+                if (isMoving) {
+                    const bounce = Math.sin(performance.now() / 150) * 0.015;
+                    characterGroup.position.y = -0.1 + bounce;
+                } else {
+                    characterGroup.position.y = -0.1;
+                }
 
-            renderer.render(scene, camera);
+                renderer.render(scene, camera);
+            } catch (err) {
+                console.error('动画循环出错:', err);
+            }
             requestAnimationFrame(animate);
         }
         animate();
 
-        // 自适应
+        // ---------- 10. 自适应 ----------
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -904,7 +798,7 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('✅ 复古房间 + 行走小人已加载！点击地板让小人走动。');
+        console.log('✅ 带小人的版本已加载！点地板让他走。');
     </script>
 </body>
 </html>
