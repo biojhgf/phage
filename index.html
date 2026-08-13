@@ -11,6 +11,13 @@
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background-color: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); font-size: 14px; }
         #desktop-overlay.active { display: flex; }
+        /* 桌面宠物容器 */
+        #desktop-pets { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
+        #desktop-pets .pet { position: absolute; pointer-events: auto; cursor: grab; user-select: none; }
+        #desktop-pets .pet:active { cursor: grabbing; }
+        #desktop-pets .pet img { max-width: 100px; max-height: 100px; display: block; }
+        #desktop-pets .pet .bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #fff; border: 2px solid #333; border-radius: 12px; padding: 6px 12px; font-size: 14px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: none; pointer-events: none; }
+        #desktop-pets .pet .bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 8px solid transparent; border-top-color: #fff; }
         .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
         .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; }
         .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 6px; }
@@ -55,50 +62,29 @@
         .gallery-grid .img-item img { width: 100%; height: 100%; object-fit: cover; }
         .gallery-grid .img-item .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(200,0,0,0.8); color: #fff; border: none; border-radius: 4px; cursor: pointer; padding: 2px 6px; font-size: 12px; }
         #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 14px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 20px; pointer-events: none; transition: opacity 1s; font-family: sans-serif; }
-
-        /* ===== 自定义弹窗（XP风格） ===== */
-        .xp-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            backdrop-filter: blur(2px);
-        }
-        .xp-modal {
-            background: #ece9d8;
-            border: 3px solid #3a6ea5;
-            border-radius: 8px;
-            padding: 20px 24px;
-            min-width: 320px;
-            max-width: 90%;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
-            font-family: "Segoe UI", Tahoma, sans-serif;
-        }
-        .xp-modal h3 { margin: 0 0 12px 0; color: #0a246a; }
-        .xp-modal label { display: block; margin: 8px 0 4px 0; font-weight: bold; }
-        .xp-modal input[type="text"], .xp-modal input[type="color"] {
-            width: 100%; padding: 4px; border: 2px inset #ccc; background: #fff;
-        }
-        .xp-modal .modal-btns {
-            display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;
-        }
-        .xp-modal .modal-btns button {
-            background: #ddd; border: 2px outset #fff; padding: 4px 16px; cursor: pointer;
-        }
-        .xp-modal .modal-btns button:active { border-style: inset; }
-        .xp-modal .modal-btns .primary { background: #3a7bd5; color: #fff; border-color: #1a4a9f; }
-
-        /* ===== 全局自定义样式将动态插入 ===== */
-        #global-custom-style { display: none; }
+        /* 自定义模态框 */
+        .xp-modal-overlay { position: fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(2px); }
+        .xp-modal { background:#ece9d8; border:3px solid #3a6ea5; border-radius:8px; padding:20px 24px; min-width:320px; max-width:90%; box-shadow:0 8px 30px rgba(0,0,0,0.7); font-family:"Segoe UI",Tahoma,sans-serif; }
+        .xp-modal h3 { margin:0 0 12px 0; color:#0a246a; }
+        .xp-modal label { display:block; margin:8px 0 4px 0; font-weight:bold; }
+        .xp-modal input[type="text"], .xp-modal input[type="color"] { width:100%; padding:4px; border:2px inset #ccc; background:#fff; }
+        .xp-modal .modal-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+        .xp-modal .modal-btns button { background:#ddd; border:2px outset #fff; padding:4px 16px; cursor:pointer; }
+        .xp-modal .modal-btns button:active { border-style:inset; }
+        .xp-modal .modal-btns .primary { background:#3a7bd5; color:#fff; border-color:#1a4a9f; }
+        /* 美化预设的样式容器 */
+        .custom-style-container { display: none; }
+        /* 壁纸预览 */
+        .wallpaper-preview { width: 100%; height: 80px; border: 2px inset #ccc; background-size: cover; background-position: center; margin: 8px 0; }
     </style>
 </head>
 <body>
 
     <div id="three-container"></div>
     <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回</div>
+
+    <!-- 桌面宠物容器 -->
+    <div id="desktop-pets"></div>
 
     <div id="desktop-overlay">
         <div class="desktop-icons">
@@ -140,7 +126,7 @@
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景（完整）
+        //  1. Three.js 场景（完整构建）
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -362,6 +348,12 @@
             document.getElementById('hint').style.opacity = '0';
             updateTime();
             setInterval(updateTime, 10000);
+            // 加载壁纸
+            loadWallpaper();
+            // 加载宠物
+            loadPets();
+            // 加载全局CSS
+            loadGlobalCss();
         }
 
         function exitDesktop() {
@@ -401,11 +393,12 @@
         });
 
         // ============================================================
-        //  2. 窗口管理（支持最大化、边界限制、事件委托）
+        //  2. 窗口管理（完全重构，确保按钮永远有效）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
 
+        // ---- 拖拽函数（带边界限制） ----
         function makeDraggable(element, handle) {
             let startX, startY, origLeft, origTop, isDragging = false;
             function onPointerDown(e) {
@@ -429,7 +422,6 @@
                 if (!isDragging) return;
                 let newLeft = origLeft + e.clientX - startX;
                 let newTop = origTop + e.clientY - startY;
-                // 边界限制
                 const titlebarHeight = 32;
                 const maxX = window.innerWidth - 20;
                 const maxY = window.innerHeight - 20;
@@ -450,113 +442,7 @@
             handle.addEventListener('pointerdown', onPointerDown);
         }
 
-        // 通用窗口创建（可编辑内容自动保存）
-        function createGenericWindow(id, customTitle, contentHtml) {
-            if (window._windowInstances[id] && window._windowInstances[id].window) {
-                const win = window._windowInstances[id].window;
-                win.style.display = 'flex';
-                win.style.zIndex = ++windowZIndex;
-                if (window._windowInstances[id].taskbarBtn) {
-                    window._windowInstances[id].taskbarBtn.remove();
-                    window._windowInstances[id].taskbarBtn = null;
-                }
-                const editable = win.querySelector('.editable-content');
-                if (editable) editable.focus();
-                return;
-            }
-            const data = windowContents[id];
-            if (!data && !contentHtml) return;
-            const title = customTitle || data.title;
-            const content = contentHtml || data.content;
-            const win = document.createElement('div');
-            win.className = 'xp-window';
-            win.dataset.windowId = id;
-            win.style.width = '460px';
-            win.style.left = (120 + Math.random() * 60) + 'px';
-            win.style.top = (80 + Math.random() * 60) + 'px';
-            win.style.zIndex = ++windowZIndex;
-            const titlebar = document.createElement('div');
-            titlebar.className = 'window-titlebar';
-            titlebar.innerHTML = `
-                <span class="title-text">${title}</span>
-                <div class="win-btns">
-                    <button class="min-btn">─</button>
-                    <button class="max-btn">☐</button>
-                    <button class="close-btn">✕</button>
-                </div>
-            `;
-            win.appendChild(titlebar);
-            const body = document.createElement('div');
-            body.className = 'window-body';
-            if (id === 'oc' || id === 'about' || id === 'trash') {
-                body.innerHTML = `<div class="app-container"><div class="editable-content" contenteditable="true" data-savekey="${id}_content">${content}</div></div>`;
-                const saved = localStorage.getItem(`editable_${id}`);
-                if (saved) {
-                    const editable = body.querySelector('.editable-content');
-                    if (editable) editable.innerHTML = saved;
-                }
-                body.addEventListener('input', (e) => {
-                    const editable = e.target.closest('.editable-content');
-                    if (editable) {
-                        localStorage.setItem(`editable_${id}`, editable.innerHTML);
-                    }
-                });
-                body.addEventListener('blur', (e) => {
-                    const editable = e.target.closest('.editable-content');
-                    if (editable) {
-                        localStorage.setItem(`editable_${id}`, editable.innerHTML);
-                    }
-                }, true);
-            } else {
-                body.innerHTML = content;
-            }
-            win.appendChild(body);
-            document.body.appendChild(win);
-            window._windowInstances[id] = { window: win, taskbarBtn: null };
-            makeDraggable(win, titlebar);
-
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                e.stopPropagation();
-                if (btn.classList.contains('min-btn')) {
-                    minimizeWindow(id);
-                } else if (btn.classList.contains('max-btn')) {
-                    toggleMaximize(win);
-                } else if (btn.classList.contains('close-btn')) {
-                    closeWindow(id);
-                }
-            });
-
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 120, top: 80, width: 460, height: 300 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
-            win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
-            win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
-                }
-            });
-        }
-
+        // ---- 窗口核心操作 ----
         function closeWindow(id) {
             if (window._windowInstances[id]) {
                 const win = window._windowInstances[id].window;
@@ -586,15 +472,139 @@
             taskbarItems.appendChild(btn);
             inst.taskbarBtn = btn;
         }
+        function toggleMaximize(win) {
+            if (!win._isMaximized) {
+                win._prevRect = win.getBoundingClientRect();
+                win.style.left = '0'; win.style.top = '0';
+                win.style.width = '100%'; win.style.height = '100%';
+                win.style.borderRadius = '0';
+                win._isMaximized = true;
+                const maxBtn = win.querySelector('.max-btn');
+                if (maxBtn) maxBtn.textContent = '❐';
+            } else {
+                const rect = win._prevRect || { left: 100, top: 60, width: 460, height: 300 };
+                win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
+                win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
+                win.style.borderRadius = '';
+                win._isMaximized = false;
+                const maxBtn = win.querySelector('.max-btn');
+                if (maxBtn) maxBtn.textContent = '☐';
+            }
+        }
 
-        // 窗口内容定义（用于可编辑窗口的初始内容）
+        // ---- 通用的窗口创建引擎（支持自定义HTML/CSS美化） ----
+        function createWindowEngine(id, title, contentHtml, extraClass) {
+            if (window._windowInstances[id] && window._windowInstances[id].window) {
+                const win = window._windowInstances[id].window;
+                win.style.display = 'flex';
+                win.style.zIndex = ++windowZIndex;
+                if (window._windowInstances[id].taskbarBtn) {
+                    window._windowInstances[id].taskbarBtn.remove();
+                    window._windowInstances[id].taskbarBtn = null;
+                }
+                return;
+            }
+
+            let finalContent = contentHtml;
+            const customData = getCustomization(id);
+            if (customData && customData.html) {
+                finalContent = customData.html;
+            }
+
+            const win = document.createElement('div');
+            win.className = 'xp-window' + (extraClass ? ' ' + extraClass : '');
+            win.dataset.windowId = id;
+            win.style.width = '500px';
+            win.style.height = '400px';
+            win.style.left = (100 + Math.random() * 80) + 'px';
+            win.style.top = (60 + Math.random() * 80) + 'px';
+            win.style.zIndex = ++windowZIndex;
+
+            const titlebar = document.createElement('div');
+            titlebar.className = 'window-titlebar';
+            titlebar.innerHTML = `
+                <span class="title-text">${title}</span>
+                <div class="win-btns">
+                    <button class="min-btn">─</button>
+                    <button class="max-btn">☐</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            `;
+            win.appendChild(titlebar);
+
+            const body = document.createElement('div');
+            body.className = 'window-body';
+            if (finalContent && (finalContent.includes('<html') || finalContent.includes('<body'))) {
+                const bodyMatch = finalContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                if (bodyMatch && bodyMatch[1]) {
+                    body.innerHTML = bodyMatch[1];
+                } else {
+                    body.innerHTML = finalContent;
+                }
+            } else {
+                body.innerHTML = finalContent || `<div class="app-container"><p>内容加载中...</p></div>`;
+            }
+            win.appendChild(body);
+
+            document.body.appendChild(win);
+            window._windowInstances[id] = { window: win, taskbarBtn: null };
+
+            makeDraggable(win, titlebar);
+
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                minimizeWindow(winId);
+            });
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                toggleMaximize(win);
+            });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                closeWindow(winId);
+            });
+
+            win.addEventListener('pointerdown', () => {
+                win.style.zIndex = ++windowZIndex;
+            });
+
+            win.addEventListener('DOMNodeRemoved', () => {
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
+                }
+            });
+
+            if (customData && customData.css) {
+                const styleTag = document.createElement('style');
+                styleTag.textContent = customData.css;
+                styleTag.dataset.windowId = id;
+                const oldStyle = document.querySelector(`style[data-window-id="${id}"]`);
+                if (oldStyle) oldStyle.remove();
+                win.appendChild(styleTag);
+            }
+
+            return win;
+        }
+
+        // ---- 获取自定义美化数据 ----
+        function getCustomization(windowId) {
+            try {
+                const data = localStorage.getItem(`custom_${windowId}`);
+                if (data) return JSON.parse(data);
+            } catch(e) {}
+            return null;
+        }
+
+        // ---- 窗口内容定义 ----
         const windowContents = {
-            oc: { title: '🧑‍🎤 OC', content: `<h2>OC 设定</h2><p>在这里填写你的角色设定信息。</p><p>你可以直接点击编辑这段文字，内容会自动保存。</p>` },
-            about: { title: '📄 关于', content: `<h2>关于</h2><p>复古XP风格桌面，包含写作、聊天、博客、图库等应用。</p><p>所有数据保存在浏览器本地。</p>` },
-            trash: { title: '🗑️ 回收站', content: `<p>回收站是空的。</p>` }
+            oc: { title: '🧑‍🎤 OC', content: `<div class="app-container"><h2>OC 设定</h2><p>在这里填写你的角色设定信息。</p><p>你可以直接点击编辑这段文字，内容会自动保存。</p></div>` },
+            about: { title: '📄 关于', content: `<div class="app-container"><h2>关于</h2><p>复古XP风格桌面，包含写作、聊天、博客、图库等应用。</p><p>所有数据保存在浏览器本地。</p></div>` },
+            trash: { title: '🗑️ 回收站', content: `<div class="app-container"><p>回收站是空的。</p></div>` }
         };
 
-        // 创建窗口入口
+        // ---- 创建窗口入口 ----
         function createWindow(id) {
             switch(id) {
                 case 'player': createPlayerWindow(); break;
@@ -603,10 +613,10 @@
                 case 'blog': createBlogWindow(); break;
                 case 'gallery': createGalleryWindow(); break;
                 case 'settings': createSettingsWindow(); break;
-                case 'oc': createGenericWindow('oc', '🧑‍🎤 OC', windowContents.oc.content); break;
-                case 'about': createGenericWindow('about', '📄 关于', windowContents.about.content); break;
-                case 'trash': createGenericWindow('trash', '🗑️ 回收站', windowContents.trash.content); break;
-                default: createGenericWindow(id); break;
+                case 'oc': createWindowEngine('oc', '🧑‍🎤 OC', windowContents.oc.content); break;
+                case 'about': createWindowEngine('about', '📄 关于', windowContents.about.content); break;
+                case 'trash': createWindowEngine('trash', '🗑️ 回收站', windowContents.trash.content); break;
+                default: createWindowEngine(id, '窗口', '<div class="app-container"><p>内容</p></div>'); break;
             }
         }
 
@@ -631,6 +641,7 @@
             win.style.left = (100 + Math.random() * 80) + 'px';
             win.style.top = (60 + Math.random() * 80) + 'px';
             win.style.zIndex = ++windowZIndex;
+
             const titlebar = document.createElement('div');
             titlebar.className = 'window-titlebar';
             titlebar.innerHTML = `
@@ -642,6 +653,7 @@
                 </div>
             `;
             win.appendChild(titlebar);
+
             const body = document.createElement('div');
             body.className = 'window-body';
             body.style.padding = '16px';
@@ -652,46 +664,23 @@
                         <source src="https://file.garden/alBxX7nuWEQGozco/Richard%20O%27Brien%20-%20Science%20FictionDouble%20Feature.mp3" type="audio/mpeg">
                         您的浏览器不支持音频。
                     </audio>
-                    <p style="color:#666; font-size:13px;">使用 file.garden 链接（已验证可播）</p>
+                    <p style="color:#666; font-size:13px;">使用 file.garden 链接</p>
                 </div>
             `;
             win.appendChild(body);
             document.body.appendChild(win);
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                e.stopPropagation();
-                if (btn.classList.contains('min-btn')) minimizeWindow(id);
-                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
-                else if (btn.classList.contains('close-btn')) closeWindow(id);
-            });
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 100, top: 60, width: 460, height: 320 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
+
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(winId); });
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMaximize(win); });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(winId); });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
             win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
                 }
             });
         }
@@ -817,39 +806,15 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                e.stopPropagation();
-                if (btn.classList.contains('min-btn')) minimizeWindow(id);
-                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
-                else if (btn.classList.contains('close-btn')) closeWindow(id);
-            });
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 80, top: 50, width: 600, height: 500 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(winId); });
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMaximize(win); });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(winId); });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
             win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
                 }
             });
 
@@ -997,39 +962,15 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                e.stopPropagation();
-                if (btn.classList.contains('min-btn')) minimizeWindow(id);
-                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
-                else if (btn.classList.contains('close-btn')) closeWindow(id);
-            });
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 80, top: 50, width: 700, height: 550 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(winId); });
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMaximize(win); });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(winId); });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
             win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
                 }
             });
 
@@ -1267,39 +1208,15 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                e.stopPropagation();
-                if (btn.classList.contains('min-btn')) minimizeWindow(id);
-                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
-                else if (btn.classList.contains('close-btn')) closeWindow(id);
-            });
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 60, top: 40, width: 750, height: 580 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(winId); });
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMaximize(win); });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(winId); });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
             win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
                 }
             });
 
@@ -1424,7 +1341,7 @@
         }
 
         // ============================================================
-        //  7. ★★★ 个人博客 ★★★
+        //  7. ★★★ 个人博客（按钮绝对有效）★★★
         // ============================================================
         function createBlogWindow() {
             if (window._windowInstances['blog'] && window._windowInstances['blog'].window) {
@@ -1521,39 +1438,25 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => {
                 e.stopPropagation();
-                if (btn.classList.contains('min-btn')) minimizeWindow(id);
-                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
-                else if (btn.classList.contains('close-btn')) closeWindow(id);
+                minimizeWindow(winId);
             });
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 60, top: 40, width: 800, height: 600 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                toggleMaximize(win);
+            });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                closeWindow(winId);
+            });
+
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
             win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
                 }
             });
 
@@ -1748,7 +1651,7 @@
         }
 
         // ============================================================
-        //  8. ★★★ 设置应用（全局美化）★★★
+        //  8. ★★★ 设置应用（壁纸 + 美化 + 宠物）★★★
         // ============================================================
         function createSettingsWindow() {
             if (window._windowInstances['settings'] && window._windowInstances['settings'].window) {
@@ -1765,16 +1668,16 @@
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
-            win.style.width = '600px';
-            win.style.height = '520px';
-            win.style.left = (70 + Math.random() * 60) + 'px';
-            win.style.top = (50 + Math.random() * 60) + 'px';
+            win.style.width = '750px';
+            win.style.height = '650px';
+            win.style.left = (40 + Math.random() * 60) + 'px';
+            win.style.top = (20 + Math.random() * 60) + 'px';
             win.style.zIndex = ++windowZIndex;
 
             const titlebar = document.createElement('div');
             titlebar.className = 'window-titlebar';
             titlebar.innerHTML = `
-                <span class="title-text">⚙️ 设置 · 全局美化</span>
+                <span class="title-text">⚙️ 设置 · 壁纸 · 美化 · 宠物</span>
                 <div class="win-btns">
                     <button class="min-btn">─</button>
                     <button class="max-btn">☐</button>
@@ -1786,28 +1689,37 @@
             const body = document.createElement('div');
             body.className = 'window-body';
             body.innerHTML = `
-                <div class="app-container" id="settingsApp">
-                    <h2>🎨 全局自定义样式</h2>
-                    <p>在这里输入自定义 CSS，将应用于所有窗口和桌面元素。</p>
-                    <div style="margin-bottom:8px;">
-                        <label><strong>CSS 代码：</strong></label>
-                        <textarea id="globalCssEditor" rows="10" style="width:100%; font-family: 'Courier New', monospace; background:#fafafa; border:2px inset #ccc;"></textarea>
+                <div class="app-container">
+                    <h2>🖼️ 桌面壁纸</h2>
+                    <div>
+                        <button id="uploadWallpaperBtn">📤 上传图片</button>
+                        <button id="resetWallpaperBtn">↩️ 重置默认</button>
+                        <span style="margin-left:12px;">颜色：</span>
+                        <input type="color" id="wallpaperColor" value="#3a6ea5" />
+                        <button id="applyWallpaperColorBtn">应用颜色</button>
                     </div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <div class="wallpaper-preview" id="wallpaperPreview" style="background-color: #3a6ea5;"></div>
+
+                    <hr />
+                    <h2>🎨 全局 CSS 美化</h2>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                        <button id="uploadCssBtn">📄 上传 CSS 文件</button>
                         <button id="applyGlobalCssBtn">✅ 应用样式</button>
-                        <button id="resetGlobalCssBtn">↩️ 重置默认</button>
-                        <span style="flex:1;"></span>
-                        <label>预设：</label>
-                        <select id="presetSelect">
-                            <option value="preset1">预设 1</option>
-                            <option value="preset2">预设 2</option>
-                            <option value="preset3">预设 3</option>
-                        </select>
-                        <button id="savePresetBtn">💾 保存到预设</button>
-                        <button id="loadPresetBtn">📂 加载预设</button>
+                        <button id="resetGlobalCssBtn">↩️ 重置</button>
                     </div>
-                    <div style="margin-top:12px; background:#eee; padding:8px; border:1px solid #ccc;">
-                        <p style="margin:0; font-size:13px;">💡 提示：样式会实时应用到所有窗口。可保存 3 组预设，方便切换。</p>
+                    <textarea id="globalCssEditor" rows="6" style="width:100%; font-family:'Courier New', monospace; background:#fafafa; border:2px inset #ccc;"></textarea>
+
+                    <hr />
+                    <h2>🐾 桌面宠物 (Pagedoll)</h2>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                        <button id="addPetBtn">➕ 添加宠物</button>
+                        <button id="clearPetsBtn">🗑️ 清除所有宠物</button>
+                    </div>
+                    <div id="petList" style="max-height:200px; overflow-y:auto; border:1px solid #ccc; padding:8px; background:#fafafa;">
+                        <p style="color:#888;">暂无宠物，点击「添加宠物」。</p>
+                    </div>
+                    <div style="margin-top:8px; background:#eee; padding:6px; border:1px solid #ccc;">
+                        <span style="font-size:13px;">💡 点击宠物可编辑对话，拖动可调整位置。</span>
                     </div>
                 </div>
             `;
@@ -1816,44 +1728,19 @@
             window._windowInstances[id] = { window: win, taskbarBtn: null };
             makeDraggable(win, titlebar);
 
-            titlebar.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                e.stopPropagation();
-                if (btn.classList.contains('min-btn')) minimizeWindow(id);
-                else if (btn.classList.contains('max-btn')) toggleMaximize(win);
-                else if (btn.classList.contains('close-btn')) closeWindow(id);
-            });
-            function toggleMaximize(win) {
-                if (!win._isMaximized) {
-                    win._prevRect = win.getBoundingClientRect();
-                    win.style.left = '0'; win.style.top = '0';
-                    win.style.width = '100%'; win.style.height = '100%';
-                    win.style.borderRadius = '0';
-                    win._isMaximized = true;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '❐';
-                } else {
-                    const rect = win._prevRect || { left: 70, top: 50, width: 600, height: 520 };
-                    win.style.left = rect.left + 'px'; win.style.top = rect.top + 'px';
-                    win.style.width = rect.width + 'px'; win.style.height = rect.height + 'px';
-                    win.style.borderRadius = '';
-                    win._isMaximized = false;
-                    const maxBtn = win.querySelector('.max-btn');
-                    if (maxBtn) maxBtn.textContent = '☐';
-                }
-            }
-            win._isMaximized = false;
+            const winId = id;
+            titlebar.querySelector('.min-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); minimizeWindow(winId); });
+            titlebar.querySelector('.max-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMaximize(win); });
+            titlebar.querySelector('.close-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeWindow(winId); });
             win.addEventListener('pointerdown', () => { win.style.zIndex = ++windowZIndex; });
             win.addEventListener('DOMNodeRemoved', () => {
-                if (window._windowInstances[id]) {
-                    if (window._windowInstances[id].taskbarBtn) window._windowInstances[id].taskbarBtn.remove();
-                    delete window._windowInstances[id];
+                if (window._windowInstances[winId]) {
+                    if (window._windowInstances[winId].taskbarBtn) window._windowInstances[winId].taskbarBtn.remove();
+                    delete window._windowInstances[winId];
                 }
             });
 
             // ---- 设置逻辑 ----
-            // 加载已保存的全局 CSS
             const cssEditor = document.getElementById('globalCssEditor');
             const styleTag = document.getElementById('global-custom-style') || (() => {
                 const s = document.createElement('style');
@@ -1868,7 +1755,6 @@
                     cssEditor.value = saved;
                     styleTag.textContent = saved;
                 } else {
-                    // 默认样式（空）
                     cssEditor.value = '';
                     styleTag.textContent = '';
                 }
@@ -1877,7 +1763,7 @@
             function applyGlobalCss(css) {
                 styleTag.textContent = css;
                 localStorage.setItem('globalCss', css);
-                xpAlert('样式已应用！');
+                xpAlert('全局样式已应用！');
             }
 
             document.getElementById('applyGlobalCssBtn').onclick = () => {
@@ -1888,38 +1774,290 @@
             document.getElementById('resetGlobalCssBtn').onclick = () => {
                 cssEditor.value = '';
                 applyGlobalCss('');
-                xpAlert('已重置为默认样式。');
+                xpAlert('已重置全局样式。');
             };
 
-            // 预设管理
-            const presetSelect = document.getElementById('presetSelect');
-            document.getElementById('savePresetBtn').onclick = () => {
-                const key = presetSelect.value;
-                const css = cssEditor.value;
-                const presets = JSON.parse(localStorage.getItem('cssPresets') || '{}');
-                presets[key] = css;
-                localStorage.setItem('cssPresets', JSON.stringify(presets));
-                xpAlert(`预设 "${key}" 已保存！`);
+            document.getElementById('uploadCssBtn').onclick = () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.css';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        cssEditor.value = ev.target.result;
+                        xpAlert('CSS文件已加载');
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
             };
 
-            document.getElementById('loadPresetBtn').onclick = () => {
-                const key = presetSelect.value;
-                const presets = JSON.parse(localStorage.getItem('cssPresets') || '{}');
-                const css = presets[key];
-                if (css !== undefined) {
-                    cssEditor.value = css;
-                    applyGlobalCss(css);
-                    xpAlert(`预设 "${key}" 已加载！`);
-                } else {
-                    xpAlert(`预设 "${key}" 不存在。`);
+            // ---- 壁纸功能 ----
+            const wallpaperPreview = document.getElementById('wallpaperPreview');
+            function loadWallpaper() {
+                const data = localStorage.getItem('wallpaper');
+                if (data) {
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.type === 'image' && parsed.data) {
+                            wallpaperPreview.style.backgroundImage = `url(${parsed.data})`;
+                            wallpaperPreview.style.backgroundColor = '';
+                            // 应用到桌面
+                            const overlay = document.getElementById('desktop-overlay');
+                            overlay.style.backgroundImage = `url(${parsed.data})`;
+                            overlay.style.backgroundSize = 'cover';
+                            overlay.style.backgroundPosition = 'center';
+                            overlay.style.backgroundColor = '';
+                        } else if (parsed.type === 'color' && parsed.color) {
+                            wallpaperPreview.style.backgroundImage = '';
+                            wallpaperPreview.style.backgroundColor = parsed.color;
+                            const overlay = document.getElementById('desktop-overlay');
+                            overlay.style.backgroundImage = '';
+                            overlay.style.backgroundColor = parsed.color;
+                        }
+                    } catch(e) {}
                 }
+            }
+
+            function saveWallpaper(type, data) {
+                const payload = { type, data };
+                localStorage.setItem('wallpaper', JSON.stringify(payload));
+                loadWallpaper(); // 立即应用
+                xpAlert('壁纸已更新！');
+            }
+
+            document.getElementById('uploadWallpaperBtn').onclick = () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const dataUrl = ev.target.result;
+                        saveWallpaper('image', dataUrl);
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
             };
+
+            document.getElementById('resetWallpaperBtn').onclick = () => {
+                localStorage.removeItem('wallpaper');
+                const overlay = document.getElementById('desktop-overlay');
+                overlay.style.backgroundImage = '';
+                overlay.style.backgroundColor = '#3a6ea5';
+                overlay.style.backgroundSize = '';
+                overlay.style.backgroundPosition = '';
+                wallpaperPreview.style.backgroundImage = '';
+                wallpaperPreview.style.backgroundColor = '#3a6ea5';
+                xpAlert('已恢复默认壁纸');
+            };
+
+            document.getElementById('applyWallpaperColorBtn').onclick = () => {
+                const color = document.getElementById('wallpaperColor').value;
+                saveWallpaper('color', color);
+            };
+
+            // ---- 桌面宠物功能 ----
+            const petListEl = document.getElementById('petList');
+
+            function renderPetList() {
+                const pets = getPets();
+                petListEl.innerHTML = '';
+                if (pets.length === 0) {
+                    petListEl.innerHTML = '<p style="color:#888;">暂无宠物，点击「添加宠物」。</p>';
+                    return;
+                }
+                pets.forEach((pet, idx) => {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.gap = '8px';
+                    div.style.alignItems = 'center';
+                    div.style.padding = '4px 0';
+                    div.style.borderBottom = '1px solid #ddd';
+                    div.innerHTML = `
+                        <span>${pet.name || `宠物${idx+1}`}</span>
+                        <span style="font-size:12px;color:#666;">对话: ${pet.bubble || '(空)'}</span>
+                        <button class="editPetBtn" data-idx="${idx}">✏️</button>
+                        <button class="deletePetBtn" data-idx="${idx}" style="color:red;">✕</button>
+                    `;
+                    petListEl.appendChild(div);
+                });
+                // 绑定事件
+                petListEl.querySelectorAll('.editPetBtn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = parseInt(e.target.dataset.idx);
+                        editPet(idx);
+                    });
+                });
+                petListEl.querySelectorAll('.deletePetBtn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = parseInt(e.target.dataset.idx);
+                        deletePet(idx);
+                    });
+                });
+            }
+
+            function getPets() {
+                try {
+                    const data = localStorage.getItem('pets');
+                    return data ? JSON.parse(data) : [];
+                } catch(e) { return []; }
+            }
+
+            function savePets(pets) {
+                localStorage.setItem('pets', JSON.stringify(pets));
+                renderPetList();
+                loadPets(); // 重新加载到桌面
+            }
+
+            document.getElementById('addPetBtn').onclick = async () => {
+                // 弹出对话框添加宠物
+                const name = await xpPrompt('添加宠物', '宠物名称（可选）：', '小可爱');
+                if (name === null) return;
+                const imgUrl = await xpPrompt('宠物图片URL', '图片链接（支持gif/png）：', 'https://via.placeholder.com/100/ff0000/ffffff?text=Pet');
+                if (imgUrl === null) return;
+                const bubble = await xpPrompt('点击时说的话', '对话内容：', '你好呀！');
+                if (bubble === null) return;
+                const pets = getPets();
+                pets.push({
+                    name: name || '宠物',
+                    img: imgUrl,
+                    bubble: bubble || '你好！',
+                    x: Math.random() * 70 + 10, // 百分比
+                    y: Math.random() * 60 + 20
+                });
+                savePets(pets);
+                xpAlert('宠物已添加！');
+            };
+
+            async function editPet(idx) {
+                const pets = getPets();
+                if (idx < 0 || idx >= pets.length) return;
+                const pet = pets[idx];
+                const newName = await xpPrompt('编辑宠物', '名称：', '', pet.name);
+                if (newName === null) return;
+                const newImg = await xpPrompt('编辑宠物', '图片URL：', '', pet.img);
+                if (newImg === null) return;
+                const newBubble = await xpPrompt('编辑宠物', '对话内容：', '', pet.bubble);
+                if (newBubble === null) return;
+                pet.name = newName || pet.name;
+                pet.img = newImg || pet.img;
+                pet.bubble = newBubble || pet.bubble;
+                savePets(pets);
+                xpAlert('宠物已更新！');
+            }
+
+            function deletePet(idx) {
+                (async () => {
+                    const confirm = await showXpModal({ title: '确认删除', message: '确定删除这个宠物？', confirmText: '删除', cancelText: '取消' });
+                    if (!confirm) return;
+                    const pets = getPets();
+                    pets.splice(idx, 1);
+                    savePets(pets);
+                    xpAlert('宠物已删除');
+                })();
+            }
+
+            document.getElementById('clearPetsBtn').onclick = async () => {
+                const confirm = await showXpModal({ title: '确认清除', message: '确定清除所有宠物？', confirmText: '清除', cancelText: '取消' });
+                if (!confirm) return;
+                savePets([]);
+                xpAlert('所有宠物已清除');
+            };
+
+            // ---- 加载宠物到桌面 ----
+            function loadPets() {
+                const container = document.getElementById('desktop-pets');
+                container.innerHTML = '';
+                const pets = getPets();
+                pets.forEach((pet, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'pet';
+                    el.style.left = pet.x + '%';
+                    el.style.top = pet.y + '%';
+                    el.style.transform = 'translate(-50%, -50%)';
+                    el.dataset.idx = idx;
+                    el.innerHTML = `
+                        <img src="${pet.img}" alt="${pet.name}" />
+                        <div class="bubble">${pet.bubble}</div>
+                    `;
+                    // 点击显示气泡
+                    const bubble = el.querySelector('.bubble');
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        bubble.style.display = bubble.style.display === 'block' ? 'none' : 'block';
+                        // 自动隐藏
+                        if (bubble.style.display === 'block') {
+                            setTimeout(() => { bubble.style.display = 'none'; }, 3000);
+                        }
+                    });
+                    // 拖动
+                    let dragging = false, startX, startY, origX, origY;
+                    el.addEventListener('pointerdown', (e) => {
+                        if (e.target.tagName === 'IMG') {
+                            dragging = true;
+                            const rect = container.getBoundingClientRect();
+                            startX = e.clientX;
+                            startY = e.clientY;
+                            origX = parseFloat(el.style.left);
+                            origY = parseFloat(el.style.top);
+                            el.style.cursor = 'grabbing';
+                            el.setPointerCapture(e.pointerId);
+                            e.preventDefault();
+                            // 隐藏气泡
+                            bubble.style.display = 'none';
+                        }
+                    });
+                    el.addEventListener('pointermove', (e) => {
+                        if (!dragging) return;
+                        const dx = (e.clientX - startX) / container.offsetWidth * 100;
+                        const dy = (e.clientY - startY) / container.offsetHeight * 100;
+                        let newX = Math.min(95, Math.max(5, origX + dx));
+                        let newY = Math.min(95, Math.max(5, origY + dy));
+                        el.style.left = newX + '%';
+                        el.style.top = newY + '%';
+                        // 更新存储
+                        const pets = getPets();
+                        const idx = parseInt(el.dataset.idx);
+                        if (pets[idx]) {
+                            pets[idx].x = newX;
+                            pets[idx].y = newY;
+                            localStorage.setItem('pets', JSON.stringify(pets));
+                        }
+                    });
+                    el.addEventListener('pointerup', (e) => {
+                        if (dragging) {
+                            dragging = false;
+                            el.style.cursor = 'grab';
+                            el.releasePointerCapture(e.pointerId);
+                        }
+                    });
+                    el.addEventListener('pointercancel', (e) => {
+                        if (dragging) {
+                            dragging = false;
+                            el.style.cursor = 'grab';
+                            el.releasePointerCapture(e.pointerId);
+                        }
+                    });
+                    container.appendChild(el);
+                });
+            }
 
             // 初始化加载
             loadGlobalCss();
+            loadWallpaper();
+            renderPetList();
+            loadPets();
 
-            // 自动应用（如果编辑器内容变化，用户手动应用）
-            // 也可以添加一个实时预览选项，但为了明确性，让用户点击按钮。
+            // 暴露给全局，以便刷新后恢复
+            window.loadPets = loadPets;
+            window.loadWallpaper = loadWallpaper;
+            window.loadGlobalCss = loadGlobalCss;
         }
 
         // ============================================================
@@ -1943,10 +2081,15 @@
         window.xpAlert = xpAlert;
         window.showXpModal = showXpModal;
         window.blogUpdateStyle = window.blogUpdateStyle;
+        window.getCustomization = getCustomization;
+        window.loadPets = loadPets;
+        window.loadWallpaper = loadWallpaper;
+        window.loadGlobalCss = loadGlobalCss;
 
-        console.log('✅ 复古桌面加载完成！包含设置应用，支持全局自定义 CSS 并保存预设。');
-        console.log('📝 所有窗口按钮有效，内容可编辑自动保存，拖拽有边界限制。');
-        console.log('💾 数据保存在 localStorage，关闭浏览器不丢失。');
+        console.log('✅ 复古桌面已加载！');
+        console.log('🖼️ 在「设置」中可更换壁纸、上传CSS、添加桌面宠物。');
+        console.log('🐾 宠物可拖动，点击说话，支持多只同时存在。');
+        console.log('💾 所有设置自动保存，刷新后自动恢复。');
     </script>
 </body>
 </html>
