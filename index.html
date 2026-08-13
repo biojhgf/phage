@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>复古房间 · XP桌面</title>
     <style>
-        /* ===== 全局重置 ===== */
         * {
             box-sizing: border-box;
             user-select: none;
@@ -18,8 +17,6 @@
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background-color: #000;
         }
-
-        /* ===== Three.js 渲染器 ===== */
         #three-container {
             position: fixed;
             top: 0;
@@ -28,8 +25,6 @@
             height: 100%;
             z-index: 1;
         }
-
-        /* ===== 桌面覆盖层 ===== */
         #desktop-overlay {
             position: fixed;
             top: 0;
@@ -47,7 +42,6 @@
             display: flex;
         }
 
-        /* ===== 桌面图标 ===== */
         .desktop-icons {
             flex: 1;
             padding: 20px 30px;
@@ -65,7 +59,6 @@
             color: #fff;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
             text-align: center;
-            transition: transform 0.1s;
             padding: 4px;
             touch-action: manipulation;
         }
@@ -88,7 +81,6 @@
             border-radius: 4px;
         }
 
-        /* ===== 任务栏 ===== */
         .taskbar {
             height: 50px;
             background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%);
@@ -117,10 +109,6 @@
             flex-shrink: 0;
             touch-action: manipulation;
         }
-        .start-button:hover {
-            background: linear-gradient(180deg, #4cb84c 0%, #2a7a2a 100%);
-        }
-
         #taskbar-items {
             display: flex;
             flex: 1;
@@ -142,17 +130,11 @@
             align-items: center;
             gap: 6px;
             height: 32px;
-            transition: background 0.1s;
             touch-action: manipulation;
         }
         .taskbar-item:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-        .taskbar-item.active {
-            background: rgba(255, 255, 255, 0.35);
-            border-color: #fff;
-        }
-
         .taskbar-time {
             margin-left: auto;
             color: #fff;
@@ -164,7 +146,6 @@
             flex-shrink: 0;
         }
 
-        /* ===== 开始菜单 ===== */
         .start-menu {
             display: none;
             position: absolute;
@@ -202,7 +183,6 @@
             border: 1px solid #ccc;
         }
 
-        /* ===== XP 窗口 ===== */
         .xp-window {
             position: fixed;
             min-width: 300px;
@@ -215,7 +195,6 @@
             flex-direction: column;
             z-index: 2000;
             font-family: "Segoe UI", Tahoma, sans-serif;
-            resize: none;
             overflow: hidden;
             touch-action: none;
         }
@@ -226,7 +205,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: default;
             flex-shrink: 0;
             border-radius: 6px 6px 0 0;
             font-weight: bold;
@@ -239,7 +217,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            cursor: default;
         }
         .xp-window .window-titlebar .win-btns {
             display: flex;
@@ -256,13 +233,12 @@
             cursor: pointer;
             line-height: 22px;
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             color: #fff;
-            transition: background 0.1s;
             touch-action: manipulation;
         }
         .xp-window .window-titlebar .win-btns button:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.3);
         }
         .xp-window .window-titlebar .win-btns .min-btn:hover {
             background: #5a7ab5;
@@ -284,13 +260,11 @@
             touch-action: auto;
         }
 
-        /* ===== 播放器样式 ===== */
         .player-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: linear-gradient(145deg, #f5f0e8, #e8e0d0);
-            font-family: "Segoe UI", Tahoma, sans-serif;
             touch-action: auto;
         }
         .player-views {
@@ -329,12 +303,10 @@
             flex-shrink: 0;
             margin-bottom: 12px;
             border: 2px solid #fff;
-            touch-action: none;
         }
         .play-view .song-info {
             text-align: center;
             margin: 4px 0 8px 0;
-            touch-action: none;
         }
         .play-view .song-info .title {
             font-size: 18px;
@@ -351,7 +323,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            touch-action: none;
         }
         .play-view .progress-area input[type="range"] {
             flex: 1;
@@ -360,7 +331,6 @@
             background: #aaa;
             border-radius: 2px;
             outline: none;
-            touch-action: none;
         }
         .play-view .progress-area input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -371,7 +341,6 @@
             cursor: pointer;
             border: 2px solid #fff;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-            touch-action: none;
         }
         .play-view .progress-area .time {
             font-size: 12px;
@@ -383,7 +352,6 @@
             align-items: center;
             gap: 18px;
             margin-top: 12px;
-            touch-action: none;
         }
         .play-view .controls button {
             background: none;
@@ -391,7 +359,6 @@
             font-size: 28px;
             cursor: pointer;
             color: #333;
-            transition: transform 0.1s, color 0.1s;
             width: 48px;
             height: 48px;
             border-radius: 50%;
@@ -403,18 +370,11 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             touch-action: manipulation;
         }
-        .play-view .controls button:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.8);
-        }
         .play-view .controls .play-btn {
             font-size: 36px;
             background: #1a4a9f;
             color: #fff;
             box-shadow: 0 4px 12px rgba(26, 74, 159, 0.4);
-        }
-        .play-view .controls .play-btn:hover {
-            background: #245edb;
         }
         .play-view .volume-row {
             display: flex;
@@ -423,7 +383,6 @@
             margin-top: 8px;
             width: 100%;
             max-width: 200px;
-            touch-action: none;
         }
         .play-view .volume-row input[type="range"] {
             flex: 1;
@@ -432,7 +391,6 @@
             background: #aaa;
             border-radius: 2px;
             outline: none;
-            touch-action: none;
         }
         .play-view .volume-row input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
@@ -442,10 +400,8 @@
             background: #1a4a9f;
             cursor: pointer;
             border: 1px solid #fff;
-            touch-action: none;
         }
 
-        /* 列表视图 */
         .list-view {
             position: absolute;
             top: 0;
@@ -467,7 +423,6 @@
             align-items: center;
             padding: 8px 20px;
             cursor: pointer;
-            transition: background 0.1s;
             border-bottom: 1px solid #e0d8c8;
             touch-action: manipulation;
         }
@@ -487,7 +442,6 @@
             margin-right: 14px;
             flex-shrink: 0;
             border: 1px solid #bbb;
-            touch-action: none;
         }
         .list-view .song-item .item-info {
             flex: 1;
@@ -509,7 +463,6 @@
             color: #888;
         }
 
-        /* 底部工具栏 */
         .player-toolbar {
             height: 40px;
             background: #ddd6c8;
@@ -519,7 +472,6 @@
             padding: 0 16px;
             gap: 16px;
             flex-shrink: 0;
-            touch-action: auto;
         }
         .player-toolbar .tab-btn {
             background: none;
@@ -536,16 +488,12 @@
             background: #1a4a9f;
             color: #fff;
         }
-        .player-toolbar .tab-btn:hover:not(.active) {
-            background: #c0b8a8;
-        }
         .player-toolbar .song-counter {
             margin-left: auto;
             font-size: 12px;
             color: #666;
         }
 
-        /* ===== 提示 ===== */
         #hint {
             position: fixed;
             bottom: 30px;
@@ -562,7 +510,6 @@
             font-family: sans-serif;
         }
 
-        /* 滚动条 */
         .list-view::-webkit-scrollbar {
             width: 8px;
         }
@@ -577,12 +524,9 @@
 </head>
 <body>
 
-    <!-- Three.js 容器 -->
     <div id="three-container"></div>
+    <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回</div>
 
-    <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回房间</div>
-
-    <!-- ===== 桌面覆盖层 ===== -->
     <div id="desktop-overlay">
         <div class="desktop-icons">
             <div class="desktop-icon" data-window="oc"><span class="icon-img">🧑‍🎤</span><span class="icon-label">我的 OC</span></div>
@@ -609,14 +553,13 @@
         </div>
     </div>
 
-    <!-- ===== Three.js ===== -->
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
     </script>
 
     <script type="module">
         // ============================================================
-        //  1. Three.js 场景 (同之前)
+        //  1. Three.js 场景
         // ============================================================
         import * as THREE from 'three';
         const container = document.getElementById('three-container');
@@ -798,7 +741,6 @@
         carpet.position.set(0.3, -0.49, 0.2);
         roomGroup.add(carpet);
 
-        // 鼠标控制旋转
         let rotationY = 0;
         const maxRotation = 0.35;
         document.addEventListener('mousemove', (e) => {
@@ -815,7 +757,6 @@
             roomGroup.rotation.y = rotationY;
         }, { passive: true });
 
-        // 点击屏幕进入桌面
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
         let isDesktopActive = false;
@@ -847,20 +788,14 @@
             isDesktopActive = false;
             document.getElementById('desktop-overlay').classList.remove('active');
             document.getElementById('hint').style.opacity = '1';
-            // 关闭所有打开的窗口
             document.querySelectorAll('.xp-window').forEach(w => w.remove());
             document.querySelectorAll('.taskbar-item').forEach(b => b.remove());
             window._windowInstances = {};
         }
 
-        // ESC 键退出 (仍然保留)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isDesktopActive) {
-                exitDesktop();
-            }
+            if (e.key === 'Escape' && isDesktopActive) exitDesktop();
         });
-
-        // “开始”菜单中的“返回房间”仍保留
         document.getElementById('shutdownItem').addEventListener('click', exitDesktop);
 
         function updateTime() {
@@ -878,18 +813,16 @@
         startMenu.addEventListener('click', (e) => e.stopPropagation());
         document.querySelectorAll('.start-menu-item[data-window]').forEach(item => {
             item.addEventListener('click', () => {
-                const win = item.dataset.window;
-                createWindow(win);
+                createWindow(item.dataset.window);
                 startMenu.classList.remove('show');
             });
         });
-
         document.querySelectorAll('.desktop-icon[data-window]').forEach(icon => {
             icon.addEventListener('click', () => createWindow(icon.dataset.window));
         });
 
         // ============================================================
-        //  2. 窗口内容定义 (其他窗口占位)
+        //  2. 窗口内容
         // ============================================================
         const windowContents = {
             oc: { title: '🧑‍🎤 我的 OC', content: `<div style="padding:20px;"><h2>角色名称</h2><p>在这里填你的OC信息</p></div>` },
@@ -899,28 +832,36 @@
         };
 
         // ============================================================
-        //  3. ★★★ 音乐播放器 (已填图片URL，修复播放路径) ★★★
+        //  3. ★★★ 歌曲数据（已填图片URL） ★★★
         // ============================================================
+        // ★★★ 重要：把下面的 MP3 文件放到 GitHub 仓库根目录 ★★★
+        // 然后用 Raw 链接替换下面的 url 字段
+        // Raw 链接格式：https://raw.githubusercontent.com/biojhgf/phage/main/文件名.mp3
+        // 注意：文件名中的空格和特殊字符需要 URL 编码，或者直接重命名文件（去掉空格和特殊字符）
+        //
+        // 推荐：把文件重命名为简单名字，比如 song1.mp3, song2.mp3, song3.mp3
+        // 然后修改下面的 url 为对应的 Raw 链接
 
-        // ---------- 歌曲数据 (已按顺序填入图片) ----------
         const songList = [{
             title: 'Science Fiction/Double Feature',
             artist: 'Richard O\'Brien',
             cover: 'https://zora404.dpdns.org/file/1786612897827_IMG_5678.jpeg',
-            url: './Richard O\'Brien - Science FictionDouble Feature.mp3'
+            url: 'https://raw.githubusercontent.com/biojhgf/phage/main/Richard%20O%27Brien%20-%20Science%20FictionDouble%20Feature.mp3'
         }, {
             title: 'Evening Wear',
             artist: 'Mindless Self Indulgence',
             cover: 'https://zora404.dpdns.org/file/1786612899785_IMG_5679.jpeg',
-            url: './Mindless Self Indulgence - Evening Wear.mp3'
+            url: 'https://raw.githubusercontent.com/biojhgf/phage/main/Mindless%20Self%20Indulgence%20-%20Evening%20Wear.mp3'
         }, {
             title: 'Helena',
             artist: 'My Chemical Romance',
             cover: 'https://zora404.dpdns.org/file/1786612894857_IMG_5680.jpeg',
-            url: './My Chemical Romance - Helena.mp3'
+            url: 'https://raw.githubusercontent.com/biojhgf/phage/main/My%20Chemical%20Romance%20-%20Helena.mp3'
         }];
-        // -------------------------------------------------
 
+        // ============================================================
+        //  4. 窗口管理器（修好触摸按钮）
+        // ============================================================
         let currentIndex = 0;
         let isPlaying = false;
         let audio = new Audio();
@@ -929,14 +870,15 @@
         let windowZIndex = 2000;
         window._windowInstances = window._windowInstances || {};
 
-        // ---- 通用拖拽函数 ----
+        // ---- 拖拽函数（修好按钮判断） ----
         function makeDraggable(element, handle) {
-            let startX, startY, origLeft, origTop, origWidth, origHeight, isDragging = false;
+            let startX, startY, origLeft, origTop, isDragging = false;
 
             function onStart(e) {
+                // 只响应左键或触摸
                 if (e.button !== undefined && e.button !== 0) return;
-                const target = e.target;
-                if (target.tagName === 'BUTTON') return;
+                // ★★★ 关键修复：检查点击的是否是按钮或其子元素 ★★★
+                if (e.target.closest('button')) return;
                 const rect = element.getBoundingClientRect();
                 const clientX = e.clientX || (e.touches && e.touches[0].clientX);
                 const clientY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -945,13 +887,9 @@
                 startY = clientY;
                 origLeft = rect.left;
                 origTop = rect.top;
-                origWidth = rect.width;
-                origHeight = rect.height;
                 isDragging = true;
                 element.style.left = origLeft + 'px';
                 element.style.top = origTop + 'px';
-                element.style.width = origWidth + 'px';
-                element.style.height = origHeight + 'px';
                 element.style.transform = 'none';
                 element.style.zIndex = ++windowZIndex;
                 e.preventDefault();
@@ -966,14 +904,12 @@
                 const clientX = e.clientX || (e.touches && e.touches[0].clientX);
                 const clientY = e.clientY || (e.touches && e.touches[0].clientY);
                 if (clientX === undefined) return;
-                let dx = clientX - startX;
-                let dy = clientY - startY;
-                element.style.left = (origLeft + dx) + 'px';
-                element.style.top = (origTop + dy) + 'px';
+                element.style.left = (origLeft + clientX - startX) + 'px';
+                element.style.top = (origTop + clientY - startY) + 'px';
                 e.preventDefault();
             }
 
-            function onEnd(e) {
+            function onEnd() {
                 if (isDragging) {
                     isDragging = false;
                     document.removeEventListener('mousemove', onMove);
@@ -987,7 +923,7 @@
             handle.addEventListener('touchstart', onStart, { passive: false });
         }
 
-        // ---- 通用窗口管理 ----
+        // ---- 窗口创建 ----
         function createWindow(id) {
             if (id === 'player') {
                 createPlayerWindow();
@@ -1017,8 +953,8 @@
             titlebar.innerHTML = `
                 <span class="title-text">${data.title}</span>
                 <div class="win-btns">
-                    <button class="min-btn" title="最小化">─</button>
-                    <button class="close-btn" title="关闭">✕</button>
+                    <button class="min-btn">─</button>
+                    <button class="close-btn">✕</button>
                 </div>
             `;
             win.appendChild(titlebar);
@@ -1112,9 +1048,9 @@
             titlebar.innerHTML = `
                 <span class="title-text">🎵 千千静听</span>
                 <div class="win-btns">
-                    <button class="min-btn" title="最小化">─</button>
-                    <button class="max-btn" title="全屏">☐</button>
-                    <button class="close-btn" title="关闭">✕</button>
+                    <button class="min-btn">─</button>
+                    <button class="max-btn">☐</button>
+                    <button class="close-btn">✕</button>
                 </div>
             `;
             win.appendChild(titlebar);
@@ -1230,23 +1166,34 @@
 
             function loadSong(index) {
                 const song = songList[index];
-                if (!song) return;
-                // ★★★ 修复：对文件路径进行编码，支持空格和特殊字符 ★★★
-                audio.src = encodeURI(song.url);
+                if (!song) {
+                    console.warn('歌曲不存在:', index);
+                    return;
+                }
+                // 使用完整的 Raw 链接
+                audio.src = song.url;
                 audio.load();
                 coverArt.style.backgroundImage = `url('${song.cover || ''}')`;
-                songTitle.textContent = song.title;
-                songArtist.textContent = song.artist;
+                songTitle.textContent = song.title || '未知歌名';
+                songArtist.textContent = song.artist || '未知歌手';
                 songItems.forEach((item, i) => item.classList.toggle('active', i === index));
                 progressBar.value = 0;
                 currentTimeEl.textContent = '0:00';
                 totalTimeEl.textContent = '0:00';
-                if (isPlaying) audio.play().catch((err) => console.warn('播放失败:', err));
+                // 如果当前是播放状态，自动播放
+                if (isPlaying) {
+                    audio.play().catch((err) => {
+                        console.warn('自动播放失败，请点击播放按钮:', err);
+                    });
+                }
             }
 
             function playPause() {
                 if (audio.paused) {
-                    audio.play().catch((err) => console.warn('播放失败:', err));
+                    audio.play().catch((err) => {
+                        console.warn('播放失败，请检查文件路径:', err);
+                        alert('⚠️ 音乐加载失败，请检查：\n1. 文件是否在仓库根目录\n2. Raw链接是否正确\n3. 文件名是否包含特殊字符');
+                    });
                     isPlaying = true;
                     playBtn.textContent = '⏸';
                 } else {
@@ -1282,6 +1229,15 @@
             });
             audio.addEventListener('loadedmetadata', () => {
                 totalTimeEl.textContent = formatTime(audio.duration);
+            });
+            audio.addEventListener('error', (e) => {
+                console.warn('音频加载错误:', e);
+                // 尝试重新加载
+                setTimeout(() => {
+                    if (audio.src) {
+                        audio.load();
+                    }
+                }, 2000);
             });
             audio.addEventListener('ended', nextSong);
 
@@ -1343,7 +1299,7 @@
         }
 
         // ============================================================
-        //  4. 响应式 & 动画
+        //  5. 响应式 & 动画
         // ============================================================
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -1361,9 +1317,9 @@
             el.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        console.log('🖥️ 复古房间加载成功！');
-        console.log('🎵 已加载三首歌，图片URL已填入。');
-        console.log('💡 按 ESC 可退出桌面，窗口支持最小化/关闭/拖拽。');
+        console.log('🖥️ 复古房间已加载！');
+        console.log('📝 如果音乐无法播放，请检查歌曲的 Raw 链接是否正确。');
+        console.log('💡 提示：把 MP3 文件重命名为简单名字（如 1.mp3）可避免编码问题。');
     </script>
 </body>
 </html>
