@@ -2,603 +2,121 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <!-- 强制全屏，禁止缩放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>复古 XP 桌面 · 全屏适配</title>
-    <!-- Font Awesome 图标库 -->
+    <title>复古 XP 桌面 · 完整版</title>
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
-        /* ============================================================
-           强制全屏 + 移动端优化
-           ============================================================ */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Press Start 2P', 'Courier New', monospace;
-            background-color: #1a1a1a;
-            position: fixed; /* 防止滚动 */
-        }
-        #three-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            background: #0a0a0a;
-        }
-        #desktop-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 999;
-            display: none;
-            flex-direction: column;
-            background: #3a6ea5;
-            background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a);
-            transition: background 0.3s;
-        }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Press Start 2P', 'Courier New', monospace; background-color: #1a1a1a; position: fixed; }
+        #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background: #0a0a0a; }
+        #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); transition: background 0.3s; }
         #desktop-overlay.active { display: flex; }
-
-        /* 宠物容器 */
-        #pet-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1000;
-        }
-        .pet-item {
-            position: absolute;
-            pointer-events: auto;
-            cursor: grab;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            will-change: transform;
-            touch-action: none;
-            background: transparent !important;
-        }
-        .pet-item img {
-            max-width: 100%;
-            max-height: 100%;
-            display: block;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            image-rendering: pixelated;
-            pointer-events: none;
-            background: transparent !important;
-        }
-        .pet-item .speech-bubble {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ece9d8;
-            border: 2px solid #3a6ea5;
-            padding: 4px 10px;
-            font-size: 12px;
-            white-space: pre-wrap;
-            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
-            display: none;
-            pointer-events: none;
-            max-width: 200px;
-            overflow: hidden;
-            font-family: 'Press Start 2P', monospace;
-            line-height: 1.4;
-            z-index: 600;
-        }
-        .pet-item .speech-bubble::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-top-color: #ece9d8;
-        }
+        #pet-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
+        .pet-item { position: absolute; pointer-events: auto; cursor: grab; user-select: none; display: flex; align-items: center; justify-content: center; will-change: transform; touch-action: none; background: transparent !important; }
+        .pet-item img { max-width: 100%; max-height: 100%; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; pointer-events: none; background: transparent !important; }
+        .pet-item .speech-bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: pre-wrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 200px; overflow: hidden; font-family: 'Press Start 2P', monospace; line-height: 1.4; z-index: 600; }
+        .pet-item .speech-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ece9d8; }
         .pet-bounce { animation: petFloat 1.5s infinite alternate ease-in-out; }
         @keyframes petFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
-
-        /* ===== 桌面图标 ===== */
-        .desktop-icons {
-            flex: 1;
-            padding: 20px 30px;
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            gap: 30px 40px;
-            overflow-y: auto;
-        }
-        .desktop-icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 80px;
-            cursor: pointer;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.7);
-            text-align: center;
-            padding: 4px;
-            touch-action: manipulation;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
-            transition: all 0.2s ease;
-        }
-        .desktop-icon:hover {
-            transform: scale(1.05);
-            background: rgba(255,255,255,0.15);
-            border-radius: 4px;
-        }
-        .desktop-icon .icon-img {
-            font-size: 48px;
-            line-height: 1.2;
-            margin-bottom: 4px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-        .desktop-icon .icon-label {
-            font-size: 9px;
-            word-break: break-all;
-            background: rgba(0,0,0,0.3);
-            padding: 2px 8px;
-            border-radius: 2px;
-        }
-
-        /* ===== 任务栏 ===== */
-        .taskbar {
-            height: 50px;
-            background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%);
-            display: flex;
-            align-items: center;
-            padding: 0 8px;
-            box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
-            border-top: 2px solid #3a7bd5;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 5000;
-        }
-        .start-button {
-            background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%);
-            color: #fff;
-            padding: 4px 16px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 0 #0a3a0a;
-            border: 1px solid #4cb84c;
-            flex-shrink: 0;
-            touch-action: manipulation;
-            font-family: 'Press Start 2P', monospace;
-        }
-        #taskbar-items {
-            display: flex;
-            flex: 1;
-            gap: 4px;
-            overflow-x: auto;
-            margin: 0 10px;
-            padding: 2px 0;
-        }
-        .taskbar-item {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            padding: 2px 16px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-            border: 1px solid rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            touch-action: manipulation;
-            font-family: 'Press Start 2P', monospace;
-        }
+        .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; overflow-y: auto; }
+        .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; transition: all 0.2s ease; }
+        .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
+        .desktop-icon .icon-img { font-size: 48px; line-height: 1.2; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .desktop-icon .icon-label { font-size: 9px; word-break: break-all; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 2px; }
+        .taskbar { height: 50px; background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%); display: flex; align-items: center; padding: 0 8px; box-shadow: 0 -2px 6px rgba(0,0,0,0.3); border-top: 2px solid #3a7bd5; flex-shrink: 0; position: relative; z-index: 5000; }
+        .start-button { background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%); color: #fff; padding: 4px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 0 #0a3a0a; border: 1px solid #4cb84c; flex-shrink: 0; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
+        #taskbar-items { display: flex; flex: 1; gap: 4px; overflow-x: auto; margin: 0 10px; padding: 2px 0; }
+        .taskbar-item { background: rgba(255,255,255,0.15); color: #fff; padding: 2px 16px; border-radius: 2px; cursor: pointer; font-size: 12px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 6px; height: 32px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
         .taskbar-item:hover { background: rgba(255,255,255,0.3); }
-        .taskbar-time {
-            margin-left: auto;
-            color: #fff;
-            font-size: 12px;
-            background: rgba(0,0,0,0.2);
-            padding: 4px 12px;
-            border-radius: 2px;
-            border: 1px solid #3a7bd5;
-            flex-shrink: 0;
-            font-family: 'Press Start 2P', monospace;
-        }
-
-        /* ===== 开始菜单 ===== */
-        .start-menu {
-            display: none;
-            position: absolute;
-            bottom: 52px;
-            left: 8px;
-            width: 280px;
-            background: #ece9d8;
-            border: 2px solid #3a6ea5;
-            border-radius: 4px;
-            padding: 12px 0;
-            box-shadow: 6px 6px 0 rgba(0,0,0,0.2);
-            z-index: 6000;
-        }
+        .taskbar-time { margin-left: auto; color: #fff; font-size: 12px; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 2px; border: 1px solid #3a7bd5; flex-shrink: 0; font-family: 'Press Start 2P', monospace; }
+        .start-menu { display: none; position: absolute; bottom: 52px; left: 8px; width: 280px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; padding: 12px 0; box-shadow: 6px 6px 0 rgba(0,0,0,0.2); z-index: 6000; }
         .start-menu.show { display: block; }
-        .start-menu-item {
-            padding: 6px 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 12px;
-            touch-action: manipulation;
-            font-family: 'Press Start 2P', monospace;
-        }
+        .start-menu-item { padding: 6px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 12px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
         .start-menu-item:hover { background: #3a7bd5; color: #fff; }
         .start-menu-item .item-icon { font-size: 20px; width: 28px; text-align: center; }
         .start-menu hr { margin: 6px 12px; border: 1px solid #999; }
-
-        /* ===== 窗口系统 ===== */
-        .xp-window {
-            position: fixed;
-            min-width: 300px;
-            min-height: 140px;
-            background: #ece9d8;
-            border: 2px solid #3a6ea5;
-            border-radius: 4px;
-            box-shadow: 8px 8px 0 rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            z-index: 2000;
-            font-family: 'Press Start 2P', monospace;
-            overflow: hidden;
-            touch-action: none;
-        }
-        .xp-window .window-titlebar {
-            background: linear-gradient(90deg, #0a246a, #3a7bd5);
-            color: #fff;
-            padding: 4px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-            border-radius: 4px 4px 0 0;
-            font-weight: bold;
-            font-size: 12px;
-            height: 44px;
-            touch-action: none;
-            pointer-events: auto;
-        }
-        .xp-window .window-titlebar .title-text {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-family: 'Press Start 2P', monospace;
-        }
+        .xp-window { position: fixed; min-width: 300px; min-height: 140px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; box-shadow: 8px 8px 0 rgba(0,0,0,0.2); display: flex; flex-direction: column; z-index: 2000; font-family: 'Press Start 2P', monospace; overflow: hidden; touch-action: none; }
+        .xp-window .window-titlebar { background: linear-gradient(90deg, #0a246a, #3a7bd5); color: #fff; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-radius: 4px 4px 0 0; font-weight: bold; font-size: 12px; height: 44px; touch-action: none; pointer-events: auto; }
+        .xp-window .window-titlebar .title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Press Start 2P', monospace; }
         .xp-window .window-titlebar .win-btns { display: flex; gap: 6px; flex-shrink: 0; }
-        .xp-window .window-titlebar .win-btns button {
-            width: 36px;
-            height: 36px;
-            border: none;
-            border-radius: 2px;
-            font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-            line-height: 32px;
-            text-align: center;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            touch-action: manipulation;
-            font-family: 'Press Start 2P', monospace;
-            pointer-events: auto;
-        }
+        .xp-window .window-titlebar .win-btns button { width: 36px; height: 36px; border: none; border-radius: 2px; font-weight: bold; font-size: 18px; cursor: pointer; line-height: 32px; text-align: center; background: rgba(255,255,255,0.15); color: #fff; touch-action: manipulation; font-family: 'Press Start 2P', monospace; pointer-events: auto; }
         .xp-window .window-titlebar .win-btns button:hover { background: rgba(255,255,255,0.3); }
         .xp-window .window-titlebar .win-btns .min-btn:hover { background: #5a7ab5; }
         .xp-window .window-titlebar .win-btns .max-btn:hover { background: #6a8a5a; }
         .xp-window .window-titlebar .win-btns .close-btn:hover { background: #c00; }
-        .xp-window .window-body {
-            padding: 0;
-            flex: 1;
-            overflow: auto;
-            background: #ece9d8;
-            color: #1a1a1a;
-            display: flex;
-            flex-direction: column;
-            touch-action: auto;
-        }
-        .app-container {
-            padding: 16px;
-            flex: 1;
-            background: #ece9d8;
-            overflow: auto;
-            font-family: 'Press Start 2P', monospace;
-        }
-        .app-container h2 {
-            margin-top: 0;
-            border-bottom: 2px solid #999;
-            padding-bottom: 4px;
-            font-size: 16px;
-        }
-        .app-container button {
-            background: #ddd;
-            border: 2px outset #fff;
-            padding: 4px 12px;
-            cursor: pointer;
-            font-family: 'Press Start 2P', monospace;
-            touch-action: manipulation;
-            font-size: 11px;
-        }
+        .xp-window .window-body { padding: 0; flex: 1; overflow: auto; background: #ece9d8; color: #1a1a1a; display: flex; flex-direction: column; touch-action: auto; }
+        .app-container { padding: 16px; flex: 1; background: #ece9d8; overflow: auto; font-family: 'Press Start 2P', monospace; }
+        .app-container h2 { margin-top: 0; border-bottom: 2px solid #999; padding-bottom: 4px; font-size: 16px; }
+        .app-container button { background: #ddd; border: 2px outset #fff; padding: 4px 12px; cursor: pointer; font-family: 'Press Start 2P', monospace; touch-action: manipulation; font-size: 11px; }
         .app-container button:active { border-style: inset; }
-        .app-container input, .app-container textarea, .app-container select {
-            background: #fff;
-            border: 2px inset #ccc;
-            padding: 4px;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 11px;
-        }
+        .app-container input, .app-container textarea, .app-container select { background: #fff; border: 2px inset #ccc; padding: 4px; font-family: 'Press Start 2P', monospace; font-size: 11px; }
         .app-container textarea { width: 100%; resize: vertical; }
         .app-container .item-list { list-style: none; padding: 0; margin: 8px 0; }
-        .app-container .item-list li {
-            padding: 4px 8px;
-            border-bottom: 1px solid #ccc;
-            cursor: pointer;
-            font-size: 12px;
-        }
+        .app-container .item-list li { padding: 4px 8px; border-bottom: 1px solid #ccc; cursor: pointer; font-size: 12px; }
         .app-container .item-list li:hover { background: #d0d0d0; }
-
         .gallery-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
-        .gallery-grid .img-item {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            border: 2px solid #999;
-            border-radius: 2px;
-            overflow: hidden;
-            background: #eee;
-        }
-        .gallery-grid .img-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            image-rendering: pixelated;
-        }
-        .gallery-grid .img-item .del-btn {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: rgba(200,0,0,0.8);
-            color: #fff;
-            border: none;
-            border-radius: 2px;
-            cursor: pointer;
-            padding: 2px 6px;
-            font-size: 12px;
-        }
-
-        #hint {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            color: rgba(255,255,255,0.5);
-            font-size: 12px;
-            background: rgba(0,0,0,0.4);
-            padding: 6px 18px;
-            border-radius: 4px;
-            pointer-events: none;
-            transition: opacity 1s;
-            font-family: 'Press Start 2P', monospace;
-        }
-
-        .xp-modal-overlay {
-            position: fixed;
-            top:0;left:0;width:100%;height:100%;
-            background:rgba(0,0,0,0.5);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            z-index:9999;
-            backdrop-filter:blur(2px);
-        }
-        .xp-modal {
-            background:#ece9d8;
-            border:2px solid #3a6ea5;
-            border-radius:4px;
-            padding:20px 24px;
-            min-width:320px;
-            max-width:90%;
-            box-shadow:8px 8px 0 rgba(0,0,0,0.2);
-            font-family:'Press Start 2P', monospace;
-        }
+        .gallery-grid .img-item { position: relative; width: 120px; height: 120px; border: 2px solid #999; border-radius: 2px; overflow: hidden; background: #eee; }
+        .gallery-grid .img-item img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+        .gallery-grid .img-item .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(200,0,0,0.8); color: #fff; border: none; border-radius: 2px; cursor: pointer; padding: 2px 6px; font-size: 12px; }
+        #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 12px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 4px; pointer-events: none; transition: opacity 1s; font-family: 'Press Start 2P', monospace; }
+        .xp-modal-overlay { position: fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(2px); }
+        .xp-modal { background:#ece9d8; border:2px solid #3a6ea5; border-radius:4px; padding:20px 24px; min-width:320px; max-width:90%; box-shadow:8px 8px 0 rgba(0,0,0,0.2); font-family:'Press Start 2P', monospace; }
         .xp-modal h3 { margin:0 0 12px 0; color:#0a246a; font-size:16px; }
         .xp-modal label { display:block; margin:8px 0 4px 0; font-weight:bold; font-size:12px; }
-        .xp-modal input[type="text"], .xp-modal input[type="color"], .xp-modal textarea {
-            width:100%; padding:4px; border:2px inset #ccc; background:#fff; font-family:'Press Start 2P', monospace;
-        }
+        .xp-modal input[type="text"], .xp-modal input[type="color"], .xp-modal textarea { width:100%; padding:4px; border:2px inset #ccc; background:#fff; font-family:'Press Start 2P', monospace; }
         .xp-modal .modal-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
         .xp-modal .modal-btns button { background:#ddd; border:2px outset #fff; padding:4px 16px; cursor:pointer; font-family:'Press Start 2P', monospace; }
         .xp-modal .modal-btns button:active { border-style:inset; }
         .xp-modal .modal-btns .primary { background:#3a7bd5; color:#fff; border-color:#1a4a9f; }
-
         .wallpaper-preview { width: 100%; height: 80px; border: 2px inset #ccc; background-size: cover; background-position: center; margin: 8px 0; transition: background 0.3s; }
-
-        .tape-player {
-            background: #2a2a2a;
-            border: 2px solid #444;
-            border-radius: 4px;
-            padding: 16px;
-            box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
-            color: #eee;
-            font-family: 'Press Start 2P', monospace;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .tape-player .tape-window {
-            background: #0a0a0a;
-            border: 2px solid #444;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .tape-player .tape-window .reel {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #555, #222);
-            border: 2px solid #444;
-            position: relative;
-        }
-        .tape-player .tape-window .reel::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 10px;
-            height: 10px;
-            background: #111;
-            border-radius: 50%;
-        }
+        .tape-player { background: #2a2a2a; border: 2px solid #444; border-radius: 4px; padding: 16px; box-shadow: 4px 4px 0 rgba(0,0,0,0.3); color: #eee; font-family: 'Press Start 2P', monospace; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; }
+        .tape-player .tape-window { background: #0a0a0a; border: 2px solid #444; padding: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .tape-player .tape-window .reel { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #555, #222); border: 2px solid #444; position: relative; }
+        .tape-player .tape-window .reel::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #111; border-radius: 50%; }
         .tape-player .tape-window .reel.spinning { animation: spin 1.5s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .tape-player .tape-window .tape-info {
-            flex:1;
-            text-align:center;
-            color:#aaa;
-            font-size:10px;
-            padding:0 8px;
-            overflow:hidden;
-            white-space:nowrap;
-            text-overflow:ellipsis;
-        }
+        .tape-player .tape-window .tape-info { flex:1; text-align:center; color:#aaa; font-size:10px; padding:0 8px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
         .tape-player .tape-window .tape-info .song-title { color:#eee; font-weight:bold; font-size:12px; }
         .tape-player .controls { display:flex; gap:8px; justify-content:center; }
-        .tape-player .controls button {
-            background:#2a2a2a;
-            border:none;
-            color:#eee;
-            font-size:20px;
-            cursor:pointer;
-            padding:4px 12px;
-            border-radius:2px;
-            box-shadow:0 2px 0 #111;
-            border:1px solid #444;
-            font-family:'Press Start 2P', monospace;
-        }
+        .tape-player .controls button { background:#2a2a2a; border:none; color:#eee; font-size:20px; cursor:pointer; padding:4px 12px; border-radius:2px; box-shadow:0 2px 0 #111; border:1px solid #444; font-family:'Press Start 2P', monospace; }
         .tape-player .controls button:active { transform:translateY(2px); box-shadow:none; }
         .tape-player .controls .play-btn { background:#4a6a3a; border-color:#6a8a5a; }
         .tape-player .progress-bar { display:flex; align-items:center; gap:6px; }
-        .tape-player .progress-bar input[type="range"] {
-            flex:1;
-            height:4px;
-            -webkit-appearance:none;
-            background:#444;
-            border-radius:2px;
-            outline:none;
-        }
-        .tape-player .progress-bar input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance:none;
-            width:12px;
-            height:12px;
-            border-radius:50%;
-            background:#6a8a5a;
-            cursor:pointer;
-            border:2px solid #eee;
-        }
+        .tape-player .progress-bar input[type="range"] { flex:1; height:4px; -webkit-appearance:none; background:#444; border-radius:2px; outline:none; }
+        .tape-player .progress-bar input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#6a8a5a; cursor:pointer; border:2px solid #eee; }
         .tape-player .progress-bar .time { font-size:10px; color:#aaa; min-width:36px; }
         .tape-player .volume-control { display:flex; align-items:center; gap:6px; justify-content:center; }
-        .tape-player .volume-control input[type="range"] {
-            width:80px;
-            height:3px;
-            -webkit-appearance:none;
-            background:#444;
-            border-radius:2px;
-            outline:none;
-        }
-        .tape-player .volume-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance:none;
-            width:10px;
-            height:10px;
-            border-radius:50%;
-            background:#6a8a5a;
-            cursor:pointer;
-            border:1px solid #eee;
-        }
+        .tape-player .volume-control input[type="range"] { width:80px; height:3px; -webkit-appearance:none; background:#444; border-radius:2px; outline:none; }
+        .tape-player .volume-control input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px; border-radius:50%; background:#6a8a5a; cursor:pointer; border:1px solid #eee; }
         .tape-player .list-toggle { text-align:center; font-size:10px; color:#888; cursor:pointer; border-top:1px solid #444; padding-top:6px; }
-        .tape-player .playlist {
-            display:none;
-            background:#1a1a1a;
-            border:1px solid #444;
-            padding:4px;
-            max-height:100px;
-            overflow-y:auto;
-        }
-        .tape-player .playlist .pl-item {
-            padding:4px 8px;
-            cursor:pointer;
-            border-bottom:1px solid #333;
-            font-size:10px;
-            color:#aaa;
-        }
+        .tape-player .playlist { display:none; background:#1a1a1a; border:1px solid #444; padding:4px; max-height:100px; overflow-y:auto; }
+        .tape-player .playlist .pl-item { padding:4px 8px; cursor:pointer; border-bottom:1px solid #333; font-size:10px; color:#aaa; }
         .tape-player .playlist .pl-item:hover { background:#2a2a2a; color:#fff; }
         .tape-player .playlist .pl-item.active { color:#6a8a5a; font-weight:bold; }
         .tape-player .playlist.show { display:block; }
-
         ::-webkit-scrollbar { width: 12px; background: #ece9d8; }
         ::-webkit-scrollbar-thumb { background: #3a6ea5; border: 2px solid #0a246a; }
         ::-webkit-scrollbar-track { background: #ece9d8; }
-
         .notion-block { display: flex; align-items: flex-start; gap: 6px; padding: 2px 0; }
         .notion-block .block-type { font-size: 12px; color: #888; min-width: 60px; }
         .notion-block .block-content { flex: 1; }
-        .notion-block .block-content input {
-            width: 100%;
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 2px 4px;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 11px;
-        }
+        .notion-block .block-content input { width: 100%; background: #fff; border: 1px solid #ccc; padding: 2px 4px; font-family: 'Press Start 2P', monospace; font-size: 11px; }
         .notion-block .block-del { cursor: pointer; color: #c00; font-size: 12px; }
-
         .paint-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; align-items: center; }
         .paint-toolbar button, .paint-toolbar input { font-family: 'Press Start 2P', monospace; font-size: 10px; }
         .paint-canvas-container { position: relative; border: 2px solid #999; background: #fff; touch-action: none; }
         .paint-canvas-container canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; touch-action: none; }
-
         .comic-viewer { display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .comic-viewer .comic-page { max-width: 100%; border: 2px solid #999; }
         .comic-viewer .comic-page img { width: 100%; height: auto; image-rendering: pixelated; }
         .comic-viewer .comic-nav { display: flex; gap: 12px; align-items: center; }
-
         .blog-profile { display: flex; gap: 16px; align-items: flex-start; border-bottom: 2px solid #999; padding-bottom: 12px; margin-bottom: 12px; flex-wrap: wrap; }
         .blog-profile .avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid #3a6ea5; flex-shrink: 0; background: #ddd; }
         .blog-profile .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .blog-profile .info { flex: 1; min-width: 150px; }
         .blog-profile .info input, .blog-profile .info textarea { width: 100%; }
 
-        /* ============================================================
-           移动端深度适配（全屏 + 触控优化）
-           ============================================================ */
         @media (max-width: 768px) {
             .desktop-icons { gap: 16px 20px; padding: 12px; }
             .desktop-icon { width: 64px; }
@@ -609,17 +127,7 @@
             .taskbar-item { font-size: 10px; padding: 0 8px; height: 28px; }
             .taskbar-time { font-size: 10px; padding: 2px 8px; }
             .start-menu { width: 92vw; left: 4vw; bottom: 48px; }
-            .xp-window {
-                min-width: 92vw;
-                max-width: 92vw;
-                min-height: 40vh;
-                max-height: 80vh;
-                left: 4vw !important;
-                top: 5vh !important;
-                width: 92vw !important;
-                height: auto !important;
-                border-radius: 6px;
-            }
+            .xp-window { min-width: 92vw; max-width: 92vw; min-height: 40vh; max-height: 80vh; left: 4vw !important; top: 5vh !important; width: 92vw !important; height: auto !important; border-radius: 6px; }
             .xp-window .window-titlebar { height: 40px; padding: 2px 8px; font-size: 11px; }
             .xp-window .window-titlebar .win-btns button { width: 32px; height: 32px; font-size: 16px; line-height: 28px; }
             .xp-window .window-body .app-container { padding: 10px; }
@@ -637,7 +145,6 @@
             .tape-player .controls button { font-size: 16px; padding: 4px 10px; }
             .pet-item .speech-bubble { font-size: 10px; max-width: 150px; padding: 2px 6px; }
             #hint { font-size: 10px; padding: 4px 12px; bottom: 20px; }
-            /* 强制全屏，防止底部白边 */
             html, body { height: 100%; overflow: hidden; }
             #desktop-overlay { height: 100%; }
         }
@@ -650,16 +157,7 @@
             .start-button { font-size: 10px; padding: 2px 8px; }
             .taskbar-item { font-size: 8px; padding: 0 6px; height: 24px; }
             .taskbar-time { font-size: 8px; padding: 2px 6px; }
-            .xp-window {
-                min-width: 96vw;
-                max-width: 96vw;
-                left: 2vw !important;
-                top: 2vh !important;
-                width: 96vw !important;
-                min-height: 30vh;
-                max-height: 85vh;
-                border-radius: 4px;
-            }
+            .xp-window { min-width: 96vw; max-width: 96vw; left: 2vw !important; top: 2vh !important; width: 96vw !important; min-height: 30vh; max-height: 85vh; border-radius: 4px; }
             .xp-window .window-titlebar { height: 36px; font-size: 10px; }
             .xp-window .window-titlebar .win-btns button { width: 28px; height: 28px; font-size: 14px; line-height: 24px; }
             .app-container { padding: 6px; }
@@ -676,10 +174,8 @@
     </style>
 </head>
 <body>
-
     <div id="three-container"></div>
     <div id="hint">🖱️ 点击屏幕进入桌面 · ESC 返回</div>
-
     <div id="desktop-overlay">
         <div id="pet-container"></div>
         <div class="desktop-icons">
@@ -695,13 +191,11 @@
             <div class="desktop-icon" data-window="about"><i class="icon-img fas fa-circle-info"></i><span class="icon-label">关于</span></div>
             <div class="desktop-icon" data-window="trash"><i class="icon-img fas fa-trash"></i><span class="icon-label">回收站</span></div>
         </div>
-
         <div class="taskbar">
             <div class="start-button" id="startBtn"><i class="fas fa-windows"></i> 开始</div>
             <div id="taskbar-items"></div>
             <div class="taskbar-time" id="taskbarTime">12:00</div>
         </div>
-
         <div class="start-menu" id="startMenu">
             <div class="start-menu-item" data-window="oc"><span class="item-icon fas fa-user"></span> OC</div>
             <div class="start-menu-item" data-window="gallery"><span class="item-icon fas fa-images"></span> 图库</div>
@@ -724,9 +218,7 @@
     </script>
 
     <script type="module">
-        // ============================================================
-        // 弹窗系统
-        // ============================================================
+        // ======================== 弹窗系统 ========================
         window.showXpModal = function(options) {
             return new Promise((resolve) => {
                 const overlay = document.createElement('div');
@@ -737,27 +229,15 @@
                 if (options.fields) {
                     fieldsHtml = options.fields.map(f => {
                         const tag = f.type === 'textarea' ? 'textarea' : 'input';
-                        const attrs = f.type === 'textarea' ?
-                            `rows="${f.rows || 4}" style="width:100%;"` :
-                            `type="${f.type || 'text'}"`;
-                        return `<label>${f.label}</label>
-                                <${tag} id="modal_${f.id}" ${attrs} placeholder="${f.placeholder || ''}">${f.value || ''}</${tag}>`;
+                        const attrs = f.type === 'textarea' ? `rows="${f.rows || 4}" style="width:100%;"` : `type="${f.type || 'text'}"`;
+                        return `<label>${f.label}</label><${tag} id="modal_${f.id}" ${attrs} placeholder="${f.placeholder || ''}">${f.value || ''}</${tag}>`;
                     }).join('');
                 }
-                modal.innerHTML = `
-                    <h3>${options.title || '提示'}</h3>
-                    ${fieldsHtml || `<p>${options.message || ''}</p>`}
-                    <div class="modal-btns">
-                        ${options.cancelText ? `<button id="modalCancel">${options.cancelText}</button>` : ''}
-                        <button class="primary" id="modalConfirm">${options.confirmText || '确定'}</button>
-                    </div>
-                `;
+                modal.innerHTML = `<h3>${options.title || '提示'}</h3>${fieldsHtml || `<p>${options.message || ''}</p>`}<div class="modal-btns">${options.cancelText ? `<button id="modalCancel">${options.cancelText}</button>` : ''}<button class="primary" id="modalConfirm">${options.confirmText || '确定'}</button></div>`;
                 overlay.appendChild(modal);
                 document.body.appendChild(overlay);
-
                 const confirmBtn = modal.querySelector('#modalConfirm');
                 const cancelBtn = modal.querySelector('#modalCancel');
-
                 function cleanup(result) { overlay.remove(); resolve(result); }
                 confirmBtn.addEventListener('click', () => {
                     if (options.fields) {
@@ -773,51 +253,36 @@
                 overlay.addEventListener('click', (e) => { if (e.target === overlay && !cancelBtn) cleanup(null); });
             });
         };
-
         window.xpPrompt = async function(title, label, placeholder, defaultValue) {
             try {
-                const result = await window.showXpModal({
-                    title,
-                    fields: [{ id: 'input', label, placeholder, value: defaultValue || '' }],
-                    confirmText: '确定',
-                    cancelText: '取消'
-                });
+                const result = await window.showXpModal({ title, fields: [{ id: 'input', label, placeholder, value: defaultValue || '' }], confirmText: '确定', cancelText: '取消' });
                 return result ? result.input : null;
             } catch (e) { return null; }
         };
-
         window.xpAlert = async function(message) {
             await window.showXpModal({ title: '提示', message, confirmText: '确定' });
         };
 
-        // ============================================================
-        // 宠物系统
-        // ============================================================
+        // ======================== 宠物系统 ========================
         function getPetData() {
             try { return JSON.parse(localStorage.getItem('myPets') || '[]'); } catch (e) { return []; }
         }
-
         function savePetData(pets) {
             localStorage.setItem('myPets', JSON.stringify(pets));
             renderPets();
             renderPetListUI();
         }
-
         let petInstances = [];
         let petAnimationId = null;
-
         function renderPets() {
             const container = document.getElementById('pet-container');
             if (!container) return;
             container.innerHTML = '';
             petInstances = [];
-
             const pets = getPetData();
             if (pets.length === 0) return;
-
             const containerWidth = container.offsetWidth || window.innerWidth;
             const containerHeight = container.offsetHeight || window.innerHeight;
-
             pets.forEach((petData, index) => {
                 const el = document.createElement('div');
                 el.className = 'pet-item pet-bounce';
@@ -826,7 +291,6 @@
                 el.style.width = w + 'px';
                 el.style.height = h + 'px';
                 el.dataset.index = index;
-
                 const maxLeft = 100 - (w / containerWidth) * 100;
                 const maxTop = 100 - (h / containerHeight) * 100;
                 let left = petData.x ?? (20 + Math.random() * 60);
@@ -837,14 +301,9 @@
                 el.style.top = top + '%';
                 petData.x = left;
                 petData.y = top;
-
                 const bubbleText = petData.dialogs && petData.dialogs.length ? petData.dialogs.join('\n') : '你好！';
-                el.innerHTML = `
-                    <img src="${petData.img}" alt="${petData.name}" style="background:transparent;" />
-                    <div class="speech-bubble">${bubbleText}</div>
-                `;
+                el.innerHTML = `<img src="${petData.img}" alt="${petData.name}" style="background:transparent;" /><div class="speech-bubble">${bubbleText}</div>`;
                 container.appendChild(el);
-
                 const instance = {
                     el: el,
                     data: petData,
@@ -856,9 +315,7 @@
                     dragOffsetY: 0,
                 };
                 petInstances.push(instance);
-
                 const bubble = el.querySelector('.speech-bubble');
-
                 el.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const dialogs = instance.data.dialogs;
@@ -870,11 +327,8 @@
                     }
                     bubble.style.display = 'block';
                     if (window._petBubbleTimer) clearTimeout(window._petBubbleTimer);
-                    window._petBubbleTimer = setTimeout(() => {
-                        bubble.style.display = 'none';
-                    }, 3000);
+                    window._petBubbleTimer = setTimeout(() => { bubble.style.display = 'none'; }, 3000);
                 });
-
                 const onPointerDown = (e) => {
                     if (e.target.tagName === 'IMG' || e.target === el) {
                         e.stopPropagation();
@@ -889,7 +343,6 @@
                         bubble.style.display = 'none';
                     }
                 };
-
                 const onPointerMove = (e) => {
                     if (!instance.isDragging) return;
                     const containerRect = container.getBoundingClientRect();
@@ -916,7 +369,6 @@
                     }
                     e.preventDefault();
                 };
-
                 const onPointerUp = (e) => {
                     if (instance.isDragging) {
                         instance.isDragging = false;
@@ -925,7 +377,6 @@
                         el.releasePointerCapture(e.pointerId);
                     }
                 };
-
                 el.addEventListener('pointerdown', onPointerDown);
                 el.addEventListener('pointermove', onPointerMove);
                 el.addEventListener('pointerup', onPointerUp);
@@ -937,13 +388,11 @@
                     el.removeEventListener('pointercancel', onPointerUp);
                 };
             });
-
             if (petAnimationId) cancelAnimationFrame(petAnimationId);
             if (petInstances.length > 0) {
                 petAnimationId = requestAnimationFrame(animatePets);
             }
         }
-
         function animatePets() {
             const container = document.getElementById('pet-container');
             if (!container) {
@@ -952,52 +401,46 @@
             }
             const containerWidth = container.offsetWidth || 1;
             const containerHeight = container.offsetHeight || 1;
-
             petInstances.forEach(inst => {
                 if (inst.isDragging) return;
-
                 if (Math.random() < 0.005) {
                     inst.dx = (Math.random() - 0.5) * 2;
                     inst.dy = (Math.random() - 0.5) * 2;
                     const len = Math.sqrt(inst.dx * inst.dx + inst.dy * inst.dy);
-                    if (len > 0) { inst.dx /= len; inst.dy /= len; }
+                    if (len > 0) { inst.dx /= len;
+                        inst.dy /= len; }
                 }
-
                 const petW = inst.el.offsetWidth || 80;
                 const petH = inst.el.offsetHeight || 80;
                 const petWPercent = (petW / containerWidth) * 100;
                 const petHPercent = (petH / containerHeight) * 100;
-
                 const margin = 0.5;
                 const minLeft = margin;
                 const maxLeft = 100 - petWPercent - margin;
                 const minTop = margin;
                 const maxTop = 100 - petHPercent - margin;
-
                 let left = parseFloat(inst.el.style.left) || 20;
                 let top = parseFloat(inst.el.style.top) || 20;
-
                 const speedPx = inst.speed;
                 let deltaXPercent = (inst.dx * speedPx / containerWidth) * 100;
                 let deltaYPercent = (inst.dy * speedPx / containerHeight) * 100;
-
                 let newLeft = left + deltaXPercent;
                 let newTop = top + deltaYPercent;
-
-                if (newLeft < minLeft) { newLeft = minLeft; inst.dx = -inst.dx; }
-                if (newLeft > maxLeft) { newLeft = maxLeft; inst.dx = -inst.dx; }
-                if (newTop < minTop) { newTop = minTop; inst.dy = -inst.dy; }
-                if (newTop > maxTop) { newTop = maxTop; inst.dy = -inst.dy; }
-
+                if (newLeft < minLeft) { newLeft = minLeft;
+                    inst.dx = -inst.dx; }
+                if (newLeft > maxLeft) { newLeft = maxLeft;
+                    inst.dx = -inst.dx; }
+                if (newTop < minTop) { newTop = minTop;
+                    inst.dy = -inst.dy; }
+                if (newTop > maxTop) { newTop = maxTop;
+                    inst.dy = -inst.dy; }
                 inst.el.style.left = newLeft + '%';
                 inst.el.style.top = newTop + '%';
                 inst.data.x = newLeft;
                 inst.data.y = newTop;
             });
-
             petAnimationId = requestAnimationFrame(animatePets);
         }
-
         function renderPetListUI() {
             const list = document.getElementById('petList');
             if (!list) return;
@@ -1011,38 +454,25 @@
                 const div = document.createElement('div');
                 div.style.borderBottom = '1px solid #ddd';
                 div.style.padding = '6px 0';
-                div.innerHTML = `
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                        <img src="${pet.img}" style="width:40px; height:40px; object-fit:cover; border:1px solid #999; image-rendering:pixelated; background:transparent;" />
-                        <span style="font-weight:bold;">${pet.name}</span>
-                        <span style="font-size:10px; color:#666;">${pet.width||80}x${pet.height||80}</span>
-                        <button onclick="window.editPetName(${idx})">✏️ 名称</button>
-                        <button onclick="window.editPetImage(${idx})">🖼️ 换图</button>
-                        <button onclick="window.editPetDialogs(${idx})">💬 对话</button>
-                        <button onclick="window.editPetSize(${idx})">📐 尺寸</button>
-                        <button onclick="window.deletePet(${idx})" style="color:red;">✕</button>
-                    </div>
-                    <div style="font-size:10px; color:#666; margin-top:2px; white-space:pre-wrap;">
-                        对话: ${pet.dialogs && pet.dialogs.length ? pet.dialogs.join(' | ') : '(未设置)'}
-                    </div>
-                `;
+                div.innerHTML = `<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><img src="${pet.img}" style="width:40px; height:40px; object-fit:cover; border:1px solid #999; image-rendering:pixelated; background:transparent;" /><span style="font-weight:bold;">${pet.name}</span><span style="font-size:10px; color:#666;">${pet.width||80}x${pet.height||80}</span><button onclick="window.editPetName(${idx})">✏️ 名称</button><button onclick="window.editPetImage(${idx})">🖼️ 换图</button><button onclick="window.editPetDialogs(${idx})">💬 对话</button><button onclick="window.editPetSize(${idx})">📐 尺寸</button><button onclick="window.deletePet(${idx})" style="color:red;">✕</button></div><div style="font-size:10px; color:#666; margin-top:2px; white-space:pre-wrap;">对话: ${pet.dialogs && pet.dialogs.length ? pet.dialogs.join(' | ') : '(未设置)'}</div>`;
                 list.appendChild(div);
             });
         }
-
         window.editPetName = async function(idx) {
             const pets = getPetData();
             const pet = pets[idx];
             if (!pet) return;
             const newName = await window.xpPrompt('编辑名称', '新名称：', '', pet.name);
-            if (newName !== null) { pet.name = newName; savePetData(pets); }
+            if (newName !== null) { pet.name = newName;
+                savePetData(pets); }
         };
         window.editPetImage = async function(idx) {
             const pets = getPetData();
             const pet = pets[idx];
             if (!pet) return;
             const newImg = await window.xpPrompt('图片URL', 'URL：', '', pet.img);
-            if (newImg !== null) { pet.img = newImg; savePetData(pets); }
+            if (newImg !== null) { pet.img = newImg;
+                savePetData(pets); }
         };
         window.editPetDialogs = async function(idx) {
             const pets = getPetData();
@@ -1051,14 +481,7 @@
             const current = pet.dialogs ? pet.dialogs.join('\n') : '';
             const result = await window.showXpModal({
                 title: '编辑对话（每行一句）',
-                fields: [{
-                    id: 'dialogs',
-                    label: '对话内容（每行一句，换行分隔）',
-                    type: 'textarea',
-                    rows: 6,
-                    value: current,
-                    placeholder: '你好呀！\n今天天气真好\n...'
-                }],
+                fields: [{ id: 'dialogs', label: '对话内容（每行一句，换行分隔）', type: 'textarea', rows: 6, value: current, placeholder: '你好呀！\n今天天气真好\n...' }],
                 confirmText: '保存',
                 cancelText: '取消'
             });
@@ -1076,10 +499,7 @@
             const currentH = pet.height || 80;
             const result = await window.showXpModal({
                 title: '调整宠物尺寸',
-                fields: [
-                    { id: 'width', label: '宽度 (px)', value: currentW, placeholder: '80' },
-                    { id: 'height', label: '高度 (px)', value: currentH, placeholder: '80' }
-                ],
+                fields: [{ id: 'width', label: '宽度 (px)', value: currentW, placeholder: '80' }, { id: 'height', label: '高度 (px)', value: currentH, placeholder: '80' }],
                 confirmText: '确定',
                 cancelText: '取消'
             });
@@ -1092,20 +512,16 @@
             }
         };
         window.deletePet = async function(idx) {
-            const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此宠物？', confirmText: '删除',
-                cancelText: '取消' });
+            const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此宠物？', confirmText: '删除', cancelText: '取消' });
             if (!confirm) return;
             const pets = getPetData();
             pets.splice(idx, 1);
             savePetData(pets);
         };
 
-        // ============================================================
-        // 窗口管理
-        // ============================================================
+        // ======================== 窗口管理 ========================
         let windowZIndex = 2000;
         window._windowInstances = {};
-
         function createWindow(id, title, contentHtml, width = 500, height = 400) {
             if (window._windowInstances[id]) {
                 const win = window._windowInstances[id];
@@ -1115,7 +531,6 @@
                 if (btn) btn.remove();
                 return;
             }
-
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
                 width = Math.min(width, window.innerWidth * 0.92);
@@ -1124,7 +539,6 @@
                 if (width > window.innerWidth * 0.9) width = window.innerWidth * 0.9;
                 if (height > window.innerHeight * 0.8) height = window.innerHeight * 0.8;
             }
-
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
@@ -1135,30 +549,19 @@
             win.style.left = left + 'px';
             win.style.top = top + 'px';
             win.style.zIndex = ++windowZIndex;
-
             const titlebar = document.createElement('div');
             titlebar.className = 'window-titlebar';
-            titlebar.innerHTML = `
-                <span class="title-text">${title}</span>
-                <div class="win-btns">
-                    <button class="min-btn" data-action="min">─</button>
-                    <button class="max-btn" data-action="max">☐</button>
-                    <button class="close-btn" data-action="close">✕</button>
-                </div>
-            `;
+            titlebar.innerHTML = `<span class="title-text">${title}</span><div class="win-btns"><button class="min-btn" data-action="min">─</button><button class="max-btn" data-action="max">☐</button><button class="close-btn" data-action="close">✕</button></div>`;
             win.appendChild(titlebar);
-
             const body = document.createElement('div');
             body.className = 'window-body';
             body.innerHTML = contentHtml;
             win.appendChild(body);
             document.body.appendChild(win);
             window._windowInstances[id] = win;
-
             const minBtn = titlebar.querySelector('.min-btn');
             const maxBtn = titlebar.querySelector('.max-btn');
             const closeBtn = titlebar.querySelector('.close-btn');
-
             minBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 win.style.display = 'none';
@@ -1174,7 +577,6 @@
                 });
                 taskbar.appendChild(btn);
             });
-
             let isMaximized = false;
             maxBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1198,7 +600,6 @@
                     maxBtn.textContent = '☐';
                 }
             });
-
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (id === 'player') {
@@ -1218,22 +619,15 @@
                 const btn = document.querySelector(`.taskbar-item[data-window-id="${id}"]`);
                 if (btn) btn.remove();
             });
-
             win.addEventListener('pointerdown', (e) => {
                 if (e.target.closest('.win-btns')) return;
                 win.style.zIndex = ++windowZIndex;
             });
-
             let dragData = null;
             const onDragStart = (e) => {
                 if (e.target.closest('button')) return;
                 const rect = win.getBoundingClientRect();
-                dragData = {
-                    startX: e.clientX,
-                    startY: e.clientY,
-                    left: rect.left,
-                    top: rect.top
-                };
+                dragData = { startX: e.clientX, startY: e.clientY, left: rect.left, top: rect.top };
                 win.style.cursor = 'grabbing';
                 document.addEventListener('pointermove', onDragMove);
                 document.addEventListener('pointerup', onDragEnd);
@@ -1257,13 +651,10 @@
                 document.removeEventListener('pointerup', onDragEnd);
             };
             titlebar.addEventListener('pointerdown', onDragStart);
-
             return win;
         }
 
-        // ============================================================
-        // 应用：写作工坊（含删除作品、章节）
-        // ============================================================
+        // ======================== 应用：写作工坊 ========================
         function createWritingWindow() {
             const id = 'writing';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1271,14 +662,11 @@
                 win.style.zIndex = ++windowZIndex; return; }
             const content = `<div class="app-container" id="writingApp" style="display:flex; gap:16px; height:100%;"><div style="flex:1; border-right:2px solid #999; padding-right:12px; overflow-y:auto;"><h3>📚 作品</h3><button id="writingAddProjectBtn">+ 新建作品</button><ul class="item-list" id="projectList"></ul><hr /><h3>📌 备忘录</h3><button id="writingAddNoteBtn">+ 新建备忘</button><ul class="item-list" id="noteList"></ul></div><div style="flex:2; display:flex; flex-direction:column;"><div id="writingEditor" style="flex:1; overflow-y:auto;"><p style="color:#888;">选择作品或备忘开始编辑</p></div></div></div>`;
             const win = createWindow(id, '📝 写作工坊', content, 700, 550);
-
             function getWritingData() { try { let data = localStorage.getItem('writingData'); if (!data) { const defaultData = { projects: [],
                         notes: [] };
                     localStorage.setItem('writingData', JSON.stringify(defaultData)); return defaultData; } return JSON.parse(
                     data); } catch (e) { return { projects: [], notes: [] }; } }
-
             function saveWritingData(data) { localStorage.setItem('writingData', JSON.stringify(data)); }
-
             function renderProjects() {
                 const data = getWritingData();
                 const list = document.getElementById('projectList');
@@ -1319,7 +707,6 @@
                     list.appendChild(li);
                 });
             }
-
             function renderNotes() { const data = getWritingData(); const list = document.getElementById('noteList'); if (!list)
                     return;
                 list.innerHTML = '';
@@ -1327,28 +714,20 @@
                     li.textContent = note.title || '无标题备忘';
                     li.onclick = () => openNote(idx);
                     list.appendChild(li); }); }
-
             function openProject(idx) {
                 const data = getWritingData();
                 const proj = data.projects[idx];
                 if (!proj) return;
                 const editor = document.getElementById('writingEditor');
                 if (!editor) return;
-
                 window._writingState = { projectIdx: idx, chapterIdx: -1 };
-
                 let html = `<h3>${proj.title}</h3><button id="addChapterBtn">+ 添加章节</button><ul class="item-list" id="chapterList">`;
                 proj.chapters.forEach((ch, ci) => {
-                    html += `<li style="display:flex; justify-content:space-between; align-items:center;">
-                                <span onclick="window.openChapter(${idx}, ${ci})" style="cursor:pointer; flex:1;">${ch.title || '无标题章节'}</span>
-                                <button onclick="window.deleteChapter(${idx}, ${ci})" style="background:none; border:none; color:#c00; cursor:pointer; font-size:14px;">✕</button>
-                            </li>`;
+                    html += `<li style="display:flex; justify-content:space-between; align-items:center;"><span onclick="window.openChapter(${idx}, ${ci})" style="cursor:pointer; flex:1;">${ch.title || '无标题章节'}</span><button onclick="window.deleteChapter(${idx}, ${ci})" style="background:none; border:none; color:#c00; cursor:pointer; font-size:14px;">✕</button></li>`;
                 });
-                html += `</ul><hr /><div id="chapterEditor" style="border:1px solid #ccc; padding:8px; min-height:120px;"><p style="color:#888;">点击章节编辑</p></div>
-                         <button id="saveChapterBtn">保存当前章节</button>
-                         <button id="deleteProjectBtn" style="color:red;">删除整个作品</button>`;
+                html +=
+                    `</ul><hr /><div id="chapterEditor" style="border:1px solid #ccc; padding:8px; min-height:120px;"><p style="color:#888;">点击章节编辑</p></div><button id="saveChapterBtn">保存当前章节</button><button id="deleteProjectBtn" style="color:red;">删除整个作品</button>`;
                 editor.innerHTML = html;
-
                 document.getElementById('addChapterBtn').onclick = async () => {
                     const title = await window.xpPrompt('添加章节', '章节标题：', '输入标题');
                     if (title === null) return;
@@ -1359,7 +738,6 @@
                     saveWritingData(data2);
                     openProject(idx);
                 };
-
                 document.getElementById('saveChapterBtn').onclick = () => {
                     const data2 = getWritingData();
                     const proj2 = data2.projects[idx];
@@ -1379,7 +757,6 @@
                     window.xpAlert('章节已保存！');
                     openProject(idx);
                 };
-
                 document.getElementById('deleteProjectBtn').onclick = async () => {
                     const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此作品及其所有章节？', confirmText: '删除', cancelText: '取消' });
                     if (!confirm) return;
@@ -1390,7 +767,6 @@
                     document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
                     window._writingState = null;
                 };
-
                 window.openChapter = function(projIdx, chIdx) {
                     const data = getWritingData();
                     const proj = data.projects[projIdx];
@@ -1399,11 +775,10 @@
                     if (!ch) return;
                     const editor = document.getElementById('chapterEditor');
                     if (!editor) return;
-                    editor.innerHTML = `<input type="text" id="chTitle" value="${ch.title || ''}" placeholder="章节标题" style="width:100%;" />
-                                      <textarea id="chContent" rows="8" style="width:100%; margin-top:6px;">${ch.content || ''}</textarea>`;
+                    editor.innerHTML =
+                        `<input type="text" id="chTitle" value="${ch.title || ''}" placeholder="章节标题" style="width:100%;" /><textarea id="chContent" rows="8" style="width:100%; margin-top:6px;">${ch.content || ''}</textarea>`;
                     window._writingState = { projectIdx: projIdx, chapterIdx: chIdx };
                 };
-
                 window.deleteChapter = async function(projIdx, chIdx) {
                     const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此章节？', confirmText: '删除', cancelText: '取消' });
                     if (!confirm) return;
@@ -1412,7 +787,8 @@
                     if (!proj2) return;
                     proj2.chapters.splice(chIdx, 1);
                     saveWritingData(data2);
-                    if (window._writingState && window._writingState.projectIdx === projIdx && window._writingState.chapterIdx === chIdx) {
+                    if (window._writingState && window._writingState.projectIdx === projIdx && window._writingState
+                        .chapterIdx === chIdx) {
                         const editor = document.getElementById('chapterEditor');
                         if (editor) editor.innerHTML = '<p style="color:#888;">点击章节编辑</p>';
                         window._writingState.chapterIdx = -1;
@@ -1420,7 +796,6 @@
                     openProject(projIdx);
                 };
             }
-
             function openNote(idx) { const data = getWritingData(); const note = data.notes[idx]; if (!note) return; const
                     editor = document.getElementById('writingEditor'); if (!editor) return;
                 editor.innerHTML =
@@ -1442,7 +817,6 @@
                     renderNotes();
                     document.getElementById('writingEditor').innerHTML =
                         '<p style="color:#888;">选择作品或备忘开始编辑</p>'; }; }
-
             document.getElementById('writingAddProjectBtn').onclick = async () => {
                 const title = await window.xpPrompt('新建作品', '作品名称：', '输入作品名');
                 if (title === null) return;
@@ -1461,14 +835,11 @@
                 const newIdx = data.notes.length - 1;
                 openNote(newIdx);
             };
-
             renderProjects();
             renderNotes();
         }
 
-        // ============================================================
-        // 应用：聊天室（含删除房间、删除角色）
-        // ============================================================
+        // ======================== 应用：聊天室 ========================
         function createChatWindow() {
             const id = 'chat';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1478,14 +849,11 @@
                 `<div class="app-container" id="chatApp" style="display:flex; gap:12px; height:100%;"><div style="flex:1; border-right:2px solid #ccc; padding-right:12px; overflow-y:auto;"><h3>📡 聊天室</h3><button id="chatAddRoomBtn">+ 新建房间</button><ul class="item-list" id="roomList"></ul><hr /><h3>👥 角色</h3><button id="chatAddCharBtn">+ 新建角色</button><ul class="item-list" id="charList"></ul></div><div style="flex:2; display:flex; flex-direction:column;"><div id="chatView" style="flex:1; background:#1a1a2e; color:#e0e0e0; padding:12px; overflow-y:auto; border:2px inset #666; font-family:'Courier New', monospace;"><p style="color:#888;">选择一个聊天室开始</p></div><div style="display:flex; gap:6px; margin-top:8px;"><select id="chatCharacterSelect" style="flex:1; padding:4px;"></select><input type="text" id="chatInput" placeholder="输入消息..." style="flex:3; padding:4px;" /><button id="chatSendBtn" style="padding:4px 16px;">发送</button></div></div></div>`;
             const win = createWindow(id, '💬 聊天室', content, 750, 580);
             let currentRoomIdx = -1;
-
             function getChatData() { try { let data = localStorage.getItem('chatData'); if (!data) { const defaultData = {
                             rooms: [], characters: [] };
                         localStorage.setItem('chatData', JSON.stringify(defaultData)); return defaultData; } return JSON
                         .parse(data); } catch (e) { return { rooms: [], characters: [] }; } }
-
             function saveChatData(data) { localStorage.setItem('chatData', JSON.stringify(data)); }
-
             function renderRooms() {
                 const data = getChatData();
                 const list = document.getElementById('roomList');
@@ -1528,7 +896,6 @@
                     list.appendChild(li);
                 });
             }
-
             function renderCharacters() {
                 const data = getChatData();
                 const list = document.getElementById('charList');
@@ -1578,7 +945,6 @@
                     });
                 }
             }
-
             document.getElementById('chatAddRoomBtn').onclick = async () => { const name = await window.xpPrompt(
                     '新建聊天室', '聊天室名称：', '输入名称'); if (name === null) return; const data = getChatData();
                 data.rooms.push({ name: name || '新房间', messages: [] });
@@ -1591,7 +957,6 @@
                 data.characters.push({ name: name || '无名', color: color || '#ff0000' });
                 saveChatData(data);
                 renderCharacters(); };
-
             function editCharacter(idx) { (async () => { const data = getChatData(); const ch = data.characters[idx]; if (!
                         ch) return; const newName = await window.xpPrompt('编辑角色', '角色名称：', '', ch.name); if (
                         newName === null) return; const newColor = await window.xpPrompt('编辑角色', '角色颜色：',
@@ -1600,7 +965,6 @@
                     ch.color = newColor || ch.color;
                     saveChatData(data);
                     renderCharacters(); })(); }
-
             function openRoom(idx) { currentRoomIdx = idx; const data = getChatData(); const room = data.rooms[idx]; if (!
                     room) return; const view = document.getElementById('chatView'); if (!view) return; let html =
                     `<h3 style="color: #fff; margin-top:0;">💬 ${room.name}</h3>`;
@@ -1626,9 +990,7 @@
             renderCharacters();
         }
 
-        // ============================================================
-        // 应用：个人博客（已有删除功能）
-        // ============================================================
+        // ======================== 应用：个人博客 ========================
         function createBlogWindow() {
             const id = 'blog';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1637,7 +999,6 @@
             const content =
                 `<div class="app-container"><h2>📖 个人博客</h2><div class="blog-profile" id="blogProfile"><div class="avatar" id="blogAvatar"><img id="blogAvatarImg" src="https://via.placeholder.com/80?text=Avatar" alt="头像" /></div><div class="info"><label style="font-size:10px;">头像URL</label><input type="text" id="blogAvatarUrl" placeholder="输入头像图片URL" /><label style="font-size:10px; margin-top:6px; display:block;">简介</label><textarea id="blogBio" rows="2" placeholder="写一段你的简介……"></textarea><button id="blogSaveProfileBtn" style="margin-top:4px;">💾 保存资料</button></div></div><div style="border-top:2px solid #999; padding-top:12px;"><input type="text" id="blogTitle" placeholder="标题" style="width:100%;" /><textarea id="blogContent" rows="6" placeholder="正文" style="width:100%;"></textarea><button id="blogPostBtn">发布</button><div id="blogPosts" style="margin-top:12px;"></div></div></div>`;
             const win = createWindow(id, '📖 个人博客', content, 600, 500);
-
             function loadProfile() { try { const profile = JSON.parse(localStorage.getItem('blogProfile') || '{}'); const
                         avatarUrl = profile.avatar || 'https://via.placeholder.com/80?text=Avatar'; const bio = profile
                         .bio || '';
@@ -1652,7 +1013,6 @@
                 localStorage.setItem('blogProfile', JSON.stringify(profile));
                 document.getElementById('blogAvatarImg').src = avatar;
                 window.xpAlert('资料已保存！'); });
-
             function renderPosts() { try { const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]'); const
                         container = document.getElementById('blogPosts'); if (!container) return;
                     container.innerHTML = '';
@@ -1676,9 +1036,7 @@
                 window.xpAlert('发布成功！'); };
         }
 
-        // ============================================================
-        // 应用：图库（已有删除功能）
-        // ============================================================
+        // ======================== 应用：图库 ========================
         function createGalleryWindow() {
             const id = 'gallery';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1687,14 +1045,11 @@
             const content =
                 `<div class="app-container"><div style="display:flex; gap:8px; margin-bottom:12px;"><input type="file" id="galleryFileInput" accept="image/*" multiple style="display:none;" /><button id="galleryUploadBtn">📤 上传图片</button><button id="galleryClearBtn" style="color:red;">清空图库</button></div><div class="gallery-grid" id="galleryGrid"></div></div>`;
             const win = createWindow(id, '🖼️ 图库', content, 600, 500);
-
             function getGalleryData() { try { let data = localStorage.getItem('galleryData'); if (!data) { const
                         defaultData = { images: [] };
                         localStorage.setItem('galleryData', JSON.stringify(defaultData)); return defaultData; } return JSON
                         .parse(data); } catch (e) { return { images: [] }; } }
-
             function saveGalleryData(data) { localStorage.setItem('galleryData', JSON.stringify(data)); }
-
             function renderGallery() { const data = getGalleryData(); const grid = document.getElementById(
                     'galleryGrid'); if (!grid) return;
                 grid.innerHTML = '';
@@ -1705,7 +1060,6 @@
                     div.querySelector('.del-btn').addEventListener('click', (e) => { e.stopPropagation();
                         deleteImage(idx); });
                     grid.appendChild(div); }); }
-
             function deleteImage(idx) { (async () => { const confirm = await window.showXpModal({ title: '确认删除',
                         message: '确定删除这张图片？', confirmText: '删除', cancelText: '取消' }); if (!confirm) return; const
                         data = getGalleryData();
@@ -1733,9 +1087,7 @@
             renderGallery();
         }
 
-        // ============================================================
-        // 应用：画图（已有功能）
-        // ============================================================
+        // ======================== 应用：画图 ========================
         function createPaintWindow() {
             const id = 'paint';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1744,7 +1096,6 @@
             const content =
                 `<div class="app-container"><div class="paint-toolbar"><button id="paintColorBtn">🎨 颜色</button><input type="color" id="paintColorPicker" value="#000000" /><button id="paintSizeBtn">🖊️ 大小</button><input type="range" id="paintSizeSlider" min="1" max="20" value="3" /><button id="paintEraserBtn">🧹 橡皮</button><button id="paintLayerBtn">📄 图层</button><button id="paintClearBtn">🗑️ 清空</button><button id="paintSaveBtn">💾 保存</button><button id="paintExportBtn">📤 导出PNG</button></div><div class="paint-canvas-container" style="touch-action:none;"><canvas id="paintCanvas" width="500" height="400" style="touch-action:none;"></canvas></div><div class="paint-layer-controls"><span style="font-size:10px;">图层：</span><button class="layer-btn" data-layer="0">底层</button><button class="layer-btn" data-layer="1">中层</button><button class="layer-btn" data-layer="2">顶层</button><span id="paintLayerIndicator" style="font-size:10px; margin-left:8px;">当前: 底层</span></div></div>`;
             const win = createWindow(id, '🎨 画图', content, 650, 550);
-
             setTimeout(() => { const canvas = document.getElementById('paintCanvas'); if (!canvas) return; const ctx = canvas
                     .getContext('2d');
                 canvas.width = 500;
@@ -1755,7 +1106,6 @@
                 let isEraser = false;
                 let currentLayer = 0;
                 const layers = [null, null, null];
-
                 function initLayers() { for (let i = 0; i < 3; i++) { const tempCanvas = document.createElement(
                         'canvas');
                         tempCanvas.width = canvas.width;
@@ -1765,7 +1115,6 @@
                         tempCtx.fillRect(0, 0, canvas.width, canvas.height);
                         layers[i] = tempCtx.getImageData(0, 0, canvas.width, canvas.height); }
                     renderLayer(); }
-
                 function renderLayer() { ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i <=
                         currentLayer; i++) { if (layers[i]) { const tempCanvas = document.createElement(
                             'canvas');
@@ -1776,11 +1125,9 @@
                             ctx.drawImage(tempCanvas, 0, 0); } }
                     document.getElementById('paintLayerIndicator').textContent =
                         `当前: ${['底层','中层','顶层'][currentLayer]}`; }
-
                 function saveLayer() { const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     layers[currentLayer] = imageData; }
                 initLayers();
-
                 function startDraw(e) { e.preventDefault();
                     drawing = true; const rect = canvas.getBoundingClientRect(); const x = (e.clientX - rect.left) *
                         (canvas.width / rect.width); const y = (e.clientY - rect.top) * (canvas.height / rect
@@ -1789,7 +1136,6 @@
                     ctx.moveTo(x, y);
                     ctx.lineTo(x + 0.1, y + 0.1);
                     ctx.stroke(); }
-
                 function draw(e) { e.preventDefault(); if (!drawing) return; const rect = canvas.getBoundingClientRect();
                     const x = (e.clientX - rect.left) * (canvas.width / rect.width); const y = (e.clientY - rect
                         .top) * (canvas.height / rect.height);
@@ -1799,7 +1145,6 @@
                     ctx.lineJoin = 'round';
                     ctx.lineTo(x, y);
                     ctx.stroke(); }
-
                 function endDraw(e) { if (drawing) { drawing = false;
                         saveLayer(); } }
                 canvas.addEventListener('pointerdown', startDraw);
@@ -1808,7 +1153,6 @@
                 canvas.addEventListener('pointerleave', endDraw);
                 canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
                 canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-
                 document.getElementById('paintColorPicker').addEventListener('input', (e) => { currentColor = e.target
                         .value;
                     isEraser = false;
@@ -1843,9 +1187,7 @@
                     img.src = saved; } }, 100);
         }
 
-        // ============================================================
-        // 应用：漫画（已有清空功能）
-        // ============================================================
+        // ======================== 应用：漫画 ========================
         function createComicWindow() {
             const id = 'comic';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1854,14 +1196,11 @@
             const content =
                 `<div class="app-container"><div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;"><button id="comicAddBtn">📤 添加页面</button><button id="comicClearBtn">🗑️ 清空漫画</button><span style="font-size:12px; align-self:center;">共 <span id="comicCount">0</span> 页</span></div><div class="comic-viewer" id="comicViewer"><div class="comic-page" id="comicPageDisplay"><p style="color:#888;">还没有页面，点击「添加页面」上传图片。</p></div><div class="comic-nav"><button id="comicPrevBtn">◀</button><span id="comicPageNum">0 / 0</span><button id="comicNextBtn">▶</button></div><div style="margin-top:8px;"><input type="text" id="comicTitle" placeholder="标题" style="width:100%;" /><textarea id="comicDesc" placeholder="描述" rows="2" style="width:100%;"></textarea><button id="comicSaveMetaBtn">💾 保存标题/描述</button></div></div></div>`;
             const win = createWindow(id, '📚 漫画', content, 650, 550);
-
             function getComicData() { try { let data = localStorage.getItem('comicData'); if (!data) { const defaultData = {
                             pages: [], currentIndex: 0 };
                         localStorage.setItem('comicData', JSON.stringify(defaultData)); return defaultData; } return JSON
                         .parse(data); } catch (e) { return { pages: [], currentIndex: 0 }; } }
-
             function saveComicData(data) { localStorage.setItem('comicData', JSON.stringify(data)); }
-
             function renderComic() { const data = getComicData(); const pages = data.pages; const idx = data.currentIndex ||
                     0;
                 document.getElementById('comicCount').textContent = pages.length; const display = document
@@ -1916,9 +1255,7 @@
             renderComic();
         }
 
-        // ============================================================
-        // 应用：OC（含删除页面）
-        // ============================================================
+        // ======================== 应用：OC ========================
         function createOCWindow() {
             const id = 'oc';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1928,14 +1265,11 @@
                 `<div class="app-container" id="ocApp" style="display:flex; gap:12px; height:100%;"><div style="flex:1; border-right:2px solid #999; padding-right:12px; overflow-y:auto;"><h3>📁 页面</h3><button id="ocAddPageBtn">+ 新建页面</button><ul class="item-list" id="ocPageList"></ul></div><div style="flex:2; display:flex; flex-direction:column;"><div id="ocEditor" style="flex:1; overflow-y:auto; background:#f5f0e8; padding:8px; border:1px solid #ccc;"><p style="color:#888;">选择或新建页面开始编辑</p></div><div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;"><button id="ocAddTextBtn">➕ 文本</button><button id="ocAddLinkBtn">🔗 超链接</button><button id="ocAddImageBtn">🖼️ 图片</button><button id="ocAddDividerBtn">➖ 分割线</button></div></div></div>`;
             const win = createWindow(id, '🧑‍🎤 OC', content, 700, 550);
             let currentPageIdx = -1;
-
             function getOCData() { try { let data = localStorage.getItem('ocData'); if (!data) { const defaultData = {
                             pages: [] };
                         localStorage.setItem('ocData', JSON.stringify(defaultData)); return defaultData; } return JSON
                         .parse(data); } catch (e) { return { pages: [] }; } }
-
             function saveOCData(data) { localStorage.setItem('ocData', JSON.stringify(data)); }
-
             function renderPageList() {
                 const data = getOCData();
                 const list = document.getElementById('ocPageList');
@@ -1978,7 +1312,6 @@
                     list.appendChild(li);
                 });
             }
-
             function openPage(idx) { currentPageIdx = idx; const data = getOCData(); const page = data.pages[idx]; if (!
                     page) return; const editor = document.getElementById('ocEditor'); if (!editor) return; let html =
                     `<h3 style="margin-top:0;">${page.title}</h3>`;
@@ -1990,8 +1323,7 @@
                         `<div class="notion-block"><span class="block-type">🖼️</span><div class="block-content"><input type="text" value="${block.content}" data-idx="${bi}" class="oc-image-input" placeholder="图片URL" style="width:100%;" /><br /><img src="${block.content}" style="max-width:100%; max-height:100px; image-rendering:pixelated;" /></div><span class="block-del" data-idx="${bi}">✕</span></div>`; } else if (
                         block.type === 'divider') { html +=
                         `<div class="notion-block"><span class="block-type">➖</span><div class="block-content"><hr /></div><span class="block-del" data-idx="${bi}">✕</span></div>`; } });
-                html +=
-                    `<div style="margin-top:8px; color:#888; font-size:11px;">点击模块内容编辑，点击 ✕ 删除</div>`;
+                html += `<div style="margin-top:8px; color:#888; font-size:11px;">点击模块内容编辑，点击 ✕ 删除</div>`;
                 editor.innerHTML = html;
                 editor.querySelectorAll('.oc-text-input, .oc-link-input, .oc-image-input').forEach(input => { input
                         .addEventListener('input', (e) => { const idx = parseInt(e.target.dataset.idx); const
@@ -2011,7 +1343,6 @@
                 saveOCData(data);
                 renderPageList();
                 openPage(data.pages.length - 1); };
-
             function addBlock(type) { if (currentPageIdx < 0) { window.xpAlert('请先选择或新建页面'); return; } const data =
                     getOCData(); const page = data.pages[currentPageIdx]; if (!page) return; let content = ''; if (
                     type === 'text') content = '文本内容'; else if (type === 'link') content =
@@ -2027,9 +1358,7 @@
             renderPageList(); if (getOCData().pages.length > 0) openPage(0);
         }
 
-        // ============================================================
-        // 应用：音乐播放器
-        // ============================================================
+        // ======================== 应用：音乐播放器 ========================
         function createPlayerWindow() {
             const id = 'player';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -2051,7 +1380,6 @@
             audio.preload = 'metadata';
             audio.crossOrigin = 'anonymous';
             win._audio = audio;
-
             const playBtn = document.getElementById('tapePlayBtn');
             const prevBtn = document.getElementById('tapePrevBtn');
             const nextBtn = document.getElementById('tapeNextBtn');
@@ -2065,7 +1393,6 @@
             const listToggle = document.getElementById('tapeListToggle');
             const reelLeft = document.getElementById('reelLeft');
             const reelRight = document.getElementById('reelRight');
-
             function renderPlaylist() { playlistEl.innerHTML = '';
                 songs.forEach((song, idx) => { const div = document.createElement('div');
                     div.className = 'pl-item' + (idx === currentIndex ? ' active' : '');
@@ -2074,7 +1401,6 @@
                         loadSong(idx); if (isPlaying) audio.play().catch(() => {}); });
                     playlistEl.appendChild(div); }); }
             renderPlaylist();
-
             function loadSong(index) { const song = songs[index]; if (!song) return;
                 audio.src = song.url;
                 audio.load();
@@ -2086,7 +1412,6 @@
                 document.querySelectorAll('.pl-item').forEach((el, i) => el.classList.toggle('active', i === index));
                 reelLeft.classList.remove('spinning');
                 reelRight.classList.remove('spinning'); }
-
             function togglePlay() { if (audio.paused) { audio.play().catch(() => { window.xpAlert(
                             '播放失败，请检查网络或稍后重试。'); });
                     isPlaying = true;
@@ -2097,10 +1422,8 @@
                     playBtn.textContent = '▶';
                     reelLeft.classList.remove('spinning');
                     reelRight.classList.remove('spinning'); } }
-
             function prevSong() { currentIndex = (currentIndex - 1 + songs.length) % songs.length;
                 loadSong(currentIndex); if (isPlaying) audio.play().catch(() => {}); }
-
             function nextSong() { currentIndex = (currentIndex + 1) % songs.length;
                 loadSong(currentIndex); if (isPlaying) audio.play().catch(() => {}); }
             playBtn.addEventListener('click', togglePlay);
@@ -2120,7 +1443,6 @@
                     audio.currentTime = time; } });
             volumeSlider.addEventListener('input', () => { audio.volume = volumeSlider.value; });
             audio.volume = volumeSlider.value;
-
             function formatTime(seconds) { if (!seconds || isNaN(seconds)) return '0:00'; const m = Math.floor(
                     seconds / 60); const s = Math.floor(seconds % 60); return `${m}:${s.toString().padStart(2, '0')}`; }
             listToggle.addEventListener('click', () => { playlistEl.classList.toggle('show');
@@ -2129,9 +1451,7 @@
             loadSong(0);
         }
 
-        // ============================================================
-        // 应用：设置（已有宠物管理）
-        // ============================================================
+        // ======================== 应用：设置 ========================
         function createSettingsWindow() {
             const id = 'settings';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -2145,7 +1465,6 @@
                     .createElement('style');
                 s.id = 'global-custom-style';
                 document.head.appendChild(s); return s; })();
-
             function loadGlobalCss() { try { const saved = localStorage.getItem('globalCss'); if (saved) { cssEditor
                         .value = saved;
                         styleTag.textContent = saved; } } catch (e) {} }
@@ -2158,9 +1477,7 @@
                 styleTag.textContent = '';
                 localStorage.setItem('globalCss', '');
                 window.xpAlert('已重置'); };
-
             const wallpaperPreview = document.getElementById('wallpaperPreview');
-
             function loadWallpaper() {
                 try {
                     const data = localStorage.getItem('wallpaper');
@@ -2202,7 +1519,6 @@
                 } catch (e) {}
             }
             loadWallpaper();
-
             document.getElementById('uploadWallpaperBtn').onclick = () => { const input = document.createElement(
                     'input');
                 input.type = 'file';
@@ -2224,7 +1540,6 @@
                 loadWallpaper();
                 window.xpAlert('颜色已应用！');
             };
-
             document.getElementById('addPetBtn').onclick = async () => { const name = await window.xpPrompt(
                     '添加宠物', '名称：', '小可爱'); if (name === null) return; const img = await window.xpPrompt(
                     '图片URL', 'URL', 'https://via.placeholder.com/100?text=Pet'); if (img === null) return; const
@@ -2247,18 +1562,13 @@
             renderPetListUI();
         }
 
-        // ============================================================
-        // 应用：关于、回收站
-        // ============================================================
+        // ======================== 应用：关于、回收站 ========================
         function createAboutWindow() { createWindow('about', '📄 关于',
-                `<div class="app-container"><h2>关于</h2><p>复古 XP 桌面 · 全屏优化版</p></div>`, 400, 300); }
-
+                `<div class="app-container"><h2>关于</h2><p>复古 XP 桌面 · 完整版</p></div>`, 400, 300); }
         function createTrashWindow() { createWindow('trash', '🗑️ 回收站',
                 `<div class="app-container"><p>回收站是空的。</p></div>`, 400, 200); }
 
-        // ============================================================
-        // 桌面控制
-        // ============================================================
+        // ======================== 桌面控制 ========================
         let isDesktopActive = false;
 
         function enterDesktop() {
@@ -2377,9 +1687,7 @@
         window.getPetData = getPetData;
         window.savePetData = savePetData;
 
-        // ============================================================
-        // Three.js 3D场景
-        // ============================================================
+        // ======================== Three.js 3D场景 ========================
         async function initThreeScene() {
             try {
                 const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
@@ -2395,7 +1703,6 @@
                 renderer.toneMapping = THREE.ACESFilmicToneMapping;
                 renderer.toneMappingExposure = 1.2;
                 container.appendChild(renderer.domElement);
-
                 scene.add(new THREE.AmbientLight(0x404060, 0.8));
                 const mainLight = new THREE.DirectionalLight(0xffeedd, 2.5);
                 mainLight.position.set(3, 5, 2);
@@ -2409,10 +1716,8 @@
                 const lampLight = new THREE.PointLight(0xffaa55, 0.5);
                 lampLight.position.set(-0.8, 1.6, 0.5);
                 scene.add(lampLight);
-
                 const roomGroup = new THREE.Group();
                 scene.add(roomGroup);
-
                 const woodTex = (() => { const c = document.createElement('canvas');
                     c.width = 256;
                     c.height = 256; const ctx = c.getContext('2d');
@@ -2433,7 +1738,6 @@
                 floor.position.y = -0.5;
                 floor.receiveShadow = true;
                 roomGroup.add(floor);
-
                 const wallMat = new THREE.MeshStandardMaterial({ color: 0x2a1f1a, roughness: 0.9 });
                 const backWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
                 backWall.position.set(0, 1.25, -3);
@@ -2451,7 +1755,6 @@
                 ceil.rotation.x = Math.PI / 2;
                 ceil.position.y = 3;
                 roomGroup.add(ceil);
-
                 const tableMat = new THREE.MeshStandardMaterial({ color: 0x5a3d2b, roughness: 0.7 });
                 const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.8), tableMat);
                 tableTop.position.set(0, 0.5, -0.6);
@@ -2469,7 +1772,6 @@
                     leg.position.set(x, 0.25, -0.6 + z);
                     leg.castShadow = true;
                     roomGroup.add(leg); });
-
                 const monitorGroup = new THREE.Group();
                 monitorGroup.position.set(0, 0.9, -0.3);
                 roomGroup.add(monitorGroup);
@@ -2504,7 +1806,6 @@
                 glass.position.set(0, 0.3, 0.32);
                 monitorGroup.add(glass);
                 const clickTargets = [screen, glass, bezel];
-
                 function createPoster(color, x, y, z, rotY) { const mat = new THREE.MeshStandardMaterial({ color,
                         roughness: 0.8, side: THREE.DoubleSide }); const poster = new THREE.Mesh(new THREE
                         .PlaneGeometry(0.5, 0.7), mat);
@@ -2520,7 +1821,6 @@
                 carpet.rotation.x = -Math.PI / 2;
                 carpet.position.set(0.3, -0.49, 0.2);
                 roomGroup.add(carpet);
-
                 let rotationY = 0;
                 const maxRotation = 0.35;
                 document.addEventListener('mousemove', (e) => { if (isDesktopActive) return; const x = (e.clientX /
@@ -2531,8 +1831,34 @@
                         .touches[0]; const x = (touch.clientX / window.innerWidth) * 2 - 1;
                     rotationY = x * maxRotation;
                     roomGroup.rotation.y = rotationY; }, { passive: true });
-
                 const raycaster = new THREE.Raycaster();
                 const pointer = new THREE.Vector2();
-
-                function onPointerDown(event) {
+                function onPointerDown(event) { if (isDesktopActive) return; const rect = renderer.domElement
+                        .getBoundingClientRect(); const clientX = event.clientX || (event.touches && event
+                        .touches[0].clientX); const clientY = event.clientY || (event.touches && event
+                        .touches[0].clientY); if (clientX === undefined) return;
+                    pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+                    pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+                    raycaster.setFromCamera(pointer, camera); const intersects = raycaster.intersectObjects(
+                        clickTargets); if (intersects.length > 0) { enterDesktop(); } }
+                renderer.domElement.addEventListener('click', onPointerDown);
+                renderer.domElement.addEventListener('touchstart', onPointerDown, { passive: true });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isDesktopActive)
+                        exitDesktop(); });
+                window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight); });
+                function animate() { requestAnimationFrame(animate);
+                    renderer.render(scene, camera); }
+                animate();
+                console.log('✅ 3D场景加载成功');
+            } catch (err) {
+                console.warn('Three.js加载失败，直接进入桌面模式', err);
+                document.getElementById('three-container').style.display = 'none';
+                enterDesktop();
+            }
+        }
+        initThreeScene();
+    </script>
+</body>
+</html>
