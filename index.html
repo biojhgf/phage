@@ -6,20 +6,23 @@
     <title>复古房间 · XP桌面</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
-        /* ===== 全局样式（完整保留） ===== */
+        /* ===== 全局样式（与之前一致，完整保留） ===== */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: 'Press Start 2P', 'Courier New', monospace; background-color: #1a1a1a; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background-color: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); font-size: 14px; transition: background 0.3s; }
         #desktop-overlay.active { display: flex; }
-        #desktop-pets { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
-        .pet { position: absolute; pointer-events: auto; cursor: grab; user-select: none; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
-        .pet img { max-width: 100%; max-height: 100%; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; pointer-events: none; }
-        .pet .bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: pre-wrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 200px; overflow: hidden; font-family: 'Press Start 2P', monospace; line-height: 1.4; z-index: 600; }
-        .pet .bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ece9d8; }
-        .pet-bounce { animation: petBounce 1.5s infinite alternate ease-in-out; }
-        @keyframes petBounce { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
 
+        /* ===== 全新宠物系统样式（独立命名） ===== */
+        #pet-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
+        .pet-item { position: absolute; pointer-events: auto; cursor: grab; user-select: none; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; will-change: transform; }
+        .pet-item img { max-width: 100%; max-height: 100%; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; pointer-events: none; }
+        .pet-item .speech-bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: pre-wrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 200px; overflow: hidden; font-family: 'Press Start 2P', monospace; line-height: 1.4; z-index: 600; }
+        .pet-item .speech-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ece9d8; }
+        .pet-bounce { animation: petFloat 1.5s infinite alternate ease-in-out; }
+        @keyframes petFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
+
+        /* ===== 桌面、任务栏、窗口等样式（与之前完全相同） ===== */
         .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
         .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; }
         .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -118,7 +121,7 @@
 
     <div id="three-container"></div>
     <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回</div>
-    <div id="desktop-pets"></div>
+    <div id="pet-container"></div>
 
     <div id="desktop-overlay">
         <div class="desktop-icons">
@@ -226,33 +229,37 @@
         };
 
         // ============================================================
-        // 第二部分：宠物系统（全新重写，稳定可靠）
+        // 第二部分：全新宠物系统（完全重写）
         // ============================================================
-        function getPetsData() {
-            try { return JSON.parse(localStorage.getItem('pets') || '[]'); } catch (e) { return []; }
+
+        // ----- 数据管理 -----
+        function getPetData() {
+            try { return JSON.parse(localStorage.getItem('myPets') || '[]'); } catch (e) { return []; }
         }
 
-        function savePetsData(pets) {
-            localStorage.setItem('pets', JSON.stringify(pets));
-            renderAllPets();
-            renderPetList();
+        function savePetData(pets) {
+            localStorage.setItem('myPets', JSON.stringify(pets));
+            renderPets();
+            renderPetListUI();
         }
 
+        // ----- 全局变量 -----
         let petInstances = [];
-        let animationId = null;
+        let petAnimationId = null;
 
-        function renderAllPets() {
-            const container = document.getElementById('desktop-pets');
+        // ----- 渲染所有宠物 -----
+        function renderPets() {
+            const container = document.getElementById('pet-container');
             if (!container) return;
             container.innerHTML = '';
             petInstances = [];
 
-            const pets = getPetsData();
+            const pets = getPetData();
             if (pets.length === 0) return;
 
             pets.forEach((petData, index) => {
                 const el = document.createElement('div');
-                el.className = 'pet pet-bounce';
+                el.className = 'pet-item pet-bounce';
                 el.style.left = (petData.x ?? 20 + Math.random() * 60) + '%';
                 el.style.top = (petData.y ?? 20 + Math.random() * 60) + '%';
                 el.dataset.index = index;
@@ -260,12 +267,12 @@
                 const bubbleText = petData.dialogs && petData.dialogs.length ? petData.dialogs.join('\n') : '你好！';
                 el.innerHTML = `
                     <img src="${petData.img}" alt="${petData.name}" />
-                    <div class="bubble">${bubbleText}</div>
+                    <div class="speech-bubble">${bubbleText}</div>
                 `;
                 container.appendChild(el);
 
                 const instance = {
-                    el,
+                    el: el,
                     data: petData,
                     dx: (Math.random() - 0.5) * 2,
                     dy: (Math.random() - 0.5) * 2,
@@ -276,9 +283,9 @@
                 };
                 petInstances.push(instance);
 
-                const bubble = el.querySelector('.bubble');
+                const bubble = el.querySelector('.speech-bubble');
 
-                // 点击对话
+                // 点击显示随机台词
                 el.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const dialogs = instance.data.dialogs;
@@ -289,8 +296,8 @@
                         bubble.textContent = '你好！';
                     }
                     bubble.style.display = 'block';
-                    if (window._bubbleTimer) clearTimeout(window._bubbleTimer);
-                    window._bubbleTimer = setTimeout(() => {
+                    if (window._petBubbleTimer) clearTimeout(window._petBubbleTimer);
+                    window._petBubbleTimer = setTimeout(() => {
                         bubble.style.display = 'none';
                     }, 3000);
                 });
@@ -322,12 +329,12 @@
                     el.style.top = newY + '%';
                     instance.data.x = newX;
                     instance.data.y = newY;
-                    const allPets = getPetsData();
+                    const allPets = getPetData();
                     const idx = parseInt(el.dataset.index);
                     if (allPets[idx]) {
                         allPets[idx].x = newX;
                         allPets[idx].y = newY;
-                        localStorage.setItem('pets', JSON.stringify(allPets));
+                        localStorage.setItem('myPets', JSON.stringify(allPets));
                     }
                     e.preventDefault();
                 };
@@ -353,16 +360,17 @@
                 };
             });
 
-            if (animationId) cancelAnimationFrame(animationId);
+            if (petAnimationId) cancelAnimationFrame(petAnimationId);
             if (petInstances.length > 0) {
-                animationId = requestAnimationFrame(animatePets);
+                petAnimationId = requestAnimationFrame(animatePets);
             }
         }
 
+        // ----- 宠物自动移动动画 -----
         function animatePets() {
-            const container = document.getElementById('desktop-pets');
+            const container = document.getElementById('pet-container');
             if (!container) {
-                animationId = requestAnimationFrame(animatePets);
+                petAnimationId = requestAnimationFrame(animatePets);
                 return;
             }
 
@@ -408,13 +416,14 @@
                 inst.data.y = newTop;
             });
 
-            animationId = requestAnimationFrame(animatePets);
+            petAnimationId = requestAnimationFrame(animatePets);
         }
 
-        function renderPetList() {
+        // ----- 设置面板中的宠物列表 -----
+        function renderPetListUI() {
             const list = document.getElementById('petList');
             if (!list) return;
-            const pets = getPetsData();
+            const pets = getPetData();
             list.innerHTML = '';
             if (pets.length === 0) {
                 list.innerHTML = '<p style="color:#888;">暂无宠物</p>';
@@ -441,24 +450,25 @@
             });
         }
 
+        // ----- 全局编辑函数 -----
         window.editPetName = async function(idx) {
-            const pets = getPetsData();
+            const pets = getPetData();
             const pet = pets[idx];
             if (!pet) return;
             const newName = await window.xpPrompt('编辑名称', '新名称：', '', pet.name);
             if (newName !== null) { pet.name = newName;
-                savePetsData(pets); }
+                savePetData(pets); }
         };
         window.editPetImage = async function(idx) {
-            const pets = getPetsData();
+            const pets = getPetData();
             const pet = pets[idx];
             if (!pet) return;
             const newImg = await window.xpPrompt('图片URL', 'URL：', '', pet.img);
             if (newImg !== null) { pet.img = newImg;
-                savePetsData(pets); }
+                savePetData(pets); }
         };
         window.editPetDialogs = async function(idx) {
-            const pets = getPetsData();
+            const pets = getPetData();
             const pet = pets[idx];
             if (!pet) return;
             const current = pet.dialogs ? pet.dialogs.join('\n') : '';
@@ -472,20 +482,20 @@
             if (result) {
                 const lines = result.dialogs.split('\n').map(s => s.trim()).filter(s => s);
                 pet.dialogs = lines.length ? lines : ['你好！'];
-                savePetsData(pets);
+                savePetData(pets);
             }
         };
         window.deletePet = async function(idx) {
             const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此宠物？', confirmText: '删除',
                 cancelText: '取消' });
             if (!confirm) return;
-            const pets = getPetsData();
+            const pets = getPetData();
             pets.splice(idx, 1);
-            savePetsData(pets);
+            savePetData(pets);
         };
 
         // ============================================================
-        // 第三部分：窗口管理（直接绑定，确保按钮有效）
+        // 第三部分：窗口管理（直接绑定）
         // ============================================================
         let windowZIndex = 2000;
         window._windowInstances = {};
@@ -1903,7 +1913,7 @@
                     const lines = dialogsResult.dialogs.split('\n').map(s => s.trim()).filter(s => s);
                     if (lines.length) dialogs = lines;
                 }
-                const pets = getPetsData();
+                const pets = getPetData();
                 pets.push({
                     name,
                     img,
@@ -1911,7 +1921,7 @@
                     x: Math.random() * 70 + 10,
                     y: Math.random() * 60 + 20
                 });
-                savePetsData(pets);
+                savePetData(pets);
                 window.xpAlert('宠物已添加！');
             };
 
@@ -1919,11 +1929,11 @@
                 const confirm = await window.showXpModal({ title: '确认清除', message: '清除所有宠物？', confirmText: '清除',
                     cancelText: '取消' });
                 if (!confirm) return;
-                savePetsData([]);
+                savePetData([]);
                 window.xpAlert('已清除');
             };
 
-            renderPetList();
+            renderPetListUI();
         }
 
         // ----- 10. 关于和回收站 -----
@@ -1947,7 +1957,7 @@
             updateTime();
             setInterval(updateTime, 10000);
             loadWallpaperAndCSS();
-            renderAllPets();
+            renderPets();
         }
 
         function exitDesktop() {
@@ -1960,9 +1970,9 @@
                 delete window._windowInstances[id];
             });
             document.querySelectorAll('#taskbar-items .taskbar-item').forEach(b => b.remove());
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
+            if (petAnimationId) {
+                cancelAnimationFrame(petAnimationId);
+                petAnimationId = null;
             }
         }
 
@@ -2063,10 +2073,10 @@
         window.xpPrompt = window.xpPrompt;
         window.xpAlert = window.xpAlert;
         window.showXpModal = window.showXpModal;
-        window.renderAllPets = renderAllPets;
-        window.renderPetList = renderPetList;
-        window.getPetsData = getPetsData;
-        window.savePetsData = savePetsData;
+        window.renderPets = renderPets;
+        window.renderPetListUI = renderPetListUI;
+        window.getPetData = getPetData;
+        window.savePetData = savePetData;
 
         // ============================================================
         // 第六部分：Three.js 场景（完整）
