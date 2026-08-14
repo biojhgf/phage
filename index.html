@@ -1454,94 +1454,119 @@
         // ============================================================
         // 应用：设置
         // ============================================================
-        function createSettingsWindow() {
-            const id = 'settings';
-            if (window._windowInstances[id]) { const win = window._windowInstances[id];
-                win.style.display = 'flex';
-                win.style.zIndex = ++windowZIndex; return; }
-            const content =
-                `<div class="app-container"><h2>⚙️ 设置</h2><div style="margin-bottom:12px;"><h3>🖼️ 壁纸</h3><button id="uploadWallpaperBtn">上传图片</button><button id="resetWallpaperBtn">重置默认</button><input type="color" id="wallpaperColor" value="#3a6ea5" /><button id="applyWallpaperColorBtn">应用颜色</button><div class="wallpaper-preview" id="wallpaperPreview" style="background-color:#3a6ea5;"></div></div><div style="margin-bottom:12px;"><h3>🎨 全局CSS</h3><textarea id="globalCssEditor" rows="6" style="width:100%; font-family:'Courier New',monospace;"></textarea><button id="applyGlobalCssBtn">应用</button><button id="resetGlobalCssBtn">重置</button></div><div><h3>🐾 桌面宠物（点击随机对话）</h3><button id="addPetBtn">➕ 添加宠物</button><button id="clearPetsBtn">🗑️ 清除所有</button><div id="petList" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:8px; margin-top:8px;"></div></div></div>`;
-            const win = createWindow(id, '⚙️ 设置', content, 750, 650);
-            const cssEditor = document.getElementById('globalCssEditor');
-            const styleTag = document.getElementById('global-custom-style') || (() => { const s = document
-                    .createElement('style');
-                s.id = 'global-custom-style';
-                document.head.appendChild(s); return s; })();
 
-            function loadGlobalCss() { try { const saved = localStorage.getItem('globalCss'); if (saved) { cssEditor
-                        .value = saved;
-                        styleTag.textContent = saved; } } catch (e) {} }
-            loadGlobalCss();
-            document.getElementById('applyGlobalCssBtn').onclick = () => { const css = cssEditor.value;
-                styleTag.textContent = css;
-                localStorage.setItem('globalCss', css);
-                window.xpAlert('已应用'); };
-            document.getElementById('resetGlobalCssBtn').onclick = () => { cssEditor.value = '';
-                styleTag.textContent = '';
-                localStorage.setItem('globalCss', '');
-                window.xpAlert('已重置'); };
-            const wallpaperPreview = document.getElementById('wallpaperPreview');
+function createSettingsWindow() {
+    const id = 'settings';
+    if (window._windowInstances[id]) { const win = window._windowInstances[id];
+        win.style.display = 'flex';
+        win.style.zIndex = ++windowZIndex; return; }
+    const content =
+        `<div class="app-container"><h2>⚙️ 设置</h2><div style="margin-bottom:12px;"><h3>🖼️ 壁纸</h3><button id="uploadWallpaperBtn">上传图片</button><button id="resetWallpaperBtn">重置默认</button><input type="color" id="wallpaperColor" value="#3a6ea5" /><button id="applyWallpaperColorBtn">应用颜色</button><div class="wallpaper-preview" id="wallpaperPreview" style="background-color:#3a6ea5;"></div></div><div style="margin-bottom:12px;"><h3>🎨 全局CSS</h3><textarea id="globalCssEditor" rows="6" style="width:100%; font-family:'Courier New',monospace;"></textarea><button id="applyGlobalCssBtn">应用</button><button id="resetGlobalCssBtn">重置</button></div><div><h3>🐾 桌面宠物（点击随机对话）</h3><button id="addPetBtn">➕ 添加宠物</button><button id="clearPetsBtn">🗑️ 清除所有</button><div id="petList" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; padding:8px; margin-top:8px;"></div></div></div>`;
+    const win = createWindow(id, '⚙️ 设置', content, 750, 650);
+    const cssEditor = document.getElementById('globalCssEditor');
+    const styleTag = document.getElementById('global-custom-style') || (() => { const s = document
+            .createElement('style');
+        s.id = 'global-custom-style';
+        document.head.appendChild(s); return s; })();
 
-            function loadWallpaper() { try { const data = localStorage.getItem('wallpaper'); if (data) { const parsed =
-                        JSON.parse(data); if (parsed.type === 'image' && parsed.data) { wallpaperPreview.style
-                            .backgroundImage = `url(${parsed.data})`;
-                        wallpaperPreview.style.backgroundColor = '';
-                        document.getElementById('desktop-overlay').style.backgroundImage = `url(${parsed.data})`;
-                        document.getElementById('desktop-overlay').style.backgroundSize = 'cover';
-                        document.getElementById('desktop-overlay').style.backgroundColor = ''; } else if (parsed
-                        .type === 'color' && parsed.color) { wallpaperPreview.style.backgroundImage = '';
-                        wallpaperPreview.style.backgroundColor = parsed.color;
-                        document.getElementById('desktop-overlay').style.backgroundImage = '';
-                        document.getElementById('desktop-overlay').style.backgroundColor = parsed.color; } } } catch (
-                    e) {} }
-            loadWallpaper();
-            document.getElementById('uploadWallpaperBtn').onclick = () => { const input = document.createElement(
-                    'input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e) => { const file = e.target.files[0]; if (!file) return; const reader =
-                        new FileReader();
-                    reader.onload = (ev) => { const dataUrl = ev.target.result;
-                        localStorage.setItem('wallpaper', JSON.stringify({ type: 'image', data: dataUrl }));
-                        loadWallpaper();
-                        window.xpAlert('壁纸已更新'); };
-                    reader.readAsDataURL(file); };
-                input.click(); };
-            document.getElementById('resetWallpaperBtn').onclick = () => { localStorage.removeItem('wallpaper');
-                document.getElementById('desktop-overlay').style.backgroundImage = '';
-                document.getElementById('desktop-overlay').style.backgroundColor = '#3a6ea5';
-                wallpaperPreview.style.backgroundImage = '';
-                wallpaperPreview.style.backgroundColor = '#3a6ea5';
-                window.xpAlert('已重置'); };
-            document.getElementById('applyWallpaperColorBtn').onclick = () => { const color = document.getElementById(
-                    'wallpaperColor').value;
-                localStorage.setItem('wallpaper', JSON.stringify({ type: 'color', color: color }));
+    function loadGlobalCss() { try { const saved = localStorage.getItem('globalCss'); if (saved) { cssEditor
+                .value = saved;
+                styleTag.textContent = saved; } } catch (e) {} }
+    loadGlobalCss();
+    document.getElementById('applyGlobalCssBtn').onclick = () => { const css = cssEditor.value;
+        styleTag.textContent = css;
+        localStorage.setItem('globalCss', css);
+        window.xpAlert('已应用'); };
+    document.getElementById('resetGlobalCssBtn').onclick = () => { cssEditor.value = '';
+        styleTag.textContent = '';
+        localStorage.setItem('globalCss', '');
+        window.xpAlert('已重置'); };
+    const wallpaperPreview = document.getElementById('wallpaperPreview');
+
+    // ---- 修复：loadWallpaper 使用 background 简写属性 ----
+    function loadWallpaper() {
+        try {
+            const data = localStorage.getItem('wallpaper');
+            const overlay = document.getElementById('desktop-overlay');
+            if (data) {
+                const parsed = JSON.parse(data);
+                if (parsed.type === 'image' && parsed.data) {
+                    wallpaperPreview.style.background = `url(${parsed.data}) no-repeat center/cover`;
+                    wallpaperPreview.style.backgroundColor = '';
+                    overlay.style.background = `url(${parsed.data}) no-repeat center/cover`;
+                    overlay.style.backgroundColor = '';
+                } else if (parsed.type === 'color' && parsed.color) {
+                    wallpaperPreview.style.background = parsed.color;
+                    wallpaperPreview.style.backgroundImage = 'none';
+                    overlay.style.background = parsed.color;
+                    overlay.style.backgroundImage = 'none';
+                }
+            } else {
+                // 没有数据时恢复默认（但重置按钮会单独处理）
+                // 这里不强制恢复，防止干扰
+            }
+        } catch (e) {}
+    }
+
+    // 初始加载
+    loadWallpaper();
+
+    document.getElementById('uploadWallpaperBtn').onclick = () => { const input = document.createElement(
+            'input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => { const file = e.target.files[0]; if (!file) return; const reader =
+                new FileReader();
+            reader.onload = (ev) => { const dataUrl = ev.target.result;
+                localStorage.setItem('wallpaper', JSON.stringify({ type: 'image', data: dataUrl }));
                 loadWallpaper();
-                window.xpAlert('颜色已应用'); };
+                window.xpAlert('壁纸已更新'); };
+            reader.readAsDataURL(file); };
+        input.click(); };
 
-            document.getElementById('addPetBtn').onclick = async () => { const name = await window.xpPrompt(
-                    '添加宠物', '名称：', '小可爱'); if (name === null) return; const img = await window.xpPrompt(
-                    '图片URL', 'URL', 'https://via.placeholder.com/100?text=Pet'); if (img === null) return; const
-                    defaultDialogs = ['你好！', '今天开心吗？', '一起玩吧！']; const dialogsResult = await window
-                    .showXpModal({ title: '设置对话（每行一句）', fields: [{ id: 'dialogs', label: '对话内容（换行分隔）',
-                            type: 'textarea', rows: 6, value: defaultDialogs.join('\n'),
-                            placeholder: '每行一句'
-                        }], confirmText: '确定', cancelText: '取消' });
-                let dialogs = defaultDialogs; if (dialogsResult) { const lines = dialogsResult.dialogs.split('\n')
-                        .map(s => s.trim()).filter(s => s); if (lines.length) dialogs = lines; } const pets =
-                    getPetData();
-                pets.push({ name, img, dialogs, x: Math.random() * 70 + 10, y: Math.random() * 60 + 20 });
-                savePetData(pets);
-                window.xpAlert('宠物已添加！'); };
-            document.getElementById('clearPetsBtn').onclick = async () => { const confirm = await window
-                    .showXpModal({ title: '确认清除', message: '清除所有宠物？', confirmText: '清除',
-                        cancelText: '取消' }); if (!confirm) return;
-                savePetData([]);
-                window.xpAlert('已清除'); };
-            renderPetListUI();
-        }
+    // ---- 修复：重置时恢复默认径向渐变 ----
+    document.getElementById('resetWallpaperBtn').onclick = () => {
+        localStorage.removeItem('wallpaper');
+        const overlay = document.getElementById('desktop-overlay');
+        overlay.style.background = 'radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a)';
+        overlay.style.backgroundColor = '#3a6ea5';
+        wallpaperPreview.style.background = '#3a6ea5';
+        wallpaperPreview.style.backgroundImage = 'none';
+        window.xpAlert('已重置');
+    };
 
-        // ============================================================
+    // ---- 修复：应用颜色时强制覆盖 ----
+    document.getElementById('applyWallpaperColorBtn').onclick = () => {
+        const color = document.getElementById('wallpaperColor').value;
+        localStorage.setItem('wallpaper', JSON.stringify({ type: 'color', color: color }));
+        loadWallpaper();
+        window.xpAlert('颜色已应用');
+    };
+
+    // 宠物管理
+    document.getElementById('addPetBtn').onclick = async () => { const name = await window.xpPrompt(
+            '添加宠物', '名称：', '小可爱'); if (name === null) return; const img = await window.xpPrompt(
+            '图片URL', 'URL', 'https://via.placeholder.com/100?text=Pet'); if (img === null) return; const
+            defaultDialogs = ['你好！', '今天开心吗？', '一起玩吧！']; const dialogsResult = await window
+            .showXpModal({ title: '设置对话（每行一句）', fields: [{ id: 'dialogs', label: '对话内容（换行分隔）',
+                    type: 'textarea', rows: 6, value: defaultDialogs.join('\n'),
+                    placeholder: '每行一句'
+                }], confirmText: '确定', cancelText: '取消' });
+        let dialogs = defaultDialogs; if (dialogsResult) { const lines = dialogsResult.dialogs.split('\n')
+                .map(s => s.trim()).filter(s => s); if (lines.length) dialogs = lines; } const pets =
+            getPetData();
+        pets.push({ name, img, dialogs, x: Math.random() * 70 + 10, y: Math.random() * 60 + 20 });
+        savePetData(pets);
+        window.xpAlert('宠物已添加！'); };
+    document.getElementById('clearPetsBtn').onclick = async () => { const confirm = await window
+            .showXpModal({ title: '确认清除', message: '清除所有宠物？', confirmText: '清除',
+                cancelText: '取消' }); if (!confirm) return;
+        savePetData([]);
+        window.xpAlert('已清除'); };
+    renderPetListUI();
+}
+
+        ============================================================
         // 应用：关于、回收站
         // ============================================================
         function createAboutWindow() { createWindow('about', '📄 关于',
