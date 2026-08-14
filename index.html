@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>复古 XP 桌面 · 完整版</title>
+    <title>复古 XP 桌面 · 移动优化版</title>
     <!-- Font Awesome 图标库 -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@
         .pet-bounce { animation: petFloat 1.5s infinite alternate ease-in-out; }
         @keyframes petFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
 
-        /* ===== 桌面图标（Font Awesome 字体图标） ===== */
+        /* ===== 桌面图标 ===== */
         .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
         .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; transition: all 0.2s ease; }
         .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -141,23 +141,88 @@
         .blog-profile .info { flex: 1; min-width: 150px; }
         .blog-profile .info input, .blog-profile .info textarea { width: 100%; }
 
+        /* ============================================================
+           移动端深度适配（手机、小平板）
+           ============================================================ */
         @media (max-width: 768px) {
-            .xp-window { min-width: 90vw; max-width: 95vw; min-height: 50vh; max-height: 80vh; }
+            /* 桌面图标缩小 */
             .desktop-icons { gap: 16px 20px; padding: 12px; }
             .desktop-icon { width: 64px; }
             .desktop-icon .icon-img { font-size: 36px; }
-            .start-menu { width: 90vw; left: 5vw; }
-            .taskbar { height: 44px; }
-            .taskbar-item { font-size: 10px; padding: 0 10px; height: 28px; }
-            .start-button { font-size: 12px; padding: 2px 12px; }
-            .xp-modal { min-width: 90%; }
+            .desktop-icon .icon-label { font-size: 8px; padding: 1px 6px; }
+
+            /* 任务栏紧凑 */
+            .taskbar { height: 44px; padding: 0 4px; }
+            .start-button { font-size: 11px; padding: 2px 10px; gap: 4px; }
+            .taskbar-item { font-size: 10px; padding: 0 8px; height: 28px; }
+            .taskbar-time { font-size: 10px; padding: 2px 8px; }
+
+            /* 开始菜单全宽 */
+            .start-menu { width: 92vw; left: 4vw; bottom: 48px; }
+
+            /* 窗口自适应 */
+            .xp-window { min-width: 92vw; max-width: 92vw; min-height: 40vh; max-height: 80vh; left: 4vw !important; top: 5vh !important; width: 92vw !important; height: auto !important; border-radius: 6px; }
+            .xp-window .window-titlebar { height: 40px; padding: 2px 8px; font-size: 11px; }
+            .xp-window .window-titlebar .win-btns button { width: 32px; height: 32px; font-size: 16px; line-height: 28px; }
+            .xp-window .window-body .app-container { padding: 10px; }
+            .app-container button { font-size: 10px; padding: 6px 10px; min-height: 36px; }
+            .app-container input, .app-container textarea, .app-container select { font-size: 10px; padding: 6px; }
+            .app-container .item-list li { font-size: 10px; padding: 6px 8px; }
+
+            /* 模态框 */
+            .xp-modal { min-width: 90%; padding: 16px; }
+            .xp-modal h3 { font-size: 14px; }
+            .xp-modal label { font-size: 10px; }
+            .xp-modal input, .xp-modal textarea { font-size: 10px; padding: 6px; }
+            .xp-modal .modal-btns button { font-size: 10px; padding: 6px 14px; }
+
+            /* 画图工具栏 */
+            .paint-toolbar button, .paint-toolbar input { font-size: 9px; padding: 4px 8px; }
+
+            /* 图库网格 */
+            .gallery-grid .img-item { width: 80px; height: 80px; }
+
+            /* 音乐播放器 */
+            .tape-player { max-width: 100%; padding: 12px; }
+            .tape-player .controls button { font-size: 16px; padding: 4px 10px; }
+
+            /* 宠物气泡 */
+            .pet-item .speech-bubble { font-size: 10px; max-width: 150px; padding: 2px 6px; }
+
+            /* 提示文字 */
+            #hint { font-size: 10px; padding: 4px 12px; bottom: 20px; }
+        }
+
+        /* 更小屏幕（手机小屏） */
+        @media (max-width: 480px) {
+            .desktop-icons { gap: 12px 14px; padding: 8px; }
+            .desktop-icon { width: 54px; }
+            .desktop-icon .icon-img { font-size: 28px; }
+            .desktop-icon .icon-label { font-size: 7px; padding: 1px 4px; }
+            .taskbar { height: 40px; }
+            .start-button { font-size: 10px; padding: 2px 8px; }
+            .taskbar-item { font-size: 8px; padding: 0 6px; height: 24px; }
+            .taskbar-time { font-size: 8px; padding: 2px 6px; }
+            .xp-window { min-width: 96vw; max-width: 96vw; left: 2vw !important; top: 2vh !important; width: 96vw !important; min-height: 30vh; max-height: 85vh; border-radius: 4px; }
+            .xp-window .window-titlebar { height: 36px; font-size: 10px; }
+            .xp-window .window-titlebar .win-btns button { width: 28px; height: 28px; font-size: 14px; line-height: 24px; }
+            .app-container { padding: 6px; }
+            .app-container h2 { font-size: 14px; }
+            .app-container button { font-size: 9px; padding: 4px 8px; min-height: 32px; }
+            .app-container input, .app-container textarea { font-size: 9px; padding: 4px; }
+            .xp-modal { padding: 12px; }
+            .xp-modal h3 { font-size: 12px; }
+            .xp-modal input, .xp-modal textarea { font-size: 9px; padding: 4px; }
+            .gallery-grid .img-item { width: 60px; height: 60px; }
+            .tape-player .controls button { font-size: 14px; padding: 2px 8px; }
+            .pet-item .speech-bubble { font-size: 8px; max-width: 120px; }
         }
     </style>
 </head>
 <body>
 
     <div id="three-container"></div>
-    <div id="hint">🖱️ 点击电脑屏幕进入桌面 · 按 ESC 返回</div>
+    <div id="hint">🖱️ 点击屏幕进入桌面 · ESC 返回</div>
 
     <div id="desktop-overlay">
         <div id="pet-container"></div>
@@ -595,16 +660,26 @@
                 return;
             }
 
-            if (width > window.innerWidth * 0.9) width = window.innerWidth * 0.9;
-            if (height > window.innerHeight * 0.8) height = window.innerHeight * 0.8;
+            // 移动端自动调整尺寸
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                width = Math.min(width, window.innerWidth * 0.92);
+                height = Math.min(height, window.innerHeight * 0.8);
+            } else {
+                if (width > window.innerWidth * 0.9) width = window.innerWidth * 0.9;
+                if (height > window.innerHeight * 0.8) height = window.innerHeight * 0.8;
+            }
 
             const win = document.createElement('div');
             win.className = 'xp-window';
             win.dataset.windowId = id;
             win.style.width = width + 'px';
             win.style.height = height + 'px';
-            win.style.left = (Math.random() * (window.innerWidth - width) * 0.6 + 20) + 'px';
-            win.style.top = (Math.random() * (window.innerHeight - height) * 0.6 + 20) + 'px';
+            // 窗口居中
+            const left = Math.max(10, (window.innerWidth - width) / 2);
+            const top = Math.max(10, (window.innerHeight - height) / 2);
+            win.style.left = left + 'px';
+            win.style.top = top + 'px';
             win.style.zIndex = ++windowZIndex;
 
             const titlebar = document.createElement('div');
@@ -1722,7 +1797,7 @@
         // 应用：关于、回收站
         // ============================================================
         function createAboutWindow() { createWindow('about', '📄 关于',
-                `<div class="app-container"><h2>关于</h2><p>复古 XP 桌面 · 字体图标版</p></div>`, 400, 300); }
+                `<div class="app-container"><h2>关于</h2><p>复古 XP 桌面 · 移动优化版</p></div>`, 400, 300); }
 
         function createTrashWindow() { createWindow('trash', '🗑️ 回收站',
                 `<div class="app-container"><p>回收站是空的。</p></div>`, 400, 200); }
@@ -2036,7 +2111,3 @@
         }
 
         initThreeScene();
-        console.log('✅ 完整版已加载（含全部删除功能）');
-    </script>
-</body>
-</html>
