@@ -6,20 +6,17 @@
     <title>复古房间 · XP桌面</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
-        /* ===== 全局样式 ===== */
         * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; font-family: 'Press Start 2P', 'Courier New', monospace; background-color: #1a1a1a; }
         #three-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         #desktop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; display: none; flex-direction: column; background-color: #3a6ea5; background-image: radial-gradient(ellipse at 50% 30%, #4a7db5, #2a5a8a); font-size: 14px; transition: background 0.3s; }
         #desktop-overlay.active { display: flex; }
 
-        /* ===== 宠物容器（层级修复） ===== */
+        /* 宠物容器 - 位于桌面之上，图标之下 */
         #pet-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             pointer-events: none;
             z-index: 1000;
         }
@@ -65,8 +62,7 @@
         .pet-item .speech-bubble::after {
             content: '';
             position: absolute;
-            top: 100%;
-            left: 50%;
+            top: 100%; left: 50%;
             transform: translateX(-50%);
             border: 6px solid transparent;
             border-top-color: #ece9d8;
@@ -74,24 +70,30 @@
         .pet-bounce { animation: petFloat 1.5s infinite alternate ease-in-out; }
         @keyframes petFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
 
-        /* ===== 桌面图标、任务栏、窗口 ===== */
+        /* 桌面图标 */
         .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
         .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; }
         .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
         .desktop-icon .icon-img { font-size: 48px; line-height: 1.2; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
         .desktop-icon .icon-label { font-size: 9px; word-break: break-all; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 2px; }
+
+        /* 任务栏 */
         .taskbar { height: 50px; background: linear-gradient(180deg, #245edb 0%, #1a4a9f 100%); display: flex; align-items: center; padding: 0 8px; box-shadow: 0 -2px 6px rgba(0,0,0,0.3); border-top: 2px solid #3a7bd5; flex-shrink: 0; position: relative; z-index: 5000; }
         .start-button { background: linear-gradient(180deg, #3c9b3c 0%, #1f6a1f 100%); color: #fff; padding: 4px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 0 #0a3a0a; border: 1px solid #4cb84c; flex-shrink: 0; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
         #taskbar-items { display: flex; flex: 1; gap: 4px; overflow-x: auto; margin: 0 10px; padding: 2px 0; }
         .taskbar-item { background: rgba(255,255,255,0.15); color: #fff; padding: 2px 16px; border-radius: 2px; cursor: pointer; font-size: 12px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 6px; height: 32px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
         .taskbar-item:hover { background: rgba(255,255,255,0.3); }
         .taskbar-time { margin-left: auto; color: #fff; font-size: 12px; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 2px; border: 1px solid #3a7bd5; flex-shrink: 0; font-family: 'Press Start 2P', monospace; }
+
+        /* 开始菜单 */
         .start-menu { display: none; position: absolute; bottom: 52px; left: 8px; width: 280px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; padding: 12px 0; box-shadow: 6px 6px 0 rgba(0,0,0,0.2); z-index: 6000; }
         .start-menu.show { display: block; }
         .start-menu-item { padding: 6px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 12px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; }
         .start-menu-item:hover { background: #3a7bd5; color: #fff; }
         .start-menu-item .item-icon { font-size: 20px; }
         .start-menu hr { margin: 6px 12px; border: 1px solid #999; }
+
+        /* 窗口 */
         .xp-window { position: fixed; min-width: 300px; min-height: 140px; background: #ece9d8; border: 2px solid #3a6ea5; border-radius: 4px; box-shadow: 8px 8px 0 rgba(0,0,0,0.2); display: flex; flex-direction: column; z-index: 2000; font-family: 'Press Start 2P', monospace; overflow: hidden; touch-action: none; }
         .xp-window .window-titlebar { background: linear-gradient(90deg, #0a246a, #3a7bd5); color: #fff; padding: 4px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-radius: 4px 4px 0 0; font-weight: bold; font-size: 12px; height: 44px; touch-action: none; pointer-events: auto; }
         .xp-window .window-titlebar .title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Press Start 2P', monospace; }
@@ -111,11 +113,16 @@
         .app-container .item-list { list-style: none; padding: 0; margin: 8px 0; }
         .app-container .item-list li { padding: 4px 8px; border-bottom: 1px solid #ccc; cursor: pointer; font-size: 12px; }
         .app-container .item-list li:hover { background: #d0d0d0; }
+
+        /* 图库 */
         .gallery-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
         .gallery-grid .img-item { position: relative; width: 120px; height: 120px; border: 2px solid #999; border-radius: 2px; overflow: hidden; background: #eee; }
         .gallery-grid .img-item img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
         .gallery-grid .img-item .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(200,0,0,0.8); color: #fff; border: none; border-radius: 2px; cursor: pointer; padding: 2px 6px; font-size: 12px; }
+
         #hint { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.5); font-size: 12px; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 4px; pointer-events: none; transition: opacity 1s; font-family: 'Press Start 2P', monospace; }
+
+        /* 弹窗 */
         .xp-modal-overlay { position: fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(2px); }
         .xp-modal { background:#ece9d8; border:2px solid #3a6ea5; border-radius:4px; padding:20px 24px; min-width:320px; max-width:90%; box-shadow:8px 8px 0 rgba(0,0,0,0.2); font-family:'Press Start 2P', monospace; }
         .xp-modal h3 { margin:0 0 12px 0; color:#0a246a; font-size:16px; }
@@ -125,7 +132,11 @@
         .xp-modal .modal-btns button { background:#ddd; border:2px outset #fff; padding:4px 16px; cursor:pointer; font-family:'Press Start 2P', monospace; }
         .xp-modal .modal-btns button:active { border-style:inset; }
         .xp-modal .modal-btns .primary { background:#3a7bd5; color:#fff; border-color:#1a4a9f; }
+
+        /* 壁纸预览 */
         .wallpaper-preview { width: 100%; height: 80px; border: 2px inset #ccc; background-size: cover; background-position: center; margin: 8px 0; transition: background 0.3s; }
+
+        /* 播放器 */
         .tape-player { background: #2a2a2a; border: 2px solid #444; border-radius: 4px; padding: 16px; box-shadow: 4px 4px 0 rgba(0,0,0,0.3); color: #eee; font-family: 'Press Start 2P', monospace; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; }
         .tape-player .tape-window { background: #0a0a0a; border: 2px solid #444; padding: 8px; display: flex; align-items: center; justify-content: space-between; }
         .tape-player .tape-window .reel { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #555, #222); border: 2px solid #444; position: relative; }
@@ -151,27 +162,38 @@
         .tape-player .playlist .pl-item:hover { background:#2a2a2a; color:#fff; }
         .tape-player .playlist .pl-item.active { color:#6a8a5a; font-weight:bold; }
         .tape-player .playlist.show { display:block; }
+
         ::-webkit-scrollbar { width: 12px; background: #ece9d8; }
         ::-webkit-scrollbar-thumb { background: #3a6ea5; border: 2px solid #0a246a; }
         ::-webkit-scrollbar-track { background: #ece9d8; }
+
+        /* 编辑器块 */
         .notion-block { display: flex; align-items: flex-start; gap: 6px; padding: 2px 0; }
         .notion-block .block-type { font-size: 12px; color: #888; min-width: 60px; }
         .notion-block .block-content { flex: 1; }
         .notion-block .block-content input { width: 100%; background: #fff; border: 1px solid #ccc; padding: 2px 4px; font-family: 'Press Start 2P', monospace; font-size: 11px; }
         .notion-block .block-del { cursor: pointer; color: #c00; font-size: 12px; }
+
+        /* 画图 */
         .paint-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; align-items: center; }
         .paint-toolbar button, .paint-toolbar input { font-family: 'Press Start 2P', monospace; font-size: 10px; }
         .paint-canvas-container { position: relative; border: 2px solid #999; background: #fff; touch-action: none; }
         .paint-canvas-container canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; touch-action: none; }
+
+        /* 漫画 */
         .comic-viewer { display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .comic-viewer .comic-page { max-width: 100%; border: 2px solid #999; }
         .comic-viewer .comic-page img { width: 100%; height: auto; image-rendering: pixelated; }
         .comic-viewer .comic-nav { display: flex; gap: 12px; align-items: center; }
+
+        /* 博客个人资料 */
         .blog-profile { display: flex; gap: 16px; align-items: flex-start; border-bottom: 2px solid #999; padding-bottom: 12px; margin-bottom: 12px; flex-wrap: wrap; }
         .blog-profile .avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid #3a6ea5; flex-shrink: 0; background: #ddd; }
         .blog-profile .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .blog-profile .info { flex: 1; min-width: 150px; }
         .blog-profile .info input, .blog-profile .info textarea { width: 100%; }
+
+        /* 移动端 */
         @media (max-width: 768px) {
             .xp-window { min-width: 90vw; max-width: 95vw; min-height: 50vh; max-height: 80vh; }
             .desktop-icons { gap: 16px 20px; padding: 12px; }
@@ -301,7 +323,7 @@
         };
 
         // ============================================================
-        // 宠物系统（支持尺寸调整）
+        // 宠物系统（完整修复：边界自适应）
         // ============================================================
         function getPetData() {
             try { return JSON.parse(localStorage.getItem('myPets') || '[]'); } catch (e) { return []; }
@@ -325,16 +347,29 @@
             const pets = getPetData();
             if (pets.length === 0) return;
 
+            const containerWidth = container.offsetWidth || window.innerWidth;
+            const containerHeight = container.offsetHeight || window.innerHeight;
+
             pets.forEach((petData, index) => {
                 const el = document.createElement('div');
                 el.className = 'pet-item pet-bounce';
-                el.style.left = (petData.x ?? 20 + Math.random() * 60) + '%';
-                el.style.top = (petData.y ?? 20 + Math.random() * 60) + '%';
                 const w = petData.width || 80;
                 const h = petData.height || 80;
                 el.style.width = w + 'px';
                 el.style.height = h + 'px';
                 el.dataset.index = index;
+
+                // 边界计算（百分比）
+                const maxLeft = 100 - (w / containerWidth) * 100;
+                const maxTop = 100 - (h / containerHeight) * 100;
+                let left = petData.x ?? (20 + Math.random() * 60);
+                let top = petData.y ?? (20 + Math.random() * 60);
+                left = Math.min(maxLeft - 1, Math.max(1, left));
+                top = Math.min(maxTop - 1, Math.max(1, top));
+                el.style.left = left + '%';
+                el.style.top = top + '%';
+                petData.x = left;
+                petData.y = top;
 
                 const bubbleText = petData.dialogs && petData.dialogs.length ? petData.dialogs.join('\n') : '你好！';
                 el.innerHTML = `
@@ -391,10 +426,16 @@
                 const onPointerMove = (e) => {
                     if (!instance.isDragging) return;
                     const containerRect = container.getBoundingClientRect();
-                    let newX = ((e.clientX - instance.dragOffsetX - containerRect.left) / containerRect.width) * 100;
-                    let newY = ((e.clientY - instance.dragOffsetY - containerRect.top) / containerRect.height) * 100;
-                    newX = Math.min(95, Math.max(5, newX));
-                    newY = Math.min(95, Math.max(5, newY));
+                    const petW = el.offsetWidth || 80;
+                    const petH = el.offsetHeight || 80;
+                    const cw = containerRect.width;
+                    const ch = containerRect.height;
+                    const maxLeft = 100 - (petW / cw) * 100;
+                    const maxTop = 100 - (petH / ch) * 100;
+                    let newX = ((e.clientX - instance.dragOffsetX - containerRect.left) / cw) * 100;
+                    let newY = ((e.clientY - instance.dragOffsetY - containerRect.top) / ch) * 100;
+                    newX = Math.min(maxLeft, Math.max(0, newX));
+                    newY = Math.min(maxTop, Math.max(0, newY));
                     el.style.left = newX + '%';
                     el.style.top = newY + '%';
                     instance.data.x = newX;
@@ -444,38 +485,49 @@
             }
             const containerWidth = container.offsetWidth || 1;
             const containerHeight = container.offsetHeight || 1;
+
             petInstances.forEach(inst => {
                 if (inst.isDragging) return;
+
                 if (Math.random() < 0.005) {
                     inst.dx = (Math.random() - 0.5) * 2;
                     inst.dy = (Math.random() - 0.5) * 2;
                     const len = Math.sqrt(inst.dx * inst.dx + inst.dy * inst.dy);
-                    if (len > 0) { inst.dx /= len;
-                        inst.dy /= len; }
+                    if (len > 0) { inst.dx /= len; inst.dy /= len; }
                 }
-                const speedPx = inst.speed;
-                let deltaX = inst.dx * speedPx;
-                let deltaY = inst.dy * speedPx;
-                let deltaXPercent = (deltaX / containerWidth) * 100;
-                let deltaYPercent = (deltaY / containerHeight) * 100;
+
+                const petW = inst.el.offsetWidth || 80;
+                const petH = inst.el.offsetHeight || 80;
+                const petWPercent = (petW / containerWidth) * 100;
+                const petHPercent = (petH / containerHeight) * 100;
+
+                const margin = 0.5;
+                const minLeft = margin;
+                const maxLeft = 100 - petWPercent - margin;
+                const minTop = margin;
+                const maxTop = 100 - petHPercent - margin;
+
                 let left = parseFloat(inst.el.style.left) || 20;
                 let top = parseFloat(inst.el.style.top) || 20;
+
+                const speedPx = inst.speed;
+                let deltaXPercent = (inst.dx * speedPx / containerWidth) * 100;
+                let deltaYPercent = (inst.dy * speedPx / containerHeight) * 100;
+
                 let newLeft = left + deltaXPercent;
                 let newTop = top + deltaYPercent;
-                const margin = 5;
-                if (newLeft < margin) { newLeft = margin;
-                    inst.dx = -inst.dx; }
-                if (newLeft > 100 - margin) { newLeft = 100 - margin;
-                    inst.dx = -inst.dx; }
-                if (newTop < margin) { newTop = margin;
-                    inst.dy = -inst.dy; }
-                if (newTop > 100 - margin) { newTop = 100 - margin;
-                    inst.dy = -inst.dy; }
+
+                if (newLeft < minLeft) { newLeft = minLeft; inst.dx = -inst.dx; }
+                if (newLeft > maxLeft) { newLeft = maxLeft; inst.dx = -inst.dx; }
+                if (newTop < minTop) { newTop = minTop; inst.dy = -inst.dy; }
+                if (newTop > maxTop) { newTop = maxTop; inst.dy = -inst.dy; }
+
                 inst.el.style.left = newLeft + '%';
                 inst.el.style.top = newTop + '%';
                 inst.data.x = newLeft;
                 inst.data.y = newTop;
             });
+
             petAnimationId = requestAnimationFrame(animatePets);
         }
 
@@ -516,16 +568,14 @@
             const pet = pets[idx];
             if (!pet) return;
             const newName = await window.xpPrompt('编辑名称', '新名称：', '', pet.name);
-            if (newName !== null) { pet.name = newName;
-                savePetData(pets); }
+            if (newName !== null) { pet.name = newName; savePetData(pets); }
         };
         window.editPetImage = async function(idx) {
             const pets = getPetData();
             const pet = pets[idx];
             if (!pet) return;
             const newImg = await window.xpPrompt('图片URL', 'URL：', '', pet.img);
-            if (newImg !== null) { pet.img = newImg;
-                savePetData(pets); }
+            if (newImg !== null) { pet.img = newImg; savePetData(pets); }
         };
         window.editPetDialogs = async function(idx) {
             const pets = getPetData();
@@ -737,10 +787,8 @@
         }
 
         // ============================================================
-        // 所有应用函数
+        // 应用：写作工坊
         // ============================================================
-
-        // ----- 1. 写作工坊 -----
         function createWritingWindow() {
             const id = 'writing';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -848,7 +896,9 @@
             renderNotes();
         }
 
-        // ----- 2. 聊天室 -----
+        // ============================================================
+        // 应用：聊天室
+        // ============================================================
         function createChatWindow() {
             const id = 'chat';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -933,7 +983,9 @@
             renderCharacters();
         }
 
-        // ----- 3. 博客（含头像简介）-----
+        // ============================================================
+        // 应用：个人博客（含头像简介）
+        // ============================================================
         function createBlogWindow() {
             const id = 'blog';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -981,7 +1033,9 @@
                 window.xpAlert('发布成功！'); };
         }
 
-        // ----- 4. 图库 -----
+        // ============================================================
+        // 应用：图库
+        // ============================================================
         function createGalleryWindow() {
             const id = 'gallery';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1036,7 +1090,9 @@
             renderGallery();
         }
 
-        // ----- 5. 画图 -----
+        // ============================================================
+        // 应用：画图
+        // ============================================================
         function createPaintWindow() {
             const id = 'paint';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1144,7 +1200,9 @@
                     img.src = saved; } }, 100);
         }
 
-        // ----- 6. 漫画 -----
+        // ============================================================
+        // 应用：漫画
+        // ============================================================
         function createComicWindow() {
             const id = 'comic';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1215,7 +1273,9 @@
             renderComic();
         }
 
-        // ----- 7. OC -----
+        // ============================================================
+        // 应用：OC
+        // ============================================================
         function createOCWindow() {
             const id = 'oc';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1289,7 +1349,9 @@
             renderPageList(); if (getOCData().pages.length > 0) openPage(0);
         }
 
-        // ----- 8. 播放器（关闭无错误）-----
+        // ============================================================
+        // 应用：音乐播放器（关闭无错误）
+        // ============================================================
         function createPlayerWindow() {
             const id = 'player';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1374,8 +1436,7 @@
             audio.addEventListener('loadedmetadata', () => { totalTimeEl.textContent = formatTime(audio.duration); });
             audio.addEventListener('ended', () => { nextSong(); if (isPlaying) setTimeout(() => audio.play().catch(() =>
                     {}), 100); });
-            audio.addEventListener('error', (e) => { console.warn('音频加载错误:', e); // 不弹窗
-             });
+            audio.addEventListener('error', (e) => { console.warn('音频加载错误:', e); });
             progress.addEventListener('input', () => { if (audio.duration) { const time = (progress.value / 100) *
                         audio.duration;
                     audio.currentTime = time; } });
@@ -1390,7 +1451,9 @@
             loadSong(0);
         }
 
-        // ----- 9. 设置 -----
+        // ============================================================
+        // 应用：设置
+        // ============================================================
         function createSettingsWindow() {
             const id = 'settings';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1455,7 +1518,7 @@
                 localStorage.setItem('wallpaper', JSON.stringify({ type: 'color', color: color }));
                 loadWallpaper();
                 window.xpAlert('颜色已应用'); };
-            // 宠物管理
+
             document.getElementById('addPetBtn').onclick = async () => { const name = await window.xpPrompt(
                     '添加宠物', '名称：', '小可爱'); if (name === null) return; const img = await window.xpPrompt(
                     '图片URL', 'URL', 'https://via.placeholder.com/100?text=Pet'); if (img === null) return; const
@@ -1478,11 +1541,12 @@
             renderPetListUI();
         }
 
-        // ----- 10. 关于 -----
+        // ============================================================
+        // 应用：关于、回收站
+        // ============================================================
         function createAboutWindow() { createWindow('about', '📄 关于',
                 `<div class="app-container"><h2>关于</h2><p>复古像素风桌面 v2.0 (平板优化版)</p></div>`, 400, 300); }
 
-        // ----- 11. 回收站 -----
         function createTrashWindow() { createWindow('trash', '🗑️ 回收站',
                 `<div class="app-container"><p>回收站是空的。</p></div>`, 400, 200); }
 
@@ -1570,7 +1634,7 @@
             }
         }
 
-        // 绑定UI事件
+        // 绑定UI
         document.getElementById('startBtn').addEventListener('click', (e) => { e.stopPropagation();
             document.getElementById('startMenu').classList.toggle('show'); });
         document.addEventListener('click', () => document.getElementById('startMenu').classList.remove('show'));
@@ -1627,7 +1691,7 @@
                 const roomGroup = new THREE.Group();
                 scene.add(roomGroup);
 
-                // 地板（纹理）
+                // 地板纹理
                 const woodTex = (() => { const c = document.createElement('canvas');
                     c.width = 256;
                     c.height = 256; const ctx = c.getContext('2d');
@@ -1780,7 +1844,7 @@
         }
 
         initThreeScene();
-        console.log('✅ 完整版已加载 (宠物尺寸、博客头像、播放器关闭修复)');
+        console.log('✅ 完整版已加载 (宠物边界修复、尺寸调整、博客头像、播放器关闭无错误)');
     </script>
 </body>
 </html>
