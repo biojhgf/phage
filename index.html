@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>复古 XP 桌面 · 字体图标版</title>
-    <!-- Font Awesome 图标库（稳定 CDN） -->
+    <title>复古 XP 桌面 · 完整版</title>
+    <!-- Font Awesome 图标库 -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
@@ -19,14 +19,14 @@
 
         /* 宠物容器（透明背景） */
         #pet-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
-        .pet-item { position: absolute; pointer-events: auto; cursor: grab; user-select: none; display: flex; align-items: center; justify-content: center; will-change: transform; touch-action: none; background: transparent !important; } /* 确保透明 */
-        .pet-item img { max-width: 100%; max-height: 100%; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; pointer-events: none; background: transparent !important; } /* 透明背景 */
+        .pet-item { position: absolute; pointer-events: auto; cursor: grab; user-select: none; display: flex; align-items: center; justify-content: center; will-change: transform; touch-action: none; background: transparent !important; }
+        .pet-item img { max-width: 100%; max-height: 100%; display: block; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); image-rendering: pixelated; pointer-events: none; background: transparent !important; }
         .pet-item .speech-bubble { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #ece9d8; border: 2px solid #3a6ea5; padding: 4px 10px; font-size: 12px; white-space: pre-wrap; box-shadow: 4px 4px 0 rgba(0,0,0,0.2); display: none; pointer-events: none; max-width: 200px; overflow: hidden; font-family: 'Press Start 2P', monospace; line-height: 1.4; z-index: 600; }
         .pet-item .speech-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ece9d8; }
         .pet-bounce { animation: petFloat 1.5s infinite alternate ease-in-out; }
         @keyframes petFloat { 0% { transform: translateY(0px); } 100% { transform: translateY(-6px); } }
 
-        /* ===== 桌面图标（使用 Font Awesome 字体图标） ===== */
+        /* ===== 桌面图标（Font Awesome 字体图标） ===== */
         .desktop-icons { flex: 1; padding: 20px 30px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 30px 40px; }
         .desktop-icon { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.7); text-align: center; padding: 4px; touch-action: manipulation; font-family: 'Press Start 2P', monospace; font-size: 10px; transition: all 0.2s ease; }
         .desktop-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -162,7 +162,6 @@
     <div id="desktop-overlay">
         <div id="pet-container"></div>
         <div class="desktop-icons">
-            <!-- 使用 Font Awesome 字体图标，保留文字标签 -->
             <div class="desktop-icon" data-window="oc"><i class="icon-img fas fa-user"></i><span class="icon-label">OC</span></div>
             <div class="desktop-icon" data-window="gallery"><i class="icon-img fas fa-images"></i><span class="icon-label">图库</span></div>
             <div class="desktop-icon" data-window="paint"><i class="icon-img fas fa-paint-brush"></i><span class="icon-label">画图</span></div>
@@ -734,10 +733,8 @@
         }
 
         // ============================================================
-        // 所有应用函数（完整）
+        // 应用：写作工坊（含作品删除、章节删除）
         // ============================================================
-
-        // ---- 写作工坊 ----
         function createWritingWindow() {
             const id = 'writing';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -753,13 +750,46 @@
 
             function saveWritingData(data) { localStorage.setItem('writingData', JSON.stringify(data)); }
 
-            function renderProjects() { const data = getWritingData(); const list = document.getElementById('projectList'); if (!
-                    list) return;
+            function renderProjects() {
+                const data = getWritingData();
+                const list = document.getElementById('projectList');
+                if (!list) return;
                 list.innerHTML = '';
-                data.projects.forEach((proj, idx) => { const li = document.createElement('li');
-                    li.textContent = proj.title + ' (' + (proj.chapters ? proj.chapters.length : 0) + '章)';
-                    li.onclick = () => openProject(idx);
-                    list.appendChild(li); }); }
+                data.projects.forEach((proj, idx) => {
+                    const li = document.createElement('li');
+                    li.style.display = 'flex';
+                    li.style.justifyContent = 'space-between';
+                    li.style.alignItems = 'center';
+                    const titleSpan = document.createElement('span');
+                    titleSpan.textContent = proj.title + ' (' + (proj.chapters ? proj.chapters.length : 0) + '章)';
+                    titleSpan.style.cursor = 'pointer';
+                    titleSpan.onclick = () => openProject(idx);
+                    li.appendChild(titleSpan);
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '✕';
+                    delBtn.style.background = 'none';
+                    delBtn.style.border = 'none';
+                    delBtn.style.color = '#c00';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.style.fontSize = '14px';
+                    delBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const confirm = await window.showXpModal({ title: '确认删除', message: `确定删除作品“${proj.title}”及其所有章节？`, confirmText: '删除', cancelText: '取消' });
+                        if (!confirm) return;
+                        const data2 = getWritingData();
+                        data2.projects.splice(idx, 1);
+                        saveWritingData(data2);
+                        renderProjects();
+                        const editor = document.getElementById('writingEditor');
+                        if (editor && window._writingState && window._writingState.projectIdx === idx) {
+                            editor.innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
+                            window._writingState = null;
+                        }
+                    };
+                    li.appendChild(delBtn);
+                    list.appendChild(li);
+                });
+            }
 
             function renderNotes() { const data = getWritingData(); const list = document.getElementById('noteList'); if (!list)
                     return;
@@ -769,56 +799,98 @@
                     li.onclick = () => openNote(idx);
                     list.appendChild(li); }); }
 
-            function openProject(idx) { const data = getWritingData(); const proj = data.projects[idx]; if (!proj) return; const
-                    editor = document.getElementById('writingEditor'); if (!editor) return; let html =
-                    `<h3>${proj.title}</h3><button id="addChapterBtn">+ 添加章节</button><ul class="item-list" id="chapterList">`;
-                proj.chapters.forEach((ch, ci) => { html +=
-                        `<li onclick="window.openChapter(${idx}, ${ci})">${ch.title || '无标题章节'}</li>`; });
-                html +=
-                    `</ul><hr /><div id="chapterEditor" style="border:1px solid #ccc; padding:8px; min-height:120px;"><p style="color:#888;">点击章节编辑</p></div><button id="saveChapterBtn">保存当前章节</button><button id="deleteProjectBtn" style="color:red;">删除作品</button>`;
-                editor.innerHTML = html;
+            function openProject(idx) {
+                const data = getWritingData();
+                const proj = data.projects[idx];
+                if (!proj) return;
+                const editor = document.getElementById('writingEditor');
+                if (!editor) return;
+
                 window._writingState = { projectIdx: idx, chapterIdx: -1 };
-                document.getElementById('addChapterBtn').onclick = async () => { const title = await window.xpPrompt(
-                        '添加章节', '章节标题：', '输入标题'); if (title === null) return; const data2 = getWritingData(); const
-                        proj2 = data2.projects[idx]; if (!proj2) return;
+
+                let html = `<h3>${proj.title}</h3><button id="addChapterBtn">+ 添加章节</button><ul class="item-list" id="chapterList">`;
+                proj.chapters.forEach((ch, ci) => {
+                    html += `<li style="display:flex; justify-content:space-between; align-items:center;">
+                                <span onclick="window.openChapter(${idx}, ${ci})" style="cursor:pointer; flex:1;">${ch.title || '无标题章节'}</span>
+                                <button onclick="window.deleteChapter(${idx}, ${ci})" style="background:none; border:none; color:#c00; cursor:pointer; font-size:14px;">✕</button>
+                            </li>`;
+                });
+                html += `</ul><hr /><div id="chapterEditor" style="border:1px solid #ccc; padding:8px; min-height:120px;"><p style="color:#888;">点击章节编辑</p></div>
+                         <button id="saveChapterBtn">保存当前章节</button>
+                         <button id="deleteProjectBtn" style="color:red;">删除整个作品</button>`;
+                editor.innerHTML = html;
+
+                document.getElementById('addChapterBtn').onclick = async () => {
+                    const title = await window.xpPrompt('添加章节', '章节标题：', '输入标题');
+                    if (title === null) return;
+                    const data2 = getWritingData();
+                    const proj2 = data2.projects[idx];
+                    if (!proj2) return;
                     proj2.chapters.push({ title: title || '无标题', content: '' });
                     saveWritingData(data2);
-                    openProject(idx); };
-                document.getElementById('saveChapterBtn').onclick = () => { const data2 = getWritingData(); const proj2 =
-                        data2.projects[idx]; if (!proj2) return; const state = window._writingState; if (!state || state
-                        .chapterIdx === undefined || state.chapterIdx < 0) { window.xpAlert('请先打开一个章节'); return; }
-                    const ch = proj2.chapters[state.chapterIdx]; if (!ch) return; const titleInput = document
-                        .getElementById('chTitle'); const contentInput = document.getElementById('chContent'); if (
-                        titleInput) ch.title = titleInput.value; if (contentInput) ch.content = contentInput.value;
+                    openProject(idx);
+                };
+
+                document.getElementById('saveChapterBtn').onclick = () => {
+                    const data2 = getWritingData();
+                    const proj2 = data2.projects[idx];
+                    if (!proj2) return;
+                    const state = window._writingState;
+                    if (!state || state.chapterIdx === undefined || state.chapterIdx < 0) {
+                        window.xpAlert('请先打开一个章节');
+                        return;
+                    }
+                    const ch = proj2.chapters[state.chapterIdx];
+                    if (!ch) return;
+                    const titleInput = document.getElementById('chTitle');
+                    const contentInput = document.getElementById('chContent');
+                    if (titleInput) ch.title = titleInput.value;
+                    if (contentInput) ch.content = contentInput.value;
                     saveWritingData(data2);
                     window.xpAlert('章节已保存！');
-                    openProject(idx); };
-                document.getElementById('deleteProjectBtn').onclick = async () => { const confirm = await window
-                        .showXpModal({ title: '确认删除', message: '确定删除此作品及其所有章节？', confirmText: '删除',
-                            cancelText: '取消' }); if (!confirm) return; const data2 = getWritingData();
+                    openProject(idx);
+                };
+
+                document.getElementById('deleteProjectBtn').onclick = async () => {
+                    const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此作品及其所有章节？', confirmText: '删除', cancelText: '取消' });
+                    if (!confirm) return;
+                    const data2 = getWritingData();
                     data2.projects.splice(idx, 1);
                     saveWritingData(data2);
                     renderProjects();
-                    document.getElementById('writingEditor').innerHTML =
-                        '<p style="color:#888;">选择作品或备忘开始编辑</p>'; }; }
-            window.openChapter = function(projIdx, chIdx) { const data = getWritingData(); const proj = data.projects[
-                projIdx]; if (!proj) return; const ch = proj.chapters[chIdx]; if (!ch) return; const editor = document
-                    .getElementById('chapterEditor'); if (!editor) return;
-                editor.innerHTML =
-                    `<input type="text" id="chTitle" value="${ch.title || ''}" placeholder="章节标题" style="width:100%;" /><textarea id="chContent" rows="8" style="width:100%; margin-top:6px;">${ch.content || ''}</textarea>`;
-                window._writingState = { projectIdx: projIdx, chapterIdx: chIdx }; };
-            document.getElementById('writingAddProjectBtn').onclick = async () => { const title = await window.xpPrompt(
-                    '新建作品', '作品名称：', '输入作品名'); if (title === null) return; const data = getWritingData();
-                data.projects.push({ title: title || '未命名', chapters: [] });
-                saveWritingData(data);
-                renderProjects(); };
-            document.getElementById('writingAddNoteBtn').onclick = async () => { const title = await window.xpPrompt(
-                    '新建备忘', '备忘标题：', '输入标题'); if (title === null) return; const data = getWritingData();
-                data.notes.push({ title: title || '备忘', content: '', timestamp: new Date().toLocaleString() });
-                saveWritingData(data);
-                renderNotes();
-                const newIdx = data.notes.length - 1;
-                openNote(newIdx); };
+                    document.getElementById('writingEditor').innerHTML = '<p style="color:#888;">选择作品或备忘开始编辑</p>';
+                    window._writingState = null;
+                };
+
+                window.openChapter = function(projIdx, chIdx) {
+                    const data = getWritingData();
+                    const proj = data.projects[projIdx];
+                    if (!proj) return;
+                    const ch = proj.chapters[chIdx];
+                    if (!ch) return;
+                    const editor = document.getElementById('chapterEditor');
+                    if (!editor) return;
+                    editor.innerHTML = `<input type="text" id="chTitle" value="${ch.title || ''}" placeholder="章节标题" style="width:100%;" />
+                                      <textarea id="chContent" rows="8" style="width:100%; margin-top:6px;">${ch.content || ''}</textarea>`;
+                    window._writingState = { projectIdx: projIdx, chapterIdx: chIdx };
+                };
+
+                window.deleteChapter = async function(projIdx, chIdx) {
+                    const confirm = await window.showXpModal({ title: '确认删除', message: '确定删除此章节？', confirmText: '删除', cancelText: '取消' });
+                    if (!confirm) return;
+                    const data2 = getWritingData();
+                    const proj2 = data2.projects[projIdx];
+                    if (!proj2) return;
+                    proj2.chapters.splice(chIdx, 1);
+                    saveWritingData(data2);
+                    if (window._writingState && window._writingState.projectIdx === projIdx && window._writingState.chapterIdx === chIdx) {
+                        const editor = document.getElementById('chapterEditor');
+                        if (editor) editor.innerHTML = '<p style="color:#888;">点击章节编辑</p>';
+                        window._writingState.chapterIdx = -1;
+                    }
+                    openProject(projIdx);
+                };
+            }
 
             function openNote(idx) { const data = getWritingData(); const note = data.notes[idx]; if (!note) return; const
                     editor = document.getElementById('writingEditor'); if (!editor) return;
@@ -841,11 +913,33 @@
                     renderNotes();
                     document.getElementById('writingEditor').innerHTML =
                         '<p style="color:#888;">选择作品或备忘开始编辑</p>'; }; }
+
+            document.getElementById('writingAddProjectBtn').onclick = async () => {
+                const title = await window.xpPrompt('新建作品', '作品名称：', '输入作品名');
+                if (title === null) return;
+                const data = getWritingData();
+                data.projects.push({ title: title || '未命名', chapters: [] });
+                saveWritingData(data);
+                renderProjects();
+            };
+            document.getElementById('writingAddNoteBtn').onclick = async () => {
+                const title = await window.xpPrompt('新建备忘', '备忘标题：', '输入标题');
+                if (title === null) return;
+                const data = getWritingData();
+                data.notes.push({ title: title || '备忘', content: '', timestamp: new Date().toLocaleString() });
+                saveWritingData(data);
+                renderNotes();
+                const newIdx = data.notes.length - 1;
+                openNote(newIdx);
+            };
+
             renderProjects();
             renderNotes();
         }
 
-        // ---- 聊天室 ----
+        // ============================================================
+        // 应用：聊天室（含删除房间、删除角色）
+        // ============================================================
         function createChatWindow() {
             const id = 'chat';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -863,26 +957,99 @@
 
             function saveChatData(data) { localStorage.setItem('chatData', JSON.stringify(data)); }
 
-            function renderRooms() { const data = getChatData(); const list = document.getElementById('roomList'); if (!list)
-                    return;
+            function renderRooms() {
+                const data = getChatData();
+                const list = document.getElementById('roomList');
+                if (!list) return;
                 list.innerHTML = '';
-                data.rooms.forEach((room, idx) => { const li = document.createElement('li');
-                    li.textContent = room.name || '未命名房间';
-                    li.onclick = () => openRoom(idx);
-                    list.appendChild(li); }); }
+                data.rooms.forEach((room, idx) => {
+                    const li = document.createElement('li');
+                    li.style.display = 'flex';
+                    li.style.justifyContent = 'space-between';
+                    li.style.alignItems = 'center';
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = room.name || '未命名房间';
+                    nameSpan.style.cursor = 'pointer';
+                    nameSpan.onclick = () => openRoom(idx);
+                    li.appendChild(nameSpan);
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '✕';
+                    delBtn.style.background = 'none';
+                    delBtn.style.border = 'none';
+                    delBtn.style.color = '#c00';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.style.fontSize = '14px';
+                    delBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const confirm = await window.showXpModal({ title: '确认删除', message: `确定删除房间“${room.name}”及其所有消息？`, confirmText: '删除', cancelText: '取消' });
+                        if (!confirm) return;
+                        const data2 = getChatData();
+                        data2.rooms.splice(idx, 1);
+                        saveChatData(data2);
+                        renderRooms();
+                        if (currentRoomIdx === idx) {
+                            currentRoomIdx = -1;
+                            const view = document.getElementById('chatView');
+                            if (view) view.innerHTML = '<p style="color:#888;">选择一个聊天室开始</p>';
+                        } else if (currentRoomIdx > idx) {
+                            currentRoomIdx--;
+                        }
+                    };
+                    li.appendChild(delBtn);
+                    list.appendChild(li);
+                });
+            }
 
-            function renderCharacters() { const data = getChatData(); const list = document.getElementById('charList'); if (!
-                    list) return;
+            function renderCharacters() {
+                const data = getChatData();
+                const list = document.getElementById('charList');
+                if (!list) return;
                 list.innerHTML = '';
-                data.characters.forEach((ch, idx) => { const li = document.createElement('li');
-                    li.textContent = ch.name + ' (' + ch.color + ')';
-                    li.onclick = () => editCharacter(idx);
-                    list.appendChild(li); });
-                const select = document.getElementById('chatCharacterSelect'); if (select) { select.innerHTML = '';
-                    data.characters.forEach((ch, idx) => { const opt = document.createElement('option');
+                data.characters.forEach((ch, idx) => {
+                    const li = document.createElement('li');
+                    li.style.display = 'flex';
+                    li.style.justifyContent = 'space-between';
+                    li.style.alignItems = 'center';
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = ch.name + ' (' + ch.color + ')';
+                    nameSpan.style.cursor = 'pointer';
+                    nameSpan.onclick = () => editCharacter(idx);
+                    li.appendChild(nameSpan);
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '✕';
+                    delBtn.style.background = 'none';
+                    delBtn.style.border = 'none';
+                    delBtn.style.color = '#c00';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.style.fontSize = '14px';
+                    delBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const confirm = await window.showXpModal({ title: '确认删除', message: `确定删除角色“${ch.name}”？`, confirmText: '删除', cancelText: '取消' });
+                        if (!confirm) return;
+                        const data2 = getChatData();
+                        data2.characters.splice(idx, 1);
+                        saveChatData(data2);
+                        renderCharacters();
+                        const select = document.getElementById('chatCharacterSelect');
+                        if (select && select.value == idx) {
+                            select.selectedIndex = 0;
+                        }
+                    };
+                    li.appendChild(delBtn);
+                    list.appendChild(li);
+                });
+                const select = document.getElementById('chatCharacterSelect');
+                if (select) {
+                    select.innerHTML = '';
+                    data.characters.forEach((ch, idx) => {
+                        const opt = document.createElement('option');
                         opt.value = idx;
                         opt.textContent = ch.name;
-                        select.appendChild(opt); }); } }
+                        select.appendChild(opt);
+                    });
+                }
+            }
+
             document.getElementById('chatAddRoomBtn').onclick = async () => { const name = await window.xpPrompt(
                     '新建聊天室', '聊天室名称：', '输入名称'); if (name === null) return; const data = getChatData();
                 data.rooms.push({ name: name || '新房间', messages: [] });
@@ -930,7 +1097,9 @@
             renderCharacters();
         }
 
-        // ---- 个人博客 ----
+        // ============================================================
+        // 应用：个人博客（已有删除功能）
+        // ============================================================
         function createBlogWindow() {
             const id = 'blog';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -978,7 +1147,9 @@
                 window.xpAlert('发布成功！'); };
         }
 
-        // ---- 图库 ----
+        // ============================================================
+        // 应用：图库（已有删除功能）
+        // ============================================================
         function createGalleryWindow() {
             const id = 'gallery';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1033,7 +1204,9 @@
             renderGallery();
         }
 
-        // ---- 画图 ----
+        // ============================================================
+        // 应用：画图（已有功能）
+        // ============================================================
         function createPaintWindow() {
             const id = 'paint';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1141,7 +1314,9 @@
                     img.src = saved; } }, 100);
         }
 
-        // ---- 漫画 ----
+        // ============================================================
+        // 应用：漫画（已有清空功能）
+        // ============================================================
         function createComicWindow() {
             const id = 'comic';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1212,7 +1387,9 @@
             renderComic();
         }
 
-        // ---- OC ----
+        // ============================================================
+        // 应用：OC（含删除页面）
+        // ============================================================
         function createOCWindow() {
             const id = 'oc';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1230,13 +1407,48 @@
 
             function saveOCData(data) { localStorage.setItem('ocData', JSON.stringify(data)); }
 
-            function renderPageList() { const data = getOCData(); const list = document.getElementById('ocPageList'); if (!
-                    list) return;
+            function renderPageList() {
+                const data = getOCData();
+                const list = document.getElementById('ocPageList');
+                if (!list) return;
                 list.innerHTML = '';
-                data.pages.forEach((page, idx) => { const li = document.createElement('li');
-                    li.textContent = page.title || `页面${idx+1}`;
-                    li.onclick = () => openPage(idx);
-                    list.appendChild(li); }); }
+                data.pages.forEach((page, idx) => {
+                    const li = document.createElement('li');
+                    li.style.display = 'flex';
+                    li.style.justifyContent = 'space-between';
+                    li.style.alignItems = 'center';
+                    const titleSpan = document.createElement('span');
+                    titleSpan.textContent = page.title || `页面${idx+1}`;
+                    titleSpan.style.cursor = 'pointer';
+                    titleSpan.onclick = () => openPage(idx);
+                    li.appendChild(titleSpan);
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '✕';
+                    delBtn.style.background = 'none';
+                    delBtn.style.border = 'none';
+                    delBtn.style.color = '#c00';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.style.fontSize = '14px';
+                    delBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const confirm = await window.showXpModal({ title: '确认删除', message: `确定删除页面“${page.title || '未命名'}”及其所有内容？`, confirmText: '删除', cancelText: '取消' });
+                        if (!confirm) return;
+                        const data2 = getOCData();
+                        data2.pages.splice(idx, 1);
+                        saveOCData(data2);
+                        renderPageList();
+                        if (currentPageIdx === idx) {
+                            currentPageIdx = -1;
+                            const editor = document.getElementById('ocEditor');
+                            if (editor) editor.innerHTML = '<p style="color:#888;">选择或新建页面开始编辑</p>';
+                        } else if (currentPageIdx > idx) {
+                            currentPageIdx--;
+                        }
+                    };
+                    li.appendChild(delBtn);
+                    list.appendChild(li);
+                });
+            }
 
             function openPage(idx) { currentPageIdx = idx; const data = getOCData(); const page = data.pages[idx]; if (!
                     page) return; const editor = document.getElementById('ocEditor'); if (!editor) return; let html =
@@ -1286,7 +1498,9 @@
             renderPageList(); if (getOCData().pages.length > 0) openPage(0);
         }
 
-        // ---- 音乐播放器 ----
+        // ============================================================
+        // 应用：音乐播放器
+        // ============================================================
         function createPlayerWindow() {
             const id = 'player';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1386,7 +1600,9 @@
             loadSong(0);
         }
 
-        // ---- 设置 ----
+        // ============================================================
+        // 应用：设置（已有宠物管理）
+        // ============================================================
         function createSettingsWindow() {
             const id = 'settings';
             if (window._windowInstances[id]) { const win = window._windowInstances[id];
@@ -1502,7 +1718,9 @@
             renderPetListUI();
         }
 
-        // ---- 关于、回收站 ----
+        // ============================================================
+        // 应用：关于、回收站
+        // ============================================================
         function createAboutWindow() { createWindow('about', '📄 关于',
                 `<div class="app-container"><h2>关于</h2><p>复古 XP 桌面 · 字体图标版</p></div>`, 400, 300); }
 
@@ -1818,7 +2036,7 @@
         }
 
         initThreeScene();
-        console.log('✅ 完整版已加载 (图标字体版)');
+        console.log('✅ 完整版已加载（含全部删除功能）');
     </script>
 </body>
 </html>
